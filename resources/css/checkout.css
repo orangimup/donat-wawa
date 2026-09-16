@@ -1,0 +1,410 @@
+.checkout-page {
+    padding: 96px 24px 320px;
+}
+
+body.page-checkout {
+    background: #fff;
+}
+
+.checkout-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 24px;
+    margin-bottom: 24px;
+}
+
+.checkout-header h1 {
+    font-family: var(--font-headline);
+    color: var(--text-dark);
+    margin: 0;
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+}
+
+.checkout-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--maroon);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.checkout-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    color: var(--text-muted);
+}
+
+.checkout-empty[hidden] {
+    display: none;
+}
+
+.checkout-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.checkout-layout[hidden] {
+    display: none;
+}
+
+.checkout-card {
+    border: 1.5px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 24px;
+}
+
+.checkout-card h2 {
+    font-size: 1.1rem;
+    margin: 0 0 18px;
+    color: var(--text-dark);
+}
+
+/* ===== Order Summary ===== */
+.checkout-items {
+    display: flex;
+    flex-direction: column;
+}
+
+.checkout-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.checkout-item:first-child {
+    padding-top: 0;
+}
+
+.checkout-item img {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.checkout-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-right: auto;
+}
+
+.checkout-item-info strong {
+    color: var(--text-dark);
+}
+
+.checkout-item-info > span {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.checkout-item-info .qty-stepper {
+    margin-top: 2px;
+}
+
+.checkout-item-qty {
+    display: inline-block;
+    width: 28px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.checkout-item-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 18px;
+    flex-shrink: 0;
+}
+
+.checkout-item-remove {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.checkout-item-remove:hover {
+    color: var(--maroon);
+}
+
+.checkout-item-total {
+    color: var(--text-dark);
+}
+
+.checkout-totals {
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.checkout-totals-row {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+}
+
+.checkout-totals-final {
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-soft);
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-dark);
+}
+
+.checkout-totals-final span:last-child {
+    color: var(--maroon);
+}
+
+/* ===== Customer & Delivery Details ===== */
+.checkout-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.checkout-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.checkout-field-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.checkout-field input[type="text"],
+.checkout-field input[type="email"],
+.checkout-field input[type="tel"],
+.checkout-field textarea {
+    border: 1.5px solid var(--border-soft);
+    background: var(--secondary);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    color: var(--text-dark);
+    resize: none;
+}
+
+.checkout-field input:focus,
+.checkout-field textarea:focus,
+.checkout-field select:focus {
+    outline: none;
+    border-color: var(--maroon);
+}
+
+.checkout-field-icon {
+    position: relative;
+}
+
+.checkout-field-icon svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.checkout-field-icon input {
+    width: 100%;
+    padding-left: 40px !important;
+}
+
+/* ===== Delivery Time cards ===== */
+.delivery-option {
+    border: 1.5px solid var(--border-soft);
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.delivery-option.is-selected {
+    background: #fdeaea;
+    border-color: #e7b3b3;
+}
+
+.delivery-option-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--text-dark);
+}
+
+.delivery-option-head svg {
+    color: var(--maroon);
+}
+
+.delivery-option p {
+    margin: 4px 0 8px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.delivery-option-price {
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.delivery-schedule {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+    padding: 14px 14px;
+    border: 1.5px dashed #e7b3b3;
+    border-radius: 16px;
+    overflow: hidden;
+    max-height: 140px;
+    opacity: 1;
+    transition: max-height 0.28s ease, opacity 0.22s ease, margin-top 0.28s ease, padding 0.28s ease;
+    scroll-margin-bottom: 140px;
+}
+
+.delivery-schedule[hidden] {
+    display: grid;
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-color: transparent;
+    pointer-events: none;
+}
+
+.delivery-schedule label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* --- Date & time controls: styled to match theme --- */
+.delivery-schedule input[type="date"],
+.delivery-schedule select {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 1.5px solid #e7b3b3;
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    accent-color: var(--maroon);
+    color-scheme: light;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.delivery-schedule input[type="date"]:hover,
+.delivery-schedule select:hover {
+    border-color: var(--maroon);
+}
+
+.delivery-schedule input[type="date"]:focus,
+.delivery-schedule select:focus {
+    outline: none;
+    border-color: var(--maroon);
+    box-shadow: 0 0 0 3px rgba(160, 40, 40, 0.12);
+}
+
+/* Recolor the calendar icon to maroon instead of default gray/black */
+.delivery-schedule input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(21%) sepia(64%) saturate(1526%) hue-rotate(325deg) brightness(85%) contrast(89%);
+    cursor: pointer;
+    opacity: 0.85;
+}
+
+.delivery-schedule input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* Custom dropdown arrow for the select (replaces default browser arrow) */
+.delivery-schedule select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23a02828' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+
+.checkout-payment-bar {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 20px;
+    width: 90%;
+    max-width: 800px;
+    z-index: 40;
+    background: #fff;
+    border: 1px solid rgba(220, 192, 191, 0.3);
+    border-radius: 20px;
+    box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1);
+    padding: 16px 0;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+}
+
+.checkout-payment-bar[hidden] {
+    display: none;
+}
+
+.checkout-payment-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: none;
+    padding: 0 24px;
+    margin: 0;
+}
+
+.checkout-payment-label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.checkout-payment-inner strong {
+    display: block;
+    color: var(--maroon);
+    font-size: 1.3rem;
+    font-weight: 800;
+}
+
+.checkout-pay-btn {
+    padding: 12px 24px;
+    width: auto;
+    white-space: nowrap;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 860px) {
+    .checkout-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .delivery-schedule {
+        grid-template-columns: 1fr;
+    }
+}
