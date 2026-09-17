@@ -50,10 +50,10 @@
             <div class="checkout-card">
                 <h2>Customer &amp; Delivery Details</h2>
 
-                <form class="checkout-form" onsubmit="return false;">
+                <form class="checkout-form" id="checkoutForm" onsubmit="return false;">
                     <label class="checkout-field">
-                        <span class="checkout-field-label">Full Name</span>
-                        <input type="text" name="name" placeholder="Enter your full name" value="{{ auth()->user()->name ?? '' }}">
+                        <span class="checkout-field-label">Full Name<span class="required-mark">*</span></span>
+                        <input type="text" name="name" placeholder="Enter your full name" value="{{ auth()->user()->name ?? '' }}" required>
                     </label>
 
                     <label class="checkout-field">
@@ -65,16 +65,16 @@
                     </label>
 
                     <label class="checkout-field">
-                        <span class="checkout-field-label">Phone Number</span>
+                        <span class="checkout-field-label">Phone Number<span class="required-mark">*</span></span>
                         <div class="checkout-field-icon">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                            <input type="tel" name="phone" placeholder="08xx xxxx xxxx" value="{{ auth()->user()->phone ?? '' }}">
+                            <input type="tel" name="phone" placeholder="08xx xxxx xxxx" value="{{ auth()->user()->phone ?? '' }}" pattern="[0-9+\s-]{8,15}" required>
                         </div>
                     </label>
 
                     <label class="checkout-field">
-                        <span class="checkout-field-label">Delivery Address</span>
-                        <textarea name="address" rows="3" placeholder="Delivery address details...">{{ auth()->user()->address ?? '' }}</textarea>
+                        <span class="checkout-field-label">Delivery Address<span class="required-mark">*</span></span>
+                        <textarea name="address" rows="3" placeholder="Delivery address details..." required>{{ auth()->user()->address ?? '' }}</textarea>
                     </label>
 
                     <div class="checkout-field">
@@ -241,12 +241,24 @@
             });
 
             document.getElementById('checkoutPayBtn').addEventListener('click', function () {
+                const form = document.getElementById('checkoutForm');
+
+                // Kalau delivery preorder dipilih, jadwal wajib diisi juga.
+                const dateInput = form.querySelector('[name="delivery_date"]');
+                if (deliveryMethod === 'preorder') {
+                    dateInput.required = true;
+                } else {
+                    dateInput.required = false;
+                }
+
+                if (!form.reportValidity()) {
+                    // Browser otomatis nampilin & fokus ke field yang masih kosong/invalid.
+                    return;
+                }
+
                 alert('Payment & saving the order to the database is not available yet — this is only the FE page.');
             });
 
-            // Sync basket in sessionStorage with the latest data from the database
-            // (price/name/image may have changed since the item was added,
-            // or the product may have been deleted/out of stock).
             function syncBasketWithDatabase() {
                 const items = DonatBasket.getItems();
                 if (items.length === 0) {

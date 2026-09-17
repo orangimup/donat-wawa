@@ -8,15 +8,10 @@
 
 @section('content')
 
-    <div class="product-page-wrap">
+    <div class="product-page-wrap reviews-standalone-wrap">
 
         <section class="reviews-section reviews-full-page">
             <div class="container-ww">
-                <a href="{{ route('product.show', $product->slug) }}" class="reviews-back-link">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
-                    Back to {{ $product->name }}
-                </a>
-
                 <div class="reviews-page-header">
                     <h1 class="reviews-title">Customer Reviews</h1>
                     <p class="reviews-page-product-info">{{ $product->name }} &bull; 128 Reviews total</p>
@@ -123,6 +118,8 @@
                         <div class="reviews-modal-empty" id="pageReviewsEmpty" style="display: none;">
                             <p>No reviews found for this rating filter.</p>
                         </div>
+
+                        <nav class="reviews-pagination" id="pageReviewsPagination" aria-label="Reviews pagination"></nav>
                     </div>
                 </div>
             </div>
@@ -135,33 +132,99 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const PAGE_SIZE = 8;
+
             const pills = document.querySelectorAll('#pageFilterPills .review-filter-pill');
-            const cards = document.querySelectorAll('#pageReviewsList .review-card');
+            const cards = Array.from(document.querySelectorAll('#pageReviewsList .review-card'));
             const emptyEl = document.getElementById('pageReviewsEmpty');
+            const paginationEl = document.getElementById('pageReviewsPagination');
+
+            let currentFilter = 'all';
+            let currentPage = 1;
+
+            function getFilteredCards() {
+                return cards.filter(function (card) {
+                    return currentFilter === 'all' || card.dataset.rating === currentFilter;
+                });
+            }
+
+            function renderPagination(totalItems) {
+                paginationEl.innerHTML = '';
+                const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+                if (totalPages <= 1) return;
+
+                function makeBtn(label, page, opts) {
+                    opts = opts || {};
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'review-page-btn' + (opts.active ? ' active' : '') + (opts.nav ? ' review-page-nav' : '');
+                    btn.textContent = label;
+                    btn.disabled = !!opts.disabled;
+                    if (!opts.disabled && !opts.active) {
+                        btn.addEventListener('click', function () {
+                            currentPage = page;
+                            renderPage();
+                            document.getElementById('pageReviewsList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        });
+                    }
+                    return btn;
+                }
+
+                function makeEllipsis() {
+                    const span = document.createElement('span');
+                    span.className = 'review-page-ellipsis';
+                    span.textContent = '…';
+                    return span;
+                }
+
+                paginationEl.appendChild(makeBtn('‹', currentPage - 1, { nav: true, disabled: currentPage === 1 }));
+
+                const pagesToShow = new Set([1, totalPages, currentPage, currentPage - 1, currentPage + 1]);
+                let lastRendered = 0;
+
+                Array.from(pagesToShow)
+                    .filter(function (p) { return p >= 1 && p <= totalPages; })
+                    .sort(function (a, b) { return a - b; })
+                    .forEach(function (p) {
+                        if (lastRendered && p - lastRendered > 1) {
+                            paginationEl.appendChild(makeEllipsis());
+                        }
+                        paginationEl.appendChild(makeBtn(String(p), p, { active: p === currentPage }));
+                        lastRendered = p;
+                    });
+
+                paginationEl.appendChild(makeBtn('›', currentPage + 1, { nav: true, disabled: currentPage === totalPages }));
+            }
+
+            function renderPage() {
+                const filtered = getFilteredCards();
+                const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+                if (currentPage > totalPages) currentPage = totalPages;
+
+                const start = (currentPage - 1) * PAGE_SIZE;
+                const end = start + PAGE_SIZE;
+
+                cards.forEach(function (card) { card.style.display = 'none'; });
+                filtered.slice(start, end).forEach(function (card) { card.style.display = ''; });
+
+                if (emptyEl) {
+                    emptyEl.style.display = filtered.length === 0 ? 'block' : 'none';
+                }
+
+                renderPagination(filtered.length);
+            }
 
             pills.forEach(function (pill) {
                 pill.addEventListener('click', function () {
                     pills.forEach(p => p.classList.remove('active'));
                     this.classList.add('active');
-
-                    const filter = this.dataset.filter;
-                    let count = 0;
-
-                    cards.forEach(function (card) {
-                        const rating = card.dataset.rating;
-                        if (filter === 'all' || rating === filter) {
-                            card.style.display = '';
-                            count++;
-                        } else {
-                            card.style.display = 'none';
-                        }
-                    });
-
-                    if (emptyEl) {
-                        emptyEl.style.display = count === 0 ? 'block' : 'none';
-                    }
+                    currentFilter = this.dataset.filter;
+                    currentPage = 1;
+                    renderPage();
                 });
             });
+
+            renderPage();
         });
     </script>
 @endpush

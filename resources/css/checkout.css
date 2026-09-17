@@ -1,5 +1,5 @@
 .checkout-page {
-    padding: 96px 24px 320px;
+    padding: 0px 24px 320px;
 }
 
 body.page-checkout {
@@ -191,6 +191,11 @@ body.page-checkout {
     color: var(--text-muted);
 }
 
+.checkout-field-label .required-mark {
+    color: var(--maroon);
+    margin-left: 2px;
+}
+
 .checkout-field input[type="text"],
 .checkout-field input[type="email"],
 .checkout-field input[type="tel"],
@@ -236,7 +241,9 @@ body.page-checkout {
     padding: 16px;
     margin-top: 10px;
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
 }
 
 .delivery-option.is-selected {
@@ -277,7 +284,11 @@ body.page-checkout {
     overflow: hidden;
     max-height: 140px;
     opacity: 1;
-    transition: max-height 0.28s ease, opacity 0.22s ease, margin-top 0.28s ease, padding 0.28s ease;
+    transition:
+        max-height 0.28s ease,
+        opacity 0.22s ease,
+        margin-top 0.28s ease,
+        padding 0.28s ease;
     scroll-margin-bottom: 140px;
 }
 
@@ -317,7 +328,9 @@ body.page-checkout {
     accent-color: var(--maroon);
     color-scheme: light;
     cursor: pointer;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
 }
 
 .delivery-schedule input[type="date"]:hover,
@@ -332,9 +345,9 @@ body.page-checkout {
     box-shadow: 0 0 0 3px rgba(160, 40, 40, 0.12);
 }
 
-/* Recolor the calendar icon to maroon instead of default gray/black */
 .delivery-schedule input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(21%) sepia(64%) saturate(1526%) hue-rotate(325deg) brightness(85%) contrast(89%);
+    filter: invert(21%) sepia(64%) saturate(1526%) hue-rotate(325deg)
+        brightness(85%) contrast(89%);
     cursor: pointer;
     opacity: 0.85;
 }
@@ -361,7 +374,9 @@ body.page-checkout {
     background: #fff;
     border: 1px solid rgba(220, 192, 191, 0.3);
     border-radius: 20px;
-    box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1);
+    box-shadow:
+        0px 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0px 4px 6px -4px rgba(0, 0, 0, 0.1);
     padding: 16px 0;
     padding-bottom: calc(18px + env(safe-area-inset-bottom));
 }

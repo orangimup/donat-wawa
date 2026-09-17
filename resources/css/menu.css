@@ -4,7 +4,6 @@
     --ww-cream: #fdf6ec;
 }
 
-/* ===== Hero ===== */
 .menu-hero {
     background: var(--ww-maroon);
     color: #fff;
@@ -27,7 +26,6 @@
     line-height: 1.6;
 }
 
-/* ===== Search + filter bar (floats over hero bottom edge) ===== */
 .menu-toolbar {
     background: #fff;
     border-radius: 20px;
@@ -106,8 +104,6 @@
     border-color: var(--ww-maroon);
     color: #fff;
 }
-
-/* ===== Grid & card states ===== */
 
 .menu-grid {
     display: grid;
@@ -191,11 +187,13 @@
 
 .menu-card-body h3 {
     margin: 0;
+    margin-left: -10px;
     font-size: 1.05rem;
 }
 
 .menu-card-body p {
     margin: 0;
+    margin-left: -10px;
     font-size: 0.85rem;
     color: #7a6e66;
     line-height: 1.5;

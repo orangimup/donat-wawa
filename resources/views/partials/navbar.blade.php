@@ -79,6 +79,24 @@
             @else
                 <button type="button" class="btn btn-primary btn-sm" onclick="openAuthPopup('login')">Login</button>
             @endauth
+            <button type="button" class="hamburger-btn" id="hamburgerBtn" aria-label="Buka menu" aria-expanded="false" aria-controls="mobileNavPanel" onclick="toggleMobileMenu()">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
         </div>
     </div>
+    <div class="mobile-nav-backdrop" id="mobileNavBackdrop" onclick="toggleMobileMenu()"></div>
+    <nav class="mobile-nav-panel" id="mobileNavPanel">
+        <button type="button" class="mobile-nav-close" aria-label="Tutup menu" onclick="toggleMobileMenu()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18"></path>
+                <path d="M6 6l12 12"></path>
+            </svg>
+        </button>
+        <a href="{{ url('/') }}" class="mobile-nav-link {{ request()->is('/') ? 'active' : '' }}">Home</a>
+        <a href="{{ url('/menu') }}" class="mobile-nav-link {{ request()->is('menu*') ? 'active' : '' }}">Menu</a>
+        <a href="{{ url('/about') }}" class="mobile-nav-link {{ request()->is('about*') ? 'active' : '' }}">About</a>
+    </nav>
 </header>
