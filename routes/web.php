@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\Admin\MenuItemController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings/languages', [LanguageController::class, 'update'])->name('settings.languages.update');
 });
 
+
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::redirect('/', '/admin/menu-items')->name('dashboard');
 
@@ -49,6 +51,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/menu-items', [MenuItemController::class, 'store'])->name('menu-items.store');
     Route::put('/menu-items/{menuItem}', [MenuItemController::class, 'update'])->name('menu-items.update');
     Route::delete('/menu-items/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-items.destroy');
+
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::post('/orders/{order}/confirm', [OrderController::class, 'confirm'])->whereNumber('order')->name('orders.confirm');
+    Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->whereNumber('order')->name('orders.status');
 
     Route::get('/users', [UserController::class, 'index'])->name('user');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('user.show');

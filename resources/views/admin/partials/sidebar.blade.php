@@ -2,7 +2,7 @@
     $adminNav = [
         ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'key' => 'dashboard', 'icon' => 'dashboard'],
         ['label' => 'Product', 'route' => 'admin.menu-items.index', 'active_pattern' => 'admin.menu-items.*', 'key' => 'menu-items', 'icon' => 'product'],
-        ['label' => 'Order', 'route' => null, 'key' => 'order', 'icon' => 'order'],
+        ['label' => 'Order', 'route' => 'admin.orders.index', 'active_pattern' => 'admin.orders.*', 'key' => 'order', 'icon' => 'order'],
         ['label' => 'Transaction', 'route' => null, 'key' => 'transaction', 'icon' => 'transaction'],
         ['label' => 'Delivery Zone', 'route' => null, 'key' => 'delivery-zone', 'icon' => 'delivery'],
         ['label' => 'Refund', 'route' => null, 'key' => 'refund', 'icon' => 'refund'],

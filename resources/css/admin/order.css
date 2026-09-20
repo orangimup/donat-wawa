@@ -1,0 +1,288 @@
+/* ===== Order table ===== */
+.admin-table.order-table {
+    min-width: 1040px;
+}
+
+/* Override the product-table column widths from produk.css (col 2 / col 4) */
+.admin-table.order-table td.order-col-id,
+.admin-table.order-table th.order-col-id {
+    width: auto;
+    white-space: nowrap;
+}
+
+.admin-table.order-table td.order-col-items,
+.admin-table.order-table th.order-col-items {
+    width: 240px;
+}
+
+.order-items {
+    display: block;
+    max-width: 240px;
+    line-height: 1.45;
+    color: var(--text-body);
+}
+
+.order-total,
+.order-delivery {
+    white-space: nowrap;
+}
+
+.order-table .admin-icon-btn {
+    color: var(--tertiary);
+}
+
+.order-table .admin-icon-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: transparent;
+}
+
+/* ===== Status pills (solid, white text) ===== */
+.order-status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 16px;
+    border-radius: 999px;
+    font-family: var(--font-label);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.order-status-waiting {
+    background: #4a4340;
+}
+
+.order-status-process {
+    background: #a16207;
+}
+
+.order-status-shipped {
+    background: #1d6fa5;
+}
+
+.order-status-done {
+    background: #2ea44f;
+}
+
+.order-status-rejected {
+    background: var(--primary);
+}
+
+/* ===== Order popups (Confirmation + Update Status) ===== */
+.order-modal-overlay {
+    background: rgba(48, 42, 42, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.order-modal {
+    padding: 0;
+    max-width: 448px;
+    /* visible so the custom status dropdown can extend past the footer */
+    overflow: visible;
+}
+
+.order-modal-confirm {
+    max-width: 500px;
+}
+
+.order-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 22px 26px 18px;
+    border-bottom: 1px solid #f0eae4;
+}
+
+.order-modal-head h2 {
+    margin: 0;
+    font-family: var(--font-label);
+    font-weight: 700;
+    font-size: 21px;
+    color: var(--primary);
+}
+
+.order-modal-head .admin-modal-close {
+    margin-top: 0;
+}
+
+.order-modal-body {
+    padding: 22px 26px 26px;
+}
+
+.order-modal .admin-form-group {
+    margin-bottom: 0;
+}
+
+.order-modal .admin-form-group label {
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-dark);
+}
+
+.order-modal .admin-form-group label small {
+    font-size: 12.5px;
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.order-modal .admin-form-group input[type="text"] {
+    border-radius: 10px;
+    background: #fff;
+}
+
+.order-modal .admin-form-group input[type="text"]::placeholder {
+    color: #a8a19b;
+}
+
+/* Status dropdown: pill-shaped like the Figma mockup */
+.order-modal .admin-select-form .admin-select-trigger {
+    padding: 15px 20px;
+    border: 1.5px solid transparent;
+    border-radius: 999px;
+    background: #f6f3f1;
+    box-shadow: 0 2px 8px rgba(78, 52, 46, 0.06);
+    font-size: 15px;
+    color: var(--primary);
+}
+
+.order-modal .admin-select-form.is-open .admin-select-trigger {
+    border-color: var(--primary);
+}
+
+.order-modal .admin-select-form .admin-select-menu {
+    border-radius: 18px;
+}
+
+/* Footer bar */
+.order-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 18px 26px;
+    background: var(--primary);
+    border-radius: 0 0 20px 20px;
+}
+
+.order-modal-footer .admin-btn {
+    background: #fff;
+    color: var(--primary);
+}
+
+.order-modal-footer .admin-btn:hover {
+    background: #fff;
+    filter: brightness(0.96);
+}
+
+.order-modal-footer .admin-btn.admin-btn-ghost {
+    background: transparent;
+    color: #fff;
+}
+
+.order-modal-footer .admin-btn.admin-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.14);
+    filter: none;
+}
+
+/* Confirmation popup: notice + summary card */
+.order-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    background: #fffbeb;
+    border: 1px solid #f3e3b0;
+    border-radius: 12px;
+}
+
+.order-notice-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: #d97706;
+}
+
+.order-notice strong {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.order-notice span {
+    font-size: 12.5px;
+    color: var(--text-muted);
+}
+
+.order-notice em {
+    font-style: normal;
+    color: var(--primary);
+}
+
+.order-summary {
+    margin-bottom: 20px;
+    border: 1px solid #e7e2dd;
+    border-radius: 14px;
+}
+
+.order-summary-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+}
+
+.order-summary-row + .order-summary-row {
+    border-top: 1px solid #efeae5;
+}
+
+.order-summary-row > div:last-child:not(:first-child) {
+    text-align: right;
+}
+
+.order-summary-label {
+    display: block;
+    margin-bottom: 3px;
+    font-family: var(--font-label);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.order-summary-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dark);
+    overflow-wrap: anywhere;
+}
+
+.order-summary-value.is-strong {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.order-summary-value.is-total {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+@media (max-width: 480px) {
+    .order-modal-head,
+    .order-modal-body,
+    .order-modal-footer {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+}
