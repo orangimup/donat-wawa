@@ -5,7 +5,7 @@
         ['label' => 'Order', 'route' => 'admin.orders.index', 'key' => 'order', 'icon' => 'order'],
         ['label' => 'Transaction', 'route' => 'admin.transactions.index', 'key' => 'transaction', 'icon' => 'transaction'],
         ['label' => 'Delivery Zone', 'route' => null, 'key' => 'delivery-zone', 'icon' => 'delivery'],
-        ['label' => 'Refund', 'route' => null, 'key' => 'refund', 'icon' => 'refund'],
+        ['label' => 'Refund', 'route' => 'admin.refund', 'key' => 'refund', 'icon' => 'refund'],
         ['label' => 'User', 'route' => 'admin.user', 'key' => 'user', 'icon' => 'user'],
         ['label' => 'Review', 'route' => null, 'key' => 'review', 'icon' => 'review'],
     ];

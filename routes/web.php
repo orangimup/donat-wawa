@@ -12,8 +12,9 @@ use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\OrderController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\TransactionController;
+use App\Http\Controllers\Admin\RefundController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -59,6 +60,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->whereNumber('order')->name('orders.status');
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+
+    Route::get('/refunds', [RefundController::class, 'index'])->name('refund');
+    Route::get('/refunds/{refund}', [RefundController::class, 'show'])->whereNumber('refund')->name('refund.show');
+    Route::post('/refunds/{refund}/finalize', [RefundController::class, 'finalize'])->whereNumber('refund')->name('refund.finalize');
 
     Route::get('/users', [UserController::class, 'index'])->name('user');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('user.show');
