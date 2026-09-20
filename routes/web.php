@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\RefundController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -68,4 +69,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('user');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('user.show');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('user.update');
+
+    Route::get('/reviews', [ReviewController::class, 'index'])->name('review');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->whereNumber('review')->name('review.destroy');
 });

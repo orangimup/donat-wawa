@@ -7,7 +7,7 @@
         ['label' => 'Delivery Zone', 'route' => null, 'key' => 'delivery-zone', 'icon' => 'delivery'],
         ['label' => 'Refund', 'route' => 'admin.refund', 'key' => 'refund', 'icon' => 'refund'],
         ['label' => 'User', 'route' => 'admin.user', 'key' => 'user', 'icon' => 'user'],
-        ['label' => 'Review', 'route' => null, 'key' => 'review', 'icon' => 'review'],
+        ['label' => 'Review', 'route' => 'admin.review', 'key' => 'review', 'icon' => 'review'],
     ];
 
     $icons = [
