@@ -1,0 +1,225 @@
+.admin-table.zone-table {
+    min-width: 720px;
+}
+
+.admin-table.zone-table td.zone-col-range,
+.admin-table.zone-table th.zone-col-range,
+.admin-table.zone-table td.zone-col-status,
+.admin-table.zone-table th.zone-col-status {
+    width: auto;
+}
+
+.zone-nowrap {
+    white-space: nowrap;
+}
+
+.zone-table .admin-icon-btn {
+    color: var(--tertiary);
+}
+
+.zone-table .admin-icon-btn-danger:hover {
+    color: var(--primary);
+}
+
+/* ===== Status pills (solid) ===== */
+.zone-status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 18px;
+    border-radius: 999px;
+    font-family: var(--font-label);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.zone-status-active {
+    background: #2ea44f;
+}
+
+.zone-status-inactive {
+    background: #dcd7d4;
+    color: #4a4340;
+}
+
+/* ===== Add / Edit popup ===== */
+.zone-modal-overlay {
+    background: rgba(48, 42, 42, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.zone-modal {
+    max-width: 420px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.zone-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 24px;
+    border-bottom: 1px solid #f0eae4;
+}
+
+.zone-modal-head h2 {
+    margin: 0;
+    font-family: var(--font-label);
+    font-weight: 700;
+    font-size: 19px;
+    color: var(--primary);
+}
+
+.zone-modal-head .admin-modal-close {
+    margin-top: 0;
+}
+
+.zone-modal-body {
+    padding: 18px 24px 16px;
+}
+
+.zone-field {
+    margin-bottom: 14px;
+}
+
+.zone-field label {
+    display: block;
+    margin-bottom: 7px;
+    font-family: var(--font-label);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.zone-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 0 18px;
+    border: 1.5px solid transparent;
+    border-radius: 999px;
+    background: #f6f7f9;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease;
+}
+
+.zone-input:focus-within {
+    border-color: var(--primary);
+}
+
+.zone-input.has-error {
+    border-color: #b3261e;
+}
+
+.zone-input span {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.zone-input input {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 0;
+    border: none;
+    background: transparent;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--text-dark);
+    outline: none;
+    -moz-appearance: textfield;
+}
+
+.zone-input input::placeholder {
+    color: #a8a19b;
+}
+
+.zone-input input::-webkit-outer-spin-button,
+.zone-input input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.zone-error {
+    display: block;
+    min-height: 0;
+    margin-top: 5px;
+    padding-left: 6px;
+    font-size: 12.5px;
+    color: #b3261e;
+}
+
+.zone-error:empty {
+    display: none;
+}
+
+.zone-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 2px;
+    font-size: 14px;
+    color: var(--text-dark);
+}
+
+.zone-toggle .admin-toggle-switch {
+    width: 44px;
+    height: 26px;
+}
+
+.zone-toggle .admin-toggle-switch::after {
+    width: 20px;
+    height: 20px;
+}
+
+.zone-toggle .admin-toggle-switch.is-on {
+    background: var(--primary);
+}
+
+.zone-toggle .admin-toggle-switch.is-on::after {
+    left: 21px;
+}
+
+.zone-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 24px;
+    background: var(--primary);
+}
+
+.zone-modal-footer .admin-btn {
+    padding: 9px 24px;
+    font-size: 13px;
+    background: #fff;
+    color: var(--primary);
+}
+
+.zone-modal-footer .admin-btn:hover {
+    background: #fff;
+    filter: brightness(0.96);
+}
+
+.zone-modal-footer .admin-btn.admin-btn-ghost {
+    background: transparent;
+    color: #fff;
+}
+
+.zone-modal-footer .admin-btn.admin-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.14);
+    filter: none;
+}
+
+@media (max-width: 480px) {
+    .zone-modal-head,
+    .zone-modal-body,
+    .zone-modal-footer {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+}

@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\TransactionController;
+use App\Http\Controllers\Admin\DeliveryZoneController;
 use App\Http\Controllers\Admin\RefundController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ReviewController;
@@ -61,6 +62,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->whereNumber('order')->name('orders.status');
 
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+
+    Route::get('/delivery-zones', [DeliveryZoneController::class, 'index'])->name('delivery-zone');
+    Route::post('/delivery-zones', [DeliveryZoneController::class, 'store'])->name('delivery-zone.store');
+    Route::put('/delivery-zones/{zone}', [DeliveryZoneController::class, 'update'])->whereNumber('zone')->name('delivery-zone.update');
+    Route::delete('/delivery-zones/{zone}', [DeliveryZoneController::class, 'destroy'])->whereNumber('zone')->name('delivery-zone.destroy');
 
     Route::get('/refunds', [RefundController::class, 'index'])->name('refund');
     Route::get('/refunds/{refund}', [RefundController::class, 'show'])->whereNumber('refund')->name('refund.show');

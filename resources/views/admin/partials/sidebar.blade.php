@@ -4,7 +4,7 @@
         ['label' => 'Product', 'route' => 'admin.menu-items.index', 'key' => 'menu-items', 'icon' => 'product'],
         ['label' => 'Order', 'route' => 'admin.orders.index', 'key' => 'order', 'icon' => 'order'],
         ['label' => 'Transaction', 'route' => 'admin.transactions.index', 'key' => 'transaction', 'icon' => 'transaction'],
-        ['label' => 'Delivery Zone', 'route' => null, 'key' => 'delivery-zone', 'icon' => 'delivery'],
+        ['label' => 'Delivery Zone', 'route' => 'admin.delivery-zone', 'key' => 'delivery-zone', 'icon' => 'delivery'],
         ['label' => 'Refund', 'route' => 'admin.refund', 'key' => 'refund', 'icon' => 'refund'],
         ['label' => 'User', 'route' => 'admin.user', 'key' => 'user', 'icon' => 'user'],
         ['label' => 'Review', 'route' => 'admin.review', 'key' => 'review', 'icon' => 'review'],
