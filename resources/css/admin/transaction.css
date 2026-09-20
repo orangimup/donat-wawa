@@ -1,0 +1,160 @@
+.trx-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.trx-stat-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+    padding: 24px 24px 22px;
+    border-radius: 32px;
+    background: #fdfaf7;
+    box-shadow: var(--shadow-card);
+    color: var(--tertiary);
+}
+
+.trx-stat-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.trx-stat-title {
+    margin: 0;
+    font-family: var(--font-label);
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.25;
+}
+
+.trx-stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--tertiary);
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.trx-stat-value {
+    margin: 14px 0 auto;
+    font-family: var(--font-headline);
+    font-weight: 700;
+    font-size: 48px;
+    line-height: 1.1;
+}
+
+.trx-stat-foot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Featured card (Total Revenue) */
+.trx-stat-card.is-featured {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 14px 30px rgba(123, 32, 38, 0.28);
+}
+
+.trx-stat-card.is-featured .trx-stat-icon {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.trx-stat-card.is-featured .trx-stat-foot {
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.trx-stat-badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+    font-family: var(--font-label);
+    font-weight: 600;
+    font-size: 12px;
+    color: #fff;
+}
+
+@media (max-width: 1100px) {
+    .trx-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .trx-stats {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ===== Transaction table ===== */
+.admin-table.trx-table {
+    min-width: 960px;
+}
+
+/* Override the product-table column widths from produk.css (col 2 / col 4) */
+.admin-table.trx-table td.trx-col-id,
+.admin-table.trx-table th.trx-col-id {
+    width: auto;
+    white-space: nowrap;
+}
+
+.admin-table.trx-table td.trx-col-customer,
+.admin-table.trx-table th.trx-col-customer {
+    width: auto;
+}
+
+.trx-date,
+.trx-time {
+    display: block;
+    line-height: 1.45;
+    white-space: nowrap;
+}
+
+.trx-amount,
+.trx-method {
+    white-space: nowrap;
+}
+
+.trx-table .admin-icon-btn {
+    color: var(--tertiary);
+}
+
+/* ===== Status pills (solid, white text) ===== */
+.trx-status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 16px;
+    border-radius: 999px;
+    font-family: var(--font-label);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.trx-status-settled {
+    background: #2ea44f;
+}
+
+.trx-status-pending {
+    background: #a16207;
+}
+
+.trx-status-expired {
+    background: #4a4340;
+}
+
+.trx-status-failed {
+    background: var(--primary);
+}

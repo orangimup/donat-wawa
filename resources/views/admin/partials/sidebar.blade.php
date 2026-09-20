@@ -1,9 +1,9 @@
 @php
     $adminNav = [
         ['label' => 'Dashboard', 'route' => 'admin.dashboard', 'key' => 'dashboard', 'icon' => 'dashboard'],
-        ['label' => 'Product', 'route' => 'admin.menu-items.index', 'active_pattern' => 'admin.menu-items.*', 'key' => 'menu-items', 'icon' => 'product'],
-        ['label' => 'Order', 'route' => 'admin.orders.index', 'active_pattern' => 'admin.orders.*', 'key' => 'order', 'icon' => 'order'],
-        ['label' => 'Transaction', 'route' => null, 'key' => 'transaction', 'icon' => 'transaction'],
+        ['label' => 'Product', 'route' => 'admin.menu-items.index', 'key' => 'menu-items', 'icon' => 'product'],
+        ['label' => 'Order', 'route' => 'admin.orders.index', 'key' => 'order', 'icon' => 'order'],
+        ['label' => 'Transaction', 'route' => 'admin.transactions.index', 'key' => 'transaction', 'icon' => 'transaction'],
         ['label' => 'Delivery Zone', 'route' => null, 'key' => 'delivery-zone', 'icon' => 'delivery'],
         ['label' => 'Refund', 'route' => null, 'key' => 'refund', 'icon' => 'refund'],
         ['label' => 'User', 'route' => 'admin.user', 'key' => 'user', 'icon' => 'user'],

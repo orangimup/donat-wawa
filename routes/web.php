@@ -9,9 +9,11 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\TransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -45,7 +47,7 @@ Route::middleware('auth')->group(function () {
 
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    Route::redirect('/', '/admin/menu-items')->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/menu-items', [MenuItemController::class, 'index'])->name('menu-items.index');
     Route::post('/menu-items', [MenuItemController::class, 'store'])->name('menu-items.store');
@@ -55,6 +57,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::post('/orders/{order}/confirm', [OrderController::class, 'confirm'])->whereNumber('order')->name('orders.confirm');
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->whereNumber('order')->name('orders.status');
+
+    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
 
     Route::get('/users', [UserController::class, 'index'])->name('user');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('user.show');
