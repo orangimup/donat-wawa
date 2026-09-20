@@ -11,20 +11,21 @@ class NotificationSettingsController extends Controller
     public function show(Request $request): View
     {
         return view('user.settings.notifications', [
-            'user' => $request->user(),
+            'preference' => $request->user()->notificationPreferenceOrDefault(),
         ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
-        $user = $request->user();
+        $preference = $request->user()->notificationPreferenceOrDefault();
 
-        $user->notif_order_status = $request->boolean('notif_order_status');
-        $user->notif_order_confirmation = $request->boolean('notif_order_confirmation');
-        $user->notif_review_reminder = $request->boolean('notif_review_reminder');
-        $user->notif_new_product = $request->boolean('notif_new_product');
-        $user->notif_daily_reminder = $request->boolean('notif_daily_reminder');
-        $user->save();
+        $preference->update([
+            'notif_order_status' => $request->boolean('notif_order_status'),
+            'notif_order_confirmation' => $request->boolean('notif_order_confirmation'),
+            'notif_review_reminder' => $request->boolean('notif_review_reminder'),
+            'notif_new_product' => $request->boolean('notif_new_product'),
+            'notif_daily_reminder' => $request->boolean('notif_daily_reminder'),
+        ]);
 
         return redirect()->route('settings.notifications')->with('status', 'Preferensi notifikasi berhasil disimpan.');
     }

@@ -6,13 +6,10 @@
         ['label' => 'Transaction', 'route' => null, 'key' => 'transaction', 'icon' => 'transaction'],
         ['label' => 'Delivery Zone', 'route' => null, 'key' => 'delivery-zone', 'icon' => 'delivery'],
         ['label' => 'Refund', 'route' => null, 'key' => 'refund', 'icon' => 'refund'],
-        ['label' => 'User', 'route' => null, 'key' => 'user', 'icon' => 'user'],
+        ['label' => 'User', 'route' => 'admin.user', 'key' => 'user', 'icon' => 'user'],
         ['label' => 'Review', 'route' => null, 'key' => 'review', 'icon' => 'review'],
     ];
 
-    // Kebanyakan ikon pakai stroke outline (viewBox 24x24). Ikon "product"
-    // pakai donut.svg dari Figma (viewBox 30x30, fill), jadi ditangani
-    // sebagai kasus khusus di bawah biar proporsinya gak gepeng.
     $icons = [
         'dashboard' => '<rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect>',
         'order' => '<path d="M6 6h15l-1.5 9h-12z"></path><path d="M6 6 5 3H2"></path><circle cx="9.5" cy="20" r="1.4" fill="currentColor" stroke="none"></circle><circle cx="17.5" cy="20" r="1.4" fill="currentColor" stroke="none"></circle>',

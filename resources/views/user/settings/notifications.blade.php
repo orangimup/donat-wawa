@@ -47,7 +47,7 @@
                             <label class="settings-switch">
                                 <input type="checkbox" name="{{ $item['name'] }}" value="1"
                                     onchange="this.form.submit()"
-                                    {{ old($item['name'], $user->{$item['name']}) ? 'checked' : '' }}>
+                                    {{ old($item['name'], $preference->{$item['name']}) ? 'checked' : '' }}
                                 <span class="settings-switch-track"></span>
                             </label>
                         </div>

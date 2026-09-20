@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\Admin\MenuItemController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -19,6 +20,8 @@ Route::get('/menu/{menu_item}/reviews', [ProductController::class, 'reviews'])->
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::get('/checkout/sync-basket', [CheckoutController::class, 'syncBasket'])->name('checkout.sync-basket');
+Route::post('/checkout/create-snap-token', [CheckoutController::class, 'createSnapToken'])->name('checkout.snap-token');
+Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
 Route::post('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
 
 Route::middleware('guest')->group(function () {
@@ -46,4 +49,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/menu-items', [MenuItemController::class, 'store'])->name('menu-items.store');
     Route::put('/menu-items/{menuItem}', [MenuItemController::class, 'update'])->name('menu-items.update');
     Route::delete('/menu-items/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-items.destroy');
+
+    Route::get('/users', [UserController::class, 'index'])->name('user');
+    Route::get('/users/{user}', [UserController::class, 'show'])->name('user.show');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('user.update');
 });

@@ -9,23 +9,11 @@ use Illuminate\View\View;
 
 class CheckoutController extends Controller
 {
-    /**
-     * Isi keranjang dibaca dari sessionStorage sisi client (lihat basket.js) —
-     * halaman ini belum bikin Order ke database, murni tampilan checkout dulu.
-     */
     public function index(): View
     {
         return view('user.checkout');
     }
 
-    /**
-     * Dipanggil basket.js saat halaman checkout dibuka: menerima daftar slug
-     * yang ada di sessionStorage, lalu mengembalikan data TERBARU dari tabel
-     * menu_items (nama, harga, gambar, ketersediaan). Ini supaya keranjang
-     * tidak pernah "basi" — kalau admin ubah harga/stok/hapus produk setelah
-     * item ditambahkan ke keranjang, checkout selalu memakai data DB terkini,
-     * bukan snapshot lama di browser.
-     */
     public function syncBasket(Request $request): JsonResponse
     {
         $slugs = array_filter((array) $request->query('slugs', []));
@@ -33,7 +21,7 @@ class CheckoutController extends Controller
         $items = MenuItem::query()
             ->whereIn('slug', $slugs)
             ->get()
-            ->map(fn (MenuItem $item) => [
+            ->map(fn(MenuItem $item) => [
                 'slug' => $item->slug,
                 'name' => $item->name,
                 'price' => $item->price,
@@ -43,5 +31,40 @@ class CheckoutController extends Controller
             ->keyBy('slug');
 
         return response()->json(['items' => $items]);
+    }
+
+    public function createSnapToken(Request $request): JsonResponse
+    {
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        \Midtrans\Config::$isProduction = config('midtrans.is_production');
+        \Midtrans\Config::$isSanitized = true;
+        \Midtrans\Config::$is3ds = true;
+
+        $items = $request->input('items', []);
+        $shipping = (int) $request->input('shipping_fee', 0);
+
+        $grossAmount = collect($items)->sum(fn($i) => $i['price'] * $i['qty']) + $shipping;
+        $orderId = 'DW-' . now()->format('Ymd') . '-' . strtoupper(uniqid());
+
+        $params = [
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => $grossAmount,
+            ],
+            'customer_details' => [
+                'first_name' => auth()->user()->nama,
+                'email' => auth()->user()->email,
+                'phone' => $request->input('phone'),
+            ],
+        ];
+
+        $snapToken = \Midtrans\Snap::getSnapToken($params);
+
+        return response()->json(['snap_token' => $snapToken]);
+    }
+
+    public function success(): View
+    {
+        return view('user.order-confirmed');
     }
 }

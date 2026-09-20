@@ -1,0 +1,296 @@
+/* Account Status popup */
+#userModalOverlay {
+    background: rgba(48, 42, 42, 0.5);
+}
+
+.account-status-modal {
+    padding: 24px 26px 0;    overflow: hidden;}
+
+.account-status-modal .admin-modal-head {
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.account-status-modal .admin-modal-head h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-family: var(--font-headline);
+    font-weight: 700;
+    font-size: 21px;
+}
+
+.account-status-modal-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.account-status-modal-desc {
+    margin: 0 0 18px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.account-status-modal-desc strong {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.account-status-toggle {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    margin-bottom: 18px;
+    background: #f3efec;
+    border-radius: 999px;
+}
+
+.account-status-option {
+    flex: 1;
+    padding: 11px 16px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-label);
+    font-weight: 700;
+    font-size: 14px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.account-status-option.is-active {
+    background: var(--primary);
+    color: #fff;
+}
+
+.account-status-modal .admin-form-group {
+    margin-bottom: 22px;
+}
+
+.account-status-modal .admin-form-group label {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-muted);
+}
+
+.account-status-modal .admin-form-group textarea {
+    min-height: 96px;
+    background: #f6f3f1;
+    border: 1.5px solid transparent;
+    border-radius: 14px;
+}
+
+.account-status-modal .admin-form-group textarea::placeholder {
+    color: #a8a19b;
+}
+
+.account-status-modal .admin-form-group textarea:focus {
+    background: #fff;
+    border-color: var(--primary);
+}
+
+.account-status-modal-actions {
+    margin: 0 -26px;
+    padding: 18px 26px;
+    background: var(--primary);
+    justify-content: flex-end;
+}
+
+.account-status-modal-actions .admin-form-actions-right {
+    margin-left: auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.account-status-modal-actions .admin-btn.admin-btn-outline {
+    background: transparent;
+    border: none;
+    color: #fff;
+}
+
+.account-status-modal-actions .admin-btn.admin-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+}
+
+.account-status-modal-actions .admin-btn:not(.admin-btn-outline) {
+    background: #fff;
+    color: var(--primary);
+}
+
+.account-status-modal-actions .admin-btn:not(.admin-btn-outline):hover {
+    background: #fff;
+    filter: brightness(0.96);
+}
+
+/* Detail User */
+.user-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(0, 1.7fr);
+    align-items: start;
+    gap: 24px;
+}
+
+@media (max-width: 900px) {
+    .user-detail-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.user-detail-profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 36px 28px 28px;
+}
+
+.user-detail-avatar {
+    width: 112px;
+    height: 112px;
+    margin-bottom: 18px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+img.user-detail-avatar {
+    display: block;
+    object-fit: cover;
+}
+
+span.user-detail-avatar-initial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary);
+    color: #fff;
+    font-family: var(--font-label);
+    font-weight: 700;
+    font-size: 42px;
+    line-height: 1;
+}
+
+.user-detail-name {
+    margin: 0 0 6px;
+    font-family: var(--font-label);
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--primary);
+    overflow-wrap: anywhere;
+}
+
+.user-detail-email {
+    margin: 0 0 26px;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+}
+
+.user-detail-facts {
+    width: 100%;
+    padding-top: 20px;
+    border-top: 1px solid #e6e1dc;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.user-detail-fact-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    text-align: left;
+}
+
+.user-detail-fact-row span {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.user-detail-fact-row strong {
+    color: var(--text-dark);
+    font-weight: 500;
+    text-align: right;
+}
+
+.user-detail-orders-card {
+    min-width: 0;
+    padding: 28px 30px 20px;
+}
+
+.user-detail-orders-head {
+    margin-bottom: 14px;
+}
+
+.user-detail-orders-head h2 {
+    margin: 0;
+    font-family: var(--font-label);
+    font-weight: 700;
+    font-size: 19px;
+    color: var(--text-dark);
+}
+
+.user-detail-table-wrap {
+    overflow-x: auto;
+}
+
+.user-orders-table {
+    width: 100%;
+    min-width: 520px;
+    border-collapse: collapse;
+}
+
+.user-orders-table th {
+    padding: 12px 10px;
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.user-orders-table td {
+    padding: 16px 10px;
+    font-size: 13.5px;
+    color: var(--text-body);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.user-orders-table th:first-child,
+.user-orders-table td:first-child {
+    padding-left: 0;
+    text-align: left;
+}
+
+.user-orders-table .user-detail-order-id {
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.user-orders-table .user-detail-order-date.is-today {
+    color: var(--primary);
+}
+
+.user-orders-table .admin-empty-row td {
+    text-align: center;
+    color: var(--text-muted);
+}

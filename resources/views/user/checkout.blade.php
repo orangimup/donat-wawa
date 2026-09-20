@@ -53,28 +53,41 @@
                 <form class="checkout-form" id="checkoutForm" onsubmit="return false;">
                     <label class="checkout-field">
                         <span class="checkout-field-label">Full Name<span class="required-mark">*</span></span>
-                        <input type="text" name="name" placeholder="Enter your full name" value="{{ auth()->user()->name ?? '' }}" required>
+                        <input type="text" name="name" placeholder="Enter your full name"
+                            value="{{ auth()->user()->name ?? '' }}" required>
                     </label>
 
                     <label class="checkout-field">
                         <span class="checkout-field-label">Email</span>
                         <div class="checkout-field-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
-                            <input type="email" name="email" placeholder="customer@donatwawa.com" value="{{ auth()->user()->email ?? '' }}" readonly>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="4" y="10" width="16" height="10" rx="2"></rect>
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                            </svg>
+                            <input type="email" name="email" placeholder="customer@donatwawa.com"
+                                value="{{ auth()->user()->email ?? '' }}" readonly>
                         </div>
                     </label>
 
                     <label class="checkout-field">
                         <span class="checkout-field-label">Phone Number<span class="required-mark">*</span></span>
                         <div class="checkout-field-icon">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                            <input type="tel" name="phone" placeholder="08xx xxxx xxxx" value="{{ auth()->user()->phone ?? '' }}" pattern="[0-9+\s-]{8,15}" required>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z">
+                                </path>
+                            </svg>
+                            <input type="tel" name="phone" placeholder="08xx xxxx xxxx"
+                                value="{{ auth()->user()->phone ?? '' }}" pattern="[0-9+\s-]{8,15}" required>
                         </div>
                     </label>
 
                     <label class="checkout-field">
                         <span class="checkout-field-label">Delivery Address<span class="required-mark">*</span></span>
-                        <textarea name="address" rows="3" placeholder="Delivery address details..." required>{{ auth()->user()->address ?? '' }}</textarea>
+                        <textarea name="address" rows="3" placeholder="Delivery address details..."
+                            required>{{ auth()->user()->address ?? '' }}</textarea>
                     </label>
 
                     <div class="checkout-field">
@@ -82,8 +95,10 @@
 
                         <div class="delivery-option" id="deliveryToday" data-method="today">
                             <div class="delivery-option-head">
-                                <strong>Same-Day Delivery</strong>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"></path></svg>
+                                <strong>Same-Day</strong>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"></path>
+                                </svg>
                             </div>
                             <p>Estimated arrival in 60-90 minutes</p>
                             <span class="delivery-option-price">Rp5.000</span>
@@ -91,11 +106,15 @@
 
                         <div class="delivery-option" id="deliveryPreorder" data-method="preorder">
                             <div class="delivery-option-head">
-                                <strong>Scheduled Pre-Order</strong>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>
+                                <strong>Scheduled Order</strong>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                                    <path d="M16 2v4M8 2v4M3 10h18"></path>
+                                </svg>
                             </div>
                             <p>Choose your own delivery time</p>
-                            <span class="delivery-option-price">Rp10.000</span>
+                            <span class="delivery-option-price">Rp4.000</span>
                         </div>
 
                         <div class="delivery-schedule" id="deliverySchedule" hidden>
@@ -171,25 +190,25 @@
                 const list = document.getElementById('checkoutItems');
                 list.innerHTML = items.map(function (item) {
                     return `
-                        <div class="checkout-item" data-slug="${item.slug}">
-                            <img src="${item.image}" alt="${item.name}">
-                            <div class="checkout-item-info">
-                                <strong>${item.name}</strong>
-                                <span>${DonatBasket.format(item.price)}</span>
-                                <div class="qty-stepper">
-                                    <button type="button" class="qty-btn" data-action="dec">−</button>
-                                    <span class="checkout-item-qty">${item.qty}</span>
-                                    <button type="button" class="qty-btn" data-action="inc">+</button>
+                            <div class="checkout-item" data-slug="${item.slug}">
+                                <img src="${item.image}" alt="${item.name}">
+                                <div class="checkout-item-info">
+                                    <strong>${item.name}</strong>
+                                    <span>${DonatBasket.format(item.price)}</span>
+                                    <div class="qty-stepper">
+                                        <button type="button" class="qty-btn" data-action="dec">−</button>
+                                        <span class="checkout-item-qty">${item.qty}</span>
+                                        <button type="button" class="qty-btn" data-action="inc">+</button>
+                                    </div>
+                                </div>
+                                <div class="checkout-item-side">
+                                    <button type="button" class="checkout-item-remove" aria-label="Remove">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"></path></svg>
+                                    </button>
+                                    <strong class="checkout-item-total">${DonatBasket.format(item.price * item.qty)}</strong>
                                 </div>
                             </div>
-                            <div class="checkout-item-side">
-                                <button type="button" class="checkout-item-remove" aria-label="Remove">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"></path></svg>
-                                </button>
-                                <strong class="checkout-item-total">${DonatBasket.format(item.price * item.qty)}</strong>
-                            </div>
-                        </div>
-                    `;
+                        `;
                 }).join('');
 
                 const subtotal = DonatBasket.getTotalPrice();
@@ -226,7 +245,6 @@
 
             document.querySelectorAll('.delivery-option').forEach(function (option) {
                 option.addEventListener('click', function (e) {
-                    // Klik di dalam field jadwal (date/select) jangan ganti pilihan.
                     if (e.target.closest('.delivery-schedule')) return;
                     deliveryMethod = option.dataset.method;
                     render();
@@ -243,20 +261,100 @@
             document.getElementById('checkoutPayBtn').addEventListener('click', function () {
                 const form = document.getElementById('checkoutForm');
 
-                // Kalau delivery preorder dipilih, jadwal wajib diisi juga.
                 const dateInput = form.querySelector('[name="delivery_date"]');
-                if (deliveryMethod === 'preorder') {
-                    dateInput.required = true;
-                } else {
-                    dateInput.required = false;
-                }
+                dateInput.required = (deliveryMethod === 'preorder');
 
                 if (!form.reportValidity()) {
-                    // Browser otomatis nampilin & fokus ke field yang masih kosong/invalid.
                     return;
                 }
 
-                alert('Payment & saving the order to the database is not available yet — this is only the FE page.');
+                const items = DonatBasket.getItems();
+                const subtotal = DonatBasket.getTotalPrice();
+                const shipping = SHIPPING_FEE[deliveryMethod];
+                const formData = new FormData(form);
+
+                const now = new Date();
+                const orderCode = 'DW-' +
+                    now.getFullYear().toString() +
+                    String(now.getMonth() + 1).padStart(2, '0') +
+                    String(now.getDate()).padStart(2, '0') +
+                    '-' + String(Math.floor(Math.random() * 900) + 100);
+
+                // simpan dulu data order (dipakai halaman success nanti)
+                const orderPayload = {
+                    code: orderCode,
+                    placedAtLabel: now.toLocaleDateString('id-ID', {
+                        day: 'numeric', month: 'long', year: 'numeric',
+                    }) + ', ' + now.toLocaleTimeString('id-ID', {
+                        hour: '2-digit', minute: '2-digit',
+                    }) + ' WIB',
+                    items: items,
+                    subtotal: subtotal,
+                    shippingFee: shipping,
+                    total: subtotal + shipping,
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    phone: formData.get('phone'),
+                    address: formData.get('address'),
+                    deliveryMethod: deliveryMethod,
+                    deliveryDate: formData.get('delivery_date'),
+                    deliveryTime: formData.get('delivery_time'),
+                };
+
+                const payBtn = document.getElementById('checkoutPayBtn');
+                payBtn.disabled = true;
+                payBtn.textContent = 'Memproses...';
+
+                fetch('{{ route('checkout.snap-token') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({
+                        order_code: orderCode,
+                        items: items,
+                        shipping_fee: shipping,
+                        name: formData.get('name'),
+                        phone: formData.get('phone'),
+                        email: formData.get('email'),
+                    }),
+                })
+                    .then(function (res) {
+                        if (!res.ok) throw new Error('Gagal membuat transaksi');
+                        return res.json();
+                    })
+                    .then(function (data) {
+                        window.snap.pay(data.snap_token, {
+                            onSuccess: function (result) {
+                                orderPayload.status = 'success';
+                                orderPayload.paymentResult = result;
+                                sessionStorage.setItem('donat_last_order', JSON.stringify(orderPayload));
+                                window.location.href = '{{ route('checkout.success') }}';
+                            },
+                            onPending: function (result) {
+                                orderPayload.status = 'pending';
+                                orderPayload.paymentResult = result;
+                                sessionStorage.setItem('donat_last_order', JSON.stringify(orderPayload));
+                                window.location.href = '{{ route('checkout.success') }}';
+                            },
+                            onError: function (result) {
+                                alert('Pembayaran gagal, coba lagi.');
+                                payBtn.disabled = false;
+                                payBtn.textContent = 'Proceed to Payment';
+                            },
+                            onClose: function () {
+                                // user nutup popup tanpa bayar, biarin aja di halaman checkout
+                                payBtn.disabled = false;
+                                payBtn.textContent = 'Proceed to Payment';
+                            },
+                        });
+                    })
+                    .catch(function (err) {
+                        alert('Terjadi kesalahan, coba lagi.');
+                        payBtn.disabled = false;
+                        payBtn.textContent = 'Proceed to Payment';
+                    });
             });
 
             function syncBasketWithDatabase() {

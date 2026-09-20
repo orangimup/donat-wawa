@@ -18,6 +18,8 @@ return new class extends Migration {
             $table->string('password');
             $table->string('avatar')->nullable();
             $table->enum('role', ['admin', 'user'])->default('user');
+            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->text('deactivation_reason')->nullable();
             $table->boolean('notif_order_status')->default(true);
             $table->boolean('notif_order_confirmation')->default(true);
             $table->boolean('notif_review_reminder')->default(true);

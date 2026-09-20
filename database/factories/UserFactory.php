@@ -12,16 +12,8 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
 {
     return [
@@ -30,6 +22,15 @@ class UserFactory extends Factory
         'phone' => '08' . fake()->numerify('##########'),
         'password' => static::$password ??= Hash::make('password'),
         'role' => 'user',
+        'status' => 'active',
     ];
 }
+
+    public function inactive(?string $reason = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'inactive',
+            'deactivation_reason' => $reason ?? 'Melanggar ketentuan penggunaan aplikasi.',
+        ]);
+    }
 }
