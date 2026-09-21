@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Donat Wawa - Notification Settings')
+@section('title', 'Donat Wawa - ' . __('Notification Settings'))
 @section('body-class', 'settings-page')
 @section('hide-footer')
 @endsection
@@ -16,13 +16,13 @@
         @include('partials.settings-sidebar', ['active' => 'notifications'])
 
         <div class="settings-content">
-            <h1>Account Settings</h1>
+            <h1>{{ __('Account Settings') }}</h1>
 
             @if (session('status'))
                 <div class="settings-alert">{{ session('status') }}</div>
             @endif
 
-            <h3 class="settings-section-title settings-section-title--first">Manage how you receive alerts</h3>
+            <h3 class="settings-section-title settings-section-title--first">{{ __('Manage how you receive alerts') }}</h3>
 
             <form method="POST" action="{{ route('settings.notifications.update') }}">
                 @csrf
@@ -41,8 +41,8 @@
                     @foreach ($notifItems as $item)
                         <div class="settings-row settings-row-static settings-toggle-row">
                             <div>
-                                <div class="settings-toggle-label">{{ $item['label'] }}</div>
-                                <div class="settings-toggle-desc">{{ $item['desc'] }}</div>
+                                <div class="settings-toggle-label">{{ __($item['label']) }}</div>
+                                <div class="settings-toggle-desc">{{ __($item['desc']) }}</div>
                             </div>
                             <label class="settings-switch">
                                 <input type="checkbox" name="{{ $item['name'] }}" value="1"

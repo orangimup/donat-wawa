@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Donat Wawa - Language Settings')
+@section('title', 'Donat Wawa - ' . __('Language Settings'))
 @section('body-class', 'settings-page')
 @section('hide-footer')
 @endsection
@@ -16,13 +16,13 @@
         @include('partials.settings-sidebar', ['active' => 'languages'])
 
         <div class="settings-content">
-            <h1>Language Settings</h1>
+            <h1>{{ __('Language Settings') }}</h1>
 
             @if (session('status'))
                 <div class="settings-alert">{{ session('status') }}</div>
             @endif
 
-            <h3 class="settings-section-title settings-section-title--first">Select your preferred language</h3>
+            <h3 class="settings-section-title settings-section-title--first">{{ __('Select your preferred language') }}</h3>
 
             <form method="POST" action="{{ route('settings.languages.update') }}">
                 @csrf
@@ -43,13 +43,13 @@
                                 <span class="settings-lang-label">{{ $lang['label'] }}</span>
                             </span>
                             @if ($user->language === $lang['code'])
-                                <span class="settings-lang-badge">Active</span>
+                                <span class="settings-lang-badge">{{ __('Active') }}</span>
                             @endif
                         </label>
                     @endforeach
                 </div>
 
-                <button type="submit" class="btn btn-primary settings-save">Save Changes</button>
+                <button type="submit" class="btn btn-primary settings-save">{{ __('Save Changes') }}</button>
             </form>
         </div>
     </div>

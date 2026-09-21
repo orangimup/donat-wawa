@@ -3,14 +3,14 @@
 @endphp
 
 <div class="auth-popup" id="loginPopup" style="display:none;">
-    <button type="button" class="auth-close" aria-label="Close" onclick="closeAuthPopup()">
+    <button type="button" class="auth-close" aria-label="{{ __('Close') }}" onclick="closeAuthPopup()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
     </button>
 
     <div class="auth-head">
         <img src="{{ asset('assets/images/logo.png') }}" alt="Donat Wawa" class="auth-logo">
-        <h2>Welcome Back!</h2>
-        <p>Sign in and continue enjoying sweet happiness in every bite.</p>
+        <h2>{{ __('Welcome Back!') }}</h2>
+        <p>{{ __('Sign in and continue enjoying sweet happiness in every bite.') }}</p>
     </div>
 
     <form method="POST" action="{{ route('login') }}" class="auth-form">
@@ -18,7 +18,7 @@
         <input type="hidden" name="intent" value="login">
 
         <div class="auth-field">
-            <label for="login-email">Email</label>
+            <label for="login-email">{{ __('Email') }}</label>
             <div class="auth-input {{ $errors->has('email') && $loginOpen ? 'has-error' : '' }}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -34,16 +34,16 @@
         </div>
 
         <div class="auth-field">
-            <label for="login-password">Password</label>
+            <label for="login-password">{{ __('Password') }}</label>
             <div class="auth-input">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round">
                     <rect x="4" y="10" width="16" height="10" rx="2"></rect>
                     <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
                 </svg>
-                <input type="password" id="login-password" name="password" placeholder="Enter your password" required
+                <input type="password" id="login-password" name="password" placeholder="{{ __('Enter your password') }}" required
                     autocomplete="current-password">
-                <button type="button" class="auth-eye" aria-label="Show password"
+                <button type="button" class="auth-eye" aria-label="{{ __('Show password') }}"
                     onclick="toggleAuthPassword(this)">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -58,14 +58,14 @@
                 @else
                     <span></span>
                 @endif
-                <a href="#" class="auth-link-sm" onclick="return false;">Forgot Password?</a>
+                <a href="#" class="auth-link-sm" onclick="return false;">{{ __('Forgot Password?') }}</a>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary auth-submit">Sign In</button>
+        <button type="submit" class="btn btn-primary auth-submit">{{ __('Sign In') }}</button>
     </form>
 
-    <div class="auth-divider"><span>or sign in with</span></div>
+    <div class="auth-divider"><span>{{ __('or sign in with') }}</span></div>
 
     <button type="button" class="auth-google" onclick="return false;">
         <svg width="18" height="18" viewBox="0 0 48 48">
@@ -85,6 +85,5 @@
         Google
     </button>
 
-    <p class="auth-switch">Don't have an account? <a href="#" onclick="openAuthPopup('register'); return false;">Register
-            Now</a></p>
+    <p class="auth-switch">{{ __("Don't have an account?") }} <a href="#" onclick="openAuthPopup('register'); return false;">{{ __('Register Now') }}</a></p>
 </div>

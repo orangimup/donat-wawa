@@ -214,7 +214,7 @@
         const total = document.getElementById("basketFloatingTotal");
 
         if (badge) badge.textContent = totalQty;
-        if (count) count.textContent = totalQty + " Item";
+        if (count) count.textContent = totalQty + " " + ((window.I18N && window.I18N.item) || "Item");
         if (total) total.textContent = formatRupiah(Basket.getTotalPrice());
     }
 })();

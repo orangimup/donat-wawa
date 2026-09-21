@@ -15,32 +15,32 @@
 
     <div class="container-ww checkout-page">
         <div class="checkout-header">
-            <h1>Checkout</h1>
+            <h1>{{ __('Checkout') }}</h1>
         </div>
 
         <div id="checkoutEmpty" class="checkout-empty" hidden>
-            <p>Your basket is empty.</p>
-            <a href="{{ url('/menu') }}" class="btn btn-primary">View Menu</a>
+            <p>{{ __('Your basket is empty.') }}</p>
+            <a href="{{ url('/menu') }}" class="btn btn-primary">{{ __('View Menu') }}</a>
         </div>
 
         <div id="checkoutContent" class="checkout-layout" hidden>
             {{-- Order Summary --}}
             <div class="checkout-card">
-                <h2>Order Summary</h2>
+                <h2>{{ __('Order Summary') }}</h2>
 
                 <div class="checkout-items" id="checkoutItems"></div>
 
                 <div class="checkout-totals">
                     <div class="checkout-totals-row">
-                        <span>Subtotal</span>
+                        <span>{{ __('Subtotal') }}</span>
                         <span id="checkoutSubtotal">Rp0</span>
                     </div>
                     <div class="checkout-totals-row">
-                        <span>Shipping Fee</span>
+                        <span>{{ __('Shipping Fee') }}</span>
                         <span id="checkoutShippingFee">Rp0</span>
                     </div>
                     <div class="checkout-totals-row checkout-totals-final">
-                        <span>Total</span>
+                        <span>{{ __('Total') }}</span>
                         <span id="checkoutTotal">Rp0</span>
                     </div>
                 </div>
@@ -48,17 +48,17 @@
 
             {{-- Customer & Delivery Details --}}
             <div class="checkout-card">
-                <h2>Customer &amp; Delivery Details</h2>
+                <h2>{{ __('Customer & Delivery Details') }}</h2>
 
                 <form class="checkout-form" id="checkoutForm" onsubmit="return false;">
                     <label class="checkout-field">
-                        <span class="checkout-field-label">Full Name<span class="required-mark">*</span></span>
-                        <input type="text" name="name" placeholder="Enter your full name"
+                        <span class="checkout-field-label">{{ __('Full Name') }}<span class="required-mark">*</span></span>
+                        <input type="text" name="name" placeholder="{{ __('Enter your full name') }}"
                             value="{{ auth()->user()->name ?? '' }}" required>
                     </label>
 
                     <label class="checkout-field">
-                        <span class="checkout-field-label">Email</span>
+                        <span class="checkout-field-label">{{ __('Email') }}</span>
                         <div class="checkout-field-icon">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -71,7 +71,7 @@
                     </label>
 
                     <label class="checkout-field">
-                        <span class="checkout-field-label">Phone Number<span class="required-mark">*</span></span>
+                        <span class="checkout-field-label">{{ __('Phone Number') }}<span class="required-mark">*</span></span>
                         <div class="checkout-field-icon">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -85,45 +85,45 @@
                     </label>
 
                     <label class="checkout-field">
-                        <span class="checkout-field-label">Delivery Address<span class="required-mark">*</span></span>
-                        <textarea name="address" rows="3" placeholder="Delivery address details..."
+                        <span class="checkout-field-label">{{ __('Delivery Address') }}<span class="required-mark">*</span></span>
+                        <textarea name="address" rows="3" placeholder="{{ __('Delivery address details...') }}"
                             required>{{ auth()->user()->address ?? '' }}</textarea>
                     </label>
 
                     <div class="checkout-field">
-                        <span class="checkout-field-label">Delivery Time</span>
+                        <span class="checkout-field-label">{{ __('Delivery Time') }}</span>
 
                         <div class="delivery-option" id="deliveryToday" data-method="today">
                             <div class="delivery-option-head">
-                                <strong>Same-Day</strong>
+                                <strong>{{ __('Same-Day') }}</strong>
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"></path>
                                 </svg>
                             </div>
-                            <p>Estimated arrival in 60-90 minutes</p>
+                            <p>{{ __('Estimated arrival in 60-90 minutes') }}</p>
                             <span class="delivery-option-price">Rp5.000</span>
                         </div>
 
                         <div class="delivery-option" id="deliveryPreorder" data-method="preorder">
                             <div class="delivery-option-head">
-                                <strong>Scheduled Order</strong>
+                                <strong>{{ __('Scheduled Order') }}</strong>
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="4" width="18" height="18" rx="2"></rect>
                                     <path d="M16 2v4M8 2v4M3 10h18"></path>
                                 </svg>
                             </div>
-                            <p>Choose your own delivery time</p>
+                            <p>{{ __('Choose your own delivery time') }}</p>
                             <span class="delivery-option-price">Rp4.000</span>
                         </div>
 
                         <div class="delivery-schedule" id="deliverySchedule" hidden>
                             <label>
-                                <span>Delivery Date</span>
+                                <span>{{ __('Delivery Date') }}</span>
                                 <input type="date" name="delivery_date">
                             </label>
                             <label>
-                                <span>Delivery Slot</span>
+                                <span>{{ __('Delivery Slot') }}</span>
                                 <select name="delivery_time">
                                     <option>09:00 - 10:00</option>
                                     <option>10:00 - 11:00</option>
@@ -141,11 +141,11 @@
     <div class="checkout-payment-bar" id="checkoutPaymentBar" hidden>
         <div class="checkout-payment-inner">
             <div>
-                <span class="checkout-payment-label">Total Payment</span>
+                <span class="checkout-payment-label">{{ __('Total Payment') }}</span>
                 <strong id="checkoutPaymentTotal">IDR 0</strong>
             </div>
             <button type="button" class="btn btn-primary checkout-pay-btn" id="checkoutPayBtn">
-                Proceed to Payment
+                {{ __('Proceed to Payment') }}
             </button>
         </div>
     </div>
@@ -202,7 +202,7 @@
                                     </div>
                                 </div>
                                 <div class="checkout-item-side">
-                                    <button type="button" class="checkout-item-remove" aria-label="Remove">
+                                    <button type="button" class="checkout-item-remove" aria-label="${window.I18N.remove}">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"></path></svg>
                                     </button>
                                     <strong class="checkout-item-total">${DonatBasket.format(item.price * item.qty)}</strong>
@@ -283,9 +283,9 @@
                 // simpan dulu data order (dipakai halaman success nanti)
                 const orderPayload = {
                     code: orderCode,
-                    placedAtLabel: now.toLocaleDateString('id-ID', {
+                    placedAtLabel: now.toLocaleDateString(window.I18N.locale, {
                         day: 'numeric', month: 'long', year: 'numeric',
-                    }) + ', ' + now.toLocaleTimeString('id-ID', {
+                    }) + ', ' + now.toLocaleTimeString(window.I18N.locale, {
                         hour: '2-digit', minute: '2-digit',
                     }) + ' WIB',
                     items: items,
@@ -303,7 +303,7 @@
 
                 const payBtn = document.getElementById('checkoutPayBtn');
                 payBtn.disabled = true;
-                payBtn.textContent = 'Memproses...';
+                payBtn.textContent = window.I18N.processing;
 
                 fetch('{{ route('checkout.snap-token') }}', {
                     method: 'POST',
@@ -339,21 +339,21 @@
                                 window.location.href = '{{ route('checkout.success') }}';
                             },
                             onError: function (result) {
-                                alert('Pembayaran gagal, coba lagi.');
+                                alert(window.I18N.paymentFailed);
                                 payBtn.disabled = false;
-                                payBtn.textContent = 'Proceed to Payment';
+                                payBtn.textContent = window.I18N.proceed;
                             },
                             onClose: function () {
                                 // user nutup popup tanpa bayar, biarin aja di halaman checkout
                                 payBtn.disabled = false;
-                                payBtn.textContent = 'Proceed to Payment';
+                                payBtn.textContent = window.I18N.proceed;
                             },
                         });
                     })
                     .catch(function (err) {
-                        alert('Terjadi kesalahan, coba lagi.');
+                        alert(window.I18N.somethingWrong);
                         payBtn.disabled = false;
-                        payBtn.textContent = 'Proceed to Payment';
+                        payBtn.textContent = window.I18N.proceed;
                     });
             });
 

@@ -12,13 +12,12 @@
     <section class="about-hero">
         <div class="container-ww about-hero-grid">
             <div class="about-hero-text">
-                <span class="about-badge">Official Store</span>
-                <h1>Visit Our Store</h1>
-                <p>Enjoy the warmth of our authentic potato donuts straight from the kitchen. A cozy place to share laughter
-                    and sweetness with the ones you love.</p>
+                <span class="about-badge">{{ __('Official Store') }}</span>
+                <h1>{{ __('Visit Our Store') }}</h1>
+                <p>{{ __('Enjoy the warmth of our authentic potato donuts straight from the kitchen. A cozy place to share laughter and sweetness with the ones you love.') }}</p>
             </div>
             <div class="about-hero-image">
-                <img src="{{ asset('assets/images/about-store.png') }}" alt="Donat Wawa Store">
+                <img src="{{ asset('assets/images/about-store.png') }}" alt="{{ __('Donat Wawa Store') }}">
             </div>
         </div>
     </section>
@@ -26,7 +25,7 @@
     <section class="section">
         <div class="container-ww about-location-grid">
             <div class="location-card">
-                <h2>Location Details</h2>
+                <h2>{{ __('Location Details') }}</h2>
 
                 <div class="location-item">
                     <span class="location-icon">
@@ -37,7 +36,7 @@
                         </svg>
                     </span>
                     <div>
-                        <p class="location-label">Full Address</p>
+                        <p class="location-label">{{ __('Full Address') }}</p>
                         <p class="location-value">Jl. Pahlawan No. 339, Balearjosari, Malang</p>
                     </div>
                 </div>
@@ -51,8 +50,8 @@
                         </svg>
                     </span>
                     <div>
-                        <p class="location-label">Operating Hours</p>
-                        <p class="location-value">Open Daily: 09.00 - 21.00 WIB</p>
+                        <p class="location-label">{{ __('Operating Hours') }}</p>
+                        <p class="location-value">{{ __('Open Daily: 14.00 - 21.00 WIB') }}</p>
                     </div>
                 </div>
 
@@ -65,7 +64,7 @@
                                 d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-4-1L3 20l1-4.5a8.4 8.4 0 0 1-1-4A8.5 8.5 0 0 1 11.5 3h.5a8.5 8.5 0 0 1 9 8.5Z">
                             </path>
                         </svg>
-                        Contact Us via Instagram
+                        {{ __('Contact Us via Instagram') }}
                     </a>
                     <a href="https://wa.me/" target="_blank" rel="noopener" class="btn-contact btn-contact-solid">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -74,7 +73,7 @@
                                 d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-4-1L3 20l1-4.5a8.4 8.4 0 0 1-1-4A8.5 8.5 0 0 1 11.5 3h.5a8.5 8.5 0 0 1 9 8.5Z">
                             </path>
                         </svg>
-                        Contact Us via WhatsApp
+                        {{ __('Contact Us via WhatsApp') }}
                     </a>
                 </div>
             </div>
@@ -91,13 +90,13 @@
     <section class="section about-gallery-section">
         <div class="container-ww">
             <div class="section-heading">
-                <h2>Customer's Favorite Corner</h2>
-                <p>Discover the comfort in every corner of our store.</p>
+                <h2>{{ __("Customer's Favorite Corner") }}</h2>
+                <p>{{ __('Discover the comfort in every corner of our store.') }}</p>
             </div>
             <div class="about-gallery-grid">
                 @foreach($gallery as $photo)
                     <div class="about-gallery-item">
-                        <img src="{{ $photo }}" alt="Donat Wawa store corner">
+                        <img src="{{ $photo }}" alt="{{ __('Donat Wawa store corner') }}">
                     </div>
                 @endforeach
             </div>
@@ -135,7 +134,7 @@
                     <div class="store-popup-header">
                         <strong>${storeName}</strong>
                         <div class="store-popup-actions">
-                            <a href="${directionsUrl}" target="_blank" rel="noopener" title="Petunjuk arah">➜</a>
+                            <a href="${directionsUrl}" target="_blank" rel="noopener" title="${window.I18N.directions}">➜</a>
                         </div>
                     </div>
                     <p class="store-popup-address">${address}</p>

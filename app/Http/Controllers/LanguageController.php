@@ -25,7 +25,10 @@ class LanguageController extends Controller
         $user->language = $validated['language'];
         $user->save();
 
-        return redirect()->route('settings.languages')->with('status', 'Bahasa berhasil diperbarui.');
+        // so the confirmation below is already written in the new language
+        app()->setLocale($validated['language']);
+
+        return redirect()->route('settings.languages')->with('status', __('Language updated successfully.'));
     }
     public function switch(Request $request, string $locale): RedirectResponse
     {

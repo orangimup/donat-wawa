@@ -1,6 +1,3 @@
-{{-- Basket sementara: ngambang (floating card) di bawah viewport, cuma
-     muncul kalau ada item. Sengaja gak full-width biar keliatan ngambang,
-     bukan nempel kayak bar biasa. --}}
 <div class="basket-floating-bar" id="basketFloatingBar" hidden>
     <div class="basket-floating-icon">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -12,12 +9,12 @@
     </div>
 
     <div class="basket-floating-info">
-        <strong id="basketFloatingCount">0 Item</strong>
+        <strong id="basketFloatingCount">0 {{ __('Item') }}</strong>
         <span id="basketFloatingTotal">Rp0</span>
     </div>
 
     <a href="{{ url('/checkout') }}" class="basket-floating-cta">
-        Check out
+        {{ __('Check out') }}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"></path></svg>
     </a>
 </div>

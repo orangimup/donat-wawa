@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Donat Wawa - Account Settings')
+@section('title', 'Donat Wawa - ' . __('Account Settings'))
 @section('body-class', 'settings-page')
 @section('hide-footer')
 @endsection
@@ -16,7 +16,7 @@
         @include('partials.settings-sidebar', ['active' => 'account'])
 
         <div class="settings-content">
-            <h1>Account Settings</h1>
+            <h1>{{ __('Account Settings') }}</h1>
 
             @if (session('status'))
                 <div class="settings-alert">{{ session('status') }}</div>
@@ -25,19 +25,19 @@
             <form id="accountForm" method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
                 @csrf
 
-                <h3 class="settings-section-title settings-section-title--first">Basic info</h3>
+                <h3 class="settings-section-title settings-section-title--first">{{ __('Basic info') }}</h3>
 
                 <div class="settings-card">
                     <div class="settings-avatar-block">
                         <div class="settings-avatar">
                             @if ($user->avatar)
-                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="Foto profil {{ $user->name }}">
+                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ __('Profile photo of :name', ['name' => $user->name]) }}">
                             @else
-                                <div class="settings-avatar-initial" aria-label="Foto profil {{ $user->name }}">
+                                <div class="settings-avatar-initial" aria-label="{{ __('Profile photo of :name', ['name' => $user->name]) }}">
                                     {{ strtoupper(mb_substr($user->name, 0, 1)) }}
                                 </div>
                             @endif
-                            <button type="button" class="settings-avatar-edit" aria-label="Ganti foto profil"
+                            <button type="button" class="settings-avatar-edit" aria-label="{{ __('Change profile photo') }}"
                                 onclick="document.getElementById('avatarInput').click()">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -54,7 +54,7 @@
                     </div>
 
                     <button type="button" class="settings-row" onclick="openSettingsModal('nameModal')">
-                        <span class="settings-row-label">Name</span>
+                        <span class="settings-row-label">{{ __('Name') }}</span>
                         <span class="settings-row-value">
                             <span>{{ old('name', $user->name) }}</span>
                             <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -65,7 +65,7 @@
                     </button>
 
                     <div class="settings-row settings-row-static">
-                        <span class="settings-row-label">Email</span>
+                        <span class="settings-row-label">{{ __('Email') }}</span>
                         <span class="settings-row-value">
                             <span>{{ $user->email }}</span>
                             <svg class="chevron chevron-muted" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -76,7 +76,7 @@
                     </div>
 
                     <button type="button" class="settings-row" onclick="openSettingsModal('phoneModal')">
-                        <span class="settings-row-label">No. Telp</span>
+                        <span class="settings-row-label">{{ __('Phone No.') }}</span>
                         <span class="settings-row-value">
                             <span>{{ old('phone', $user->phone) }}</span>
                             <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -92,10 +92,10 @@
                 <input type="hidden" name="phone" id="phoneInput" value="{{ old('phone', $user->phone) }}">
             </form>
 
-            <h3 class="settings-section-title">Account info</h3>
+            <h3 class="settings-section-title">{{ __('Account info') }}</h3>
             <div class="settings-card">
                 <button type="button" class="settings-row" onclick="openSettingsModal('passwordModal')">
-                    <span class="settings-row-label">Password</span>
+                    <span class="settings-row-label">{{ __('Password') }}</span>
                     <span class="settings-row-value">
                         <span class="settings-dots">••••••••••</span>
                         <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -111,15 +111,14 @@
     <!-- Modal: Edit Name -->
     <div class="settings-modal-overlay" id="nameModal">
         <div class="settings-modal">
-            <h4 class="settings-modal-title">Edit Name</h4>
+            <h4 class="settings-modal-title">{{ __('Edit Name') }}</h4>
             <input type="text" class="settings-modal-input" id="nameModalInput" value="{{ old('name', $user->name) }}">
             @error('name')
                 <div class="settings-error">{{ $message }}</div>
             @enderror
             <div class="settings-modal-actions">
-                <button type="button" class="btn btn-outline" onclick="closeSettingsModal('nameModal')">Cancel</button>
-                <button type="button" class="btn btn-primary" id="nameSaveBtn" onclick="saveSettingsField('name')">Save
-                    Changes</button>
+                <button type="button" class="btn btn-outline" onclick="closeSettingsModal('nameModal')">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" id="nameSaveBtn" onclick="saveSettingsField('name')">{{ __('Save Changes') }}</button>
             </div>
         </div>
     </div>
@@ -127,15 +126,14 @@
     <!-- Modal: Edit No. Telp -->
     <div class="settings-modal-overlay" id="phoneModal">
         <div class="settings-modal">
-            <h4 class="settings-modal-title">Edit No. Telp</h4>
+            <h4 class="settings-modal-title">{{ __('Edit Phone No.') }}</h4>
             <input type="text" class="settings-modal-input" id="phoneModalInput" value="{{ old('phone', $user->phone) }}">
             @error('phone')
                 <div class="settings-error">{{ $message }}</div>
             @enderror
             <div class="settings-modal-actions">
-                <button type="button" class="btn btn-outline" onclick="closeSettingsModal('phoneModal')">Cancel</button>
-                <button type="button" class="btn btn-primary" id="phoneSaveBtn" onclick="saveSettingsField('phone')">Save
-                    Changes</button>
+                <button type="button" class="btn btn-outline" onclick="closeSettingsModal('phoneModal')">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-primary" id="phoneSaveBtn" onclick="saveSettingsField('phone')">{{ __('Save Changes') }}</button>
             </div>
         </div>
     </div>
@@ -143,29 +141,29 @@
     <!-- Modal: Change Password -->
     <div class="settings-modal-overlay" id="passwordModal">
         <div class="settings-modal">
-            <h4 class="settings-modal-title">Change Password</h4>
+            <h4 class="settings-modal-title">{{ __('Change Password') }}</h4>
             <form method="POST" action="{{ route('profile.password.update') }}">
                 @csrf
 
-                <input type="password" class="settings-modal-input" name="current_password" placeholder="Enter current password"
+                <input type="password" class="settings-modal-input" name="current_password" placeholder="{{ __('Enter current password') }}"
                     autocomplete="current-password">
                 @error('current_password')
                     <div class="settings-error">{{ $message }}</div>
                 @enderror
 
-                <input type="password" class="settings-modal-input" name="new_password" placeholder="Enter new password"
+                <input type="password" class="settings-modal-input" name="new_password" placeholder="{{ __('Enter new password') }}"
                     autocomplete="new-password">
                 @error('new_password')
                     <div class="settings-error">{{ $message }}</div>
                 @enderror
 
                 <input type="password" class="settings-modal-input" name="new_password_confirmation"
-                    placeholder="Confirm new password" autocomplete="new-password">
+                    placeholder="{{ __('Confirm new password') }}" autocomplete="new-password">
 
                 <div class="settings-modal-actions">
                     <button type="button" class="btn btn-outline"
-                        onclick="closeSettingsModal('passwordModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="passwordSaveBtn">Save Changes</button>
+                        onclick="closeSettingsModal('passwordModal')">{{ __('Cancel') }}</button>
+                    <button type="submit" class="btn btn-primary" id="passwordSaveBtn">{{ __('Save Changes') }}</button>
                 </div>
             </form>
         </div>
@@ -189,7 +187,7 @@
             const saveBtn = document.getElementById(field + 'SaveBtn');
             if (saveBtn) {
                 saveBtn.disabled = true;
-                saveBtn.textContent = 'Saving...';
+                saveBtn.textContent = window.I18N.saving;
             }
 
             document.getElementById('accountForm').submit();

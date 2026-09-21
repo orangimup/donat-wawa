@@ -26,10 +26,10 @@ class ProfileController extends Controller
             'phone' => ['required', 'string', 'max:20'],
             'avatar' => ['nullable', 'image', 'max:2048'],
         ], [
-            'name.required' => 'Nama lengkap wajib diisi.',
-            'phone.required' => 'Nomor telepon wajib diisi.',
-            'avatar.image' => 'File harus berupa gambar.',
-            'avatar.max' => 'Ukuran gambar maksimal 2MB.',
+            'name.required' => __('Full name is required.'),
+            'phone.required' => __('Phone number is required.'),
+            'avatar.image' => __('The file must be an image.'),
+            'avatar.max' => __('The image may not be larger than 2MB.'),
         ]);
 
         $user->name = $validated['name'];
@@ -45,7 +45,7 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return redirect()->route('profile')->with('status', 'Profil berhasil diperbarui.');
+        return redirect()->route('profile')->with('status', __('Profile updated successfully.'));
     }
 
     public function updatePassword(Request $request): RedirectResponse
@@ -56,22 +56,22 @@ class ProfileController extends Controller
             'current_password' => ['required', 'string'],
             'new_password' => ['required', 'string', 'min:8', 'confirmed', 'different:current_password'],
         ], [
-            'current_password.required' => 'Password saat ini wajib diisi.',
-            'new_password.required' => 'Password baru wajib diisi.',
-            'new_password.min' => 'Password baru minimal 8 karakter.',
-            'new_password.confirmed' => 'Konfirmasi password baru tidak cocok.',
-            'new_password.different' => 'Password baru tidak boleh sama dengan password lama.',
+            'current_password.required' => __('The current password is required.'),
+            'new_password.required' => __('The new password is required.'),
+            'new_password.min' => __('The new password must be at least 8 characters.'),
+            'new_password.confirmed' => __('The new password confirmation does not match.'),
+            'new_password.different' => __('The new password must be different from the current password.'),
         ]);
 
         if (! Hash::check($validated['current_password'], $user->password)) {
             return back()
-                ->withErrors(['current_password' => 'Password saat ini yang kamu masukkan salah.'])
+                ->withErrors(['current_password' => __('The current password you entered is incorrect.')])
                 ->withInput();
         }
 
         $user->password = Hash::make($validated['new_password']);
         $user->save();
 
-        return redirect()->route('profile')->with('status', 'Password berhasil diperbarui.');
+        return redirect()->route('profile')->with('status', __('Password updated successfully.'));
     }
 }

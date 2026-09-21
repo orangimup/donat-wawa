@@ -3,14 +3,14 @@
 @endphp
 
 <div class="auth-popup" id="registerPopup" style="display:none;">
-    <button type="button" class="auth-close" aria-label="Close" onclick="closeAuthPopup()">
+    <button type="button" class="auth-close" aria-label="{{ __('Close') }}" onclick="closeAuthPopup()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
     </button>
 
     <div class="auth-head">
         <img src="{{ asset('assets/images/logo.png') }}" alt="Donat Wawa" class="auth-logo">
-        <h2>Welcome!</h2>
-        <p>Sign up and experience sweet happiness in every bite.</p>
+        <h2>{{ __('Welcome!') }}</h2>
+        <p>{{ __('Sign up and experience sweet happiness in every bite.') }}</p>
     </div>
 
     <form method="POST" action="{{ route('register') }}" class="auth-form">
@@ -18,14 +18,14 @@
         <input type="hidden" name="intent" value="register">
 
         <div class="auth-field">
-            <label for="register-name">Full Name</label>
+            <label for="register-name">{{ __('Full Name') }}</label>
             <div class="auth-input {{ $errors->has('name') && $registerOpen ? 'has-error' : '' }}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="8" r="4"></circle>
                     <path d="M4 21c1.5-4.5 5-6 8-6s6.5 1.5 8 6"></path>
                 </svg>
-                <input type="text" id="register-name" name="name" placeholder="Enter your full name"
+                <input type="text" id="register-name" name="name" placeholder="{{ __('Enter your full name') }}"
                     value="{{ $registerOpen ? old('name') : '' }}" required autocomplete="name">
             </div>
             @if ($errors->has('name') && $registerOpen)
@@ -34,7 +34,7 @@
         </div>
 
         <div class="auth-field">
-            <label for="register-email">Email</label>
+            <label for="register-email">{{ __('Email') }}</label>
             <div class="auth-input {{ $errors->has('email') && $registerOpen ? 'has-error' : '' }}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -50,7 +50,7 @@
         </div>
 
         <div class="auth-field">
-            <label for="register-phone">Phone Number</label>
+            <label for="register-phone">{{ __('Phone Number') }}</label>
             <div class="auth-input {{ $errors->has('phone') && $registerOpen ? 'has-error' : '' }}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -67,16 +67,16 @@
         </div>
 
         <div class="auth-field">
-            <label for="register-password">Password</label>
+            <label for="register-password">{{ __('Password') }}</label>
             <div class="auth-input {{ $errors->has('password') && $registerOpen ? 'has-error' : '' }}">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round">
                     <rect x="4" y="10" width="16" height="10" rx="2"></rect>
                     <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
                 </svg>
-                <input type="password" id="register-password" name="password" placeholder="Minimum 8 characters" required
+                <input type="password" id="register-password" name="password" placeholder="{{ __('Minimum 8 characters') }}" required
                     autocomplete="new-password" minlength="8">
-                <button type="button" class="auth-eye" aria-label="Show password"
+                <button type="button" class="auth-eye" aria-label="{{ __('Show password') }}"
                     onclick="toggleAuthPassword(this)">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                         stroke-linecap="round" stroke-linejoin="round">
@@ -90,9 +90,9 @@
             @endif
         </div>
 
-        <button type="submit" class="btn btn-primary auth-submit">Register Now</button>
+        <button type="submit" class="btn btn-primary auth-submit">{{ __('Register Now') }}</button>
     </form>
 
-    <p class="auth-switch">Already have an account? <a href="#" onclick="openAuthPopup('login'); return false;">Sign In</a>
+    <p class="auth-switch">{{ __('Already have an account?') }} <a href="#" onclick="openAuthPopup('login'); return false;">{{ __('Sign In') }}</a>
     </p>
 </div>

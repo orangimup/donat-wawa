@@ -7,7 +7,7 @@
     @if ($paginator->onFirstPage())
         <span class="disabled" aria-hidden="true">{!! $chevron('left') !!}</span>
     @else
-        <a href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="@lang('pagination.previous')">{!! $chevron('left') !!}</a>
+        <a href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="{{ __('Previous') }}">{!! $chevron('left') !!}</a>
     @endif
 
     {{-- Page numbers --}}
@@ -29,7 +29,7 @@
 
     {{-- Next --}}
     @if ($paginator->hasMorePages())
-        <a href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="@lang('pagination.next')">{!! $chevron('right') !!}</a>
+        <a href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="{{ __('Next') }}">{!! $chevron('right') !!}</a>
     @else
         <span class="disabled" aria-hidden="true">{!! $chevron('right') !!}</span>
     @endif

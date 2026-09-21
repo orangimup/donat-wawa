@@ -15,39 +15,39 @@
                 <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
 
                 @if ($product->badge === 'best_seller')
-                    <span class="menu-badge">Best Seller</span>
+                    <span class="menu-badge">{{ __('Best Seller') }}</span>
                 @elseif ($product->badge === 'new')
-                    <span class="menu-badge">New Menu</span>
+                    <span class="menu-badge">{{ __('New Menu') }}</span>
                 @endif
 
                 @unless ($product->is_available)
-                    <span class="menu-soldout-pill">Sold Out</span>
+                    <span class="menu-soldout-pill">{{ __('Sold Out') }}</span>
                 @endunless
             </div>
 
             <div class="product-info">
-                <span class="product-category">{{ ucfirst($product->category) }}</span>
+                <span class="product-category">{{ __(ucfirst($product->category)) }}</span>
                 <h1>{{ $product->name }}</h1>
-                <p class="product-description">{{ $product->description ?: 'Belum ada deskripsi untuk produk ini.' }}</p>
+                <p class="product-description">{{ $product->description ?: __('No description available for this product yet.') }}</p>
 
                 <div class="product-price-row">
                     <span class="product-price">{{ $product->price_formatted }}</span>
                     <span class="product-stock {{ $product->stock <= 5 && $product->stock > 0 ? 'is-low' : '' }}">
                         @if ($product->stock > 0)
-                            Tersedia: {{ $product->stock }} pcs
+                            {{ __('Available: :count pcs', ['count' => $product->stock]) }}
                         @else
-                            Stok habis
+                            {{ __('Out of stock') }}
                         @endif
                     </span>
                 </div>
 
                 @if ($product->is_available)
                     <div class="product-order-form">
-                        <span class="qty-label">QUANTITY</span>
+                        <span class="qty-label">{{ mb_strtoupper(__('Quantity')) }}</span>
                         <div class="qty-stepper">
-                            <button type="button" class="qty-btn" id="qtyDecBtn" aria-label="Kurangi">−</button>
+                            <button type="button" class="qty-btn" id="qtyDecBtn" aria-label="{{ __('Decrease') }}">−</button>
                             <input type="number" id="qtyInput" value="1" min="1" max="{{ $product->stock }}" readonly>
-                            <button type="button" class="qty-btn" id="qtyIncBtn" aria-label="Tambah">+</button>
+                            <button type="button" class="qty-btn" id="qtyIncBtn" aria-label="{{ __('Increase') }}">+</button>
                         </div>
                     </div>
 
@@ -58,7 +58,7 @@
                         data-image="{{ $product->image_url }}">
 
                         <button type="button" class="btn btn-primary product-order-btn" id="checkoutPlainBtn">
-                            Check out
+                            {{ __('Check out') }}
                         </button>
 
                         <div class="basket-inline-bar" id="basketInlineBar" hidden>
@@ -72,18 +72,18 @@
                             </div>
 
                             <div class="basket-inline-info">
-                                <strong id="basketInlineCount">0 Item</strong>
+                                <strong id="basketInlineCount">0 {{ __('Item') }}</strong>
                                 <span id="basketInlineTotal">Rp0</span>
                             </div>
 
                             <button type="button" class="btn btn-primary basket-inline-cta" id="checkoutInlineBtn">
-                                Check out
+                                {{ __('Check out') }}
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"></path></svg>
                             </button>
                         </div>
                     </div>
                 @else
-                    <button type="button" class="btn btn-outline product-order-btn" disabled>Restocking Soon</button>
+                    <button type="button" class="btn btn-outline product-order-btn" disabled>{{ __('Restocking Soon') }}</button>
                 @endif
             </div>
         </section>
@@ -91,20 +91,20 @@
         {{-- ===================== CUSTOMER REVIEWS ===================== --}}
         <section class="reviews-section">
             <div class="container-ww">
-                <h2 class="reviews-title">Customer Reviews</h2>
+                <h2 class="reviews-title">{{ __('Customer Reviews') }}</h2>
 
                 @php
                     $staticReviews = [
-                        ['initial' => 'S', 'name' => 'Siti N.', 'time' => '1 week ago', 'rating' => 4.5, 'star_group' => 4,
-                            'text' => 'Enak, glazing cokelatnya tebal dan mantap. Buat yang suka banget cokelat pasti doyan. Bagussss buat harga segini.'],
-                        ['initial' => 'B', 'name' => 'Budi S.', 'time' => '2 weeks ago', 'rating' => 5, 'star_group' => 5,
-                            'text' => 'Favorit anak-anak di rumah! Bagussss banget kualitasnya. Rasanya konsisten dari dulu, cokelatnya premium.'],
-                        ['initial' => 'D', 'name' => 'Dian M.', 'time' => '3 weeks ago', 'rating' => 4.5, 'star_group' => 4,
-                            'text' => 'Cocok banget dipaduin sama kopi pait. Manisnya pas, gak lebay. Bagussss, recommended!'],
-                        ['initial' => 'R', 'name' => 'Rina K.', 'time' => '1 month ago', 'rating' => 5, 'star_group' => 5,
-                            'text' => 'Donat paling enak se-Jakarta! Bagussss pelayanannya juga cepat. Cokelatnya beneran dark chocolate yang mahal.'],
-                        ['initial' => 'F', 'name' => 'Fajar H.', 'time' => '1 month ago', 'rating' => 5, 'star_group' => 5,
-                            'text' => 'Teksturnya lembut banget, toppingnya melimpah. Bagussss buat oleh-oleh atau camilan sore.'],
+                        ['initial' => 'S', 'name' => 'Siti N.', 'time' => __('1 week ago'), 'rating' => 4.5, 'star_group' => 4,
+                            'text' => __("Delicious, the chocolate glaze is thick and great. If you love chocolate you will definitely enjoy it. Really good for this price.")],
+                        ['initial' => 'B', 'name' => 'Budi S.', 'time' => __('2 weeks ago'), 'rating' => 5, 'star_group' => 5,
+                            'text' => __("The kids' favorite at home! The quality is really good. The taste has been consistent all along, and the chocolate is premium.")],
+                        ['initial' => 'D', 'name' => 'Dian M.', 'time' => __('3 weeks ago'), 'rating' => 4.5, 'star_group' => 4,
+                            'text' => __("Goes so well with black coffee. Sweet just right, not overdone. Great, recommended!")],
+                        ['initial' => 'R', 'name' => 'Rina K.', 'time' => __('1 month ago'), 'rating' => 5, 'star_group' => 5,
+                            'text' => __("The best donuts in Jakarta! The service is fast too. The chocolate is real, expensive dark chocolate.")],
+                        ['initial' => 'F', 'name' => 'Fajar H.', 'time' => __('1 month ago'), 'rating' => 5, 'star_group' => 5,
+                            'text' => __("The texture is so soft and the toppings are generous. Great as a gift or an afternoon snack.")],
                     ];
 
                     $ratingBreakdown = [
@@ -118,15 +118,15 @@
 
                 <div class="reviews-grid">
                     <div class="rating-summary-card">
-                        <h3>Rating Summary</h3>
+                        <h3>{{ __('Rating Summary') }}</h3>
                         <div class="rating-summary-body">
                             <div class="rating-summary-left">
                                 <div class="rating-score">4.9</div>
-                                <div class="star-rating" aria-label="4.9 out of 5 stars">
+                                <div class="star-rating" aria-label="{{ __(':rating out of 5 stars', ['rating' => '4.9']) }}">
                                     <span class="star-rating-bg">★★★★★</span>
                                     <span class="star-rating-fg" style="width: {{ (4.9 / 5) * 100 }}%">★★★★★</span>
                                 </div>
-                                <span class="rating-count">128 Reviews</span>
+                                <span class="rating-count">{{ __(':count Reviews', ['count' => 128]) }}</span>
                             </div>
                             <div class="rating-bars">
                                 @foreach ($ratingBreakdown as $star => $percent)
@@ -149,7 +149,7 @@
                                     <strong>{{ $review['name'] }}</strong>
                                     <span class="review-time">{{ $review['time'] }}</span>
                                 </div>
-                                <div class="star-rating star-rating-sm" aria-label="{{ $review['rating'] }} out of 5 stars">
+                                <div class="star-rating star-rating-sm" aria-label="{{ __(':rating out of 5 stars', ['rating' => $review['rating']]) }}">
                                     <span class="star-rating-bg">★★★★★</span>
                                     <span class="star-rating-fg" style="width: {{ ($review['rating'] / 5) * 100 }}%">★★★★★</span>
                                 </div>
@@ -161,7 +161,7 @@
 
                 <div class="reviews-footer">
                     <a href="{{ route('product.reviews', $product->slug) }}" class="reviews-view-all-btn">
-                        <span>See All Reviews</span>
+                        <span>{{ __('See All Reviews') }}</span>
                         <span class="reviews-view-all-pill">128</span>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                     </a>
@@ -173,9 +173,9 @@
             <section class="similiar-products-section">
                 <div class="container-ww">
                     <div class="section-heading-row">
-                        <h2>Similar Products</h2>
+                        <h2>{{ __('Similar Products') }}</h2>
                         <a href="{{ url('/menu') }}" class="see-all-link">
-                            See All
+                            {{ __('See All') }}
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"></path></svg>
                         </a>
                     </div>
@@ -262,7 +262,7 @@
                     plainBtn.hidden = true;
                     inlineBar.hidden = false;
                     document.getElementById('basketInlineBadge').textContent = totalQty;
-                    document.getElementById('basketInlineCount').textContent = totalQty + ' Item';
+                    document.getElementById('basketInlineCount').textContent = totalQty + ' ' + window.I18N.item;
                     document.getElementById('basketInlineTotal').textContent = DonatBasket.format(DonatBasket.getTotalPrice());
                 } else {
                     plainBtn.hidden = false;

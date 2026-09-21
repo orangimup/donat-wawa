@@ -27,6 +27,6 @@ class NotificationSettingsController extends Controller
             'notif_daily_reminder' => $request->boolean('notif_daily_reminder'),
         ]);
 
-        return redirect()->route('settings.notifications')->with('status', 'Preferensi notifikasi berhasil disimpan.');
+        return redirect()->route('settings.notifications')->with('status', __('Notification preferences saved successfully.'));
     }
 }

@@ -8,7 +8,7 @@
 @endphp
 
 <aside class="settings-sidebar">
-    <h2>Settings</h2>
+    <h2>{{ __('Settings') }}</h2>
     <nav class="settings-nav">
         @foreach ($settingsNav as $item)
             @php
@@ -21,7 +21,7 @@
                 class="settings-nav-link {{ $isActive ? 'active' : '' }} {{ $isDisabled ? 'disabled' : '' }}"
                 @if ($isDisabled) aria-disabled="true" onclick="return false;" @endif
             >
-                {{ $item['label'] }}
+                {{ __($item['label']) }}
             </a>
         @endforeach
     </nav>

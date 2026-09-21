@@ -1,13 +1,32 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Donat Wawa — Authentic Artisanal Donuts')</title>
+    @php
+        $i18n = [
+            'locale' => app()->getLocale() === 'id' ? 'id-ID' : 'en-US',
+            'item' => __('Item'),
+            'processing' => __('Processing...'),
+            'proceed' => __('Proceed to Payment'),
+            'paymentFailed' => __('Payment failed, please try again.'),
+            'somethingWrong' => __('Something went wrong, please try again.'),
+            'trackUnavailable' => __('Order tracking is not available yet — coming soon once the backend is wired up.'),
+            'sameDay' => __('Same-Day'),
+            'scheduled' => __('Scheduled Order'),
+            'paymentSuccess' => __('Payment Success'),
+            'awaitingPayment' => __('Awaiting Payment'),
+            'saving' => __('Saving...'),
+            'directions' => __('Get directions'),
+            'remove' => __('Remove'),
+        ];
+    @endphp
     <script>
         window.isAuthenticated = @json(auth()->check());
+        window.I18N = @json($i18n);
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

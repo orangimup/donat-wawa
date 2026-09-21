@@ -20,13 +20,13 @@ class AuthController extends Controller
             'phone' => ['required', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8'],
         ], [
-            'name.required' => 'Nama lengkap wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email ini sudah terdaftar. Silakan masuk.',
-            'phone.required' => 'Nomor telepon wajib diisi.',
-            'password.required' => 'Kata sandi wajib diisi.',
-            'password.min' => 'Kata sandi minimal 8 karakter.',
+            'name.required' => __('Full name is required.'),
+            'email.required' => __('Email is required.'),
+            'email.email' => __('The email format is invalid.'),
+            'email.unique' => __('This email is already registered. Please sign in.'),
+            'phone.required' => __('Phone number is required.'),
+            'password.required' => __('Password is required.'),
+            'password.min' => __('Password must be at least 8 characters.'),
         ]);
 
         $user = User::create([
@@ -34,13 +34,14 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'phone' => $validated['phone'],
             'password' => Hash::make($validated['password']),
+            'language' => in_array(session('language'), ['en', 'id'], true) ? session('language') : config('app.locale'),
         ]);
 
         Auth::login($user);
 
         $request->session()->regenerate();
 
-        return redirect()->back()->with('status', 'Pendaftaran berhasil! Selamat datang, ' . $user->name . '.');
+        return redirect()->back()->with('status', __('Registration successful! Welcome, :name.', ['name' => $user->name]));
     }
     public function login(Request $request): RedirectResponse
     {
@@ -48,32 +49,43 @@ class AuthController extends Controller
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
         ], [
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'password.required' => 'Kata sandi wajib diisi.',
+            'email.required' => __('Email is required.'),
+            'email.email' => __('The email format is invalid.'),
+            'password.required' => __('Password is required.'),
         ]);
 
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
             throw ValidationException::withMessages([
-                'email' => 'Email atau kata sandi yang Anda masukkan salah.',
+                'email' => __('The email or password you entered is incorrect.'),
             ]);
         }
 
         $request->session()->regenerate();
 
-        if (Auth::user()->role === 'admin') {
-            return redirect()->route('admin.dashboard')->with('status', 'Berhasil masuk. Selamat datang kembali!');
+        if (in_array(session('language'), ['en', 'id'], true)) {
+            Auth::user()->update(['language' => session('language')]);
+            app()->setLocale(session('language'));
         }
 
-        return redirect()->back()->with('status', 'Berhasil masuk. Selamat datang kembali!');
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('admin.dashboard')->with('status', __('Signed in successfully. Welcome back!'));
+        }
+
+        return redirect()->back()->with('status', __('Signed in successfully. Welcome back!'));
     }
     public function logout(Request $request): RedirectResponse
     {
+        $wasAdmin = Auth::user()?->role === 'admin';
+
         Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->back()->with('status', 'Anda telah keluar.');
+        if ($wasAdmin) {
+            return redirect()->route('home')->with('status', __('You have been signed out.'));
+        }
+
+        return redirect()->back()->with('status', __('You have been signed out.'));
     }
 }

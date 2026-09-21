@@ -15,12 +15,11 @@
         </div>
         <div class="container-ww">
             <div class="hero-content">
-                <h1>Authentic Artisanal Donuts Made with Love.</h1>
-                <p>Freshly baked every morning in Malang using premium ingredients. From our kitchen to your doorstep,
-                    experience the warmth of home-style gourmet donuts.</p>
+                <h1>{{ __('Authentic Artisanal Donuts Made with Love.') }}</h1>
+                <p>{{ __('Freshly baked every morning in Malang using premium ingredients. From our kitchen to your doorstep, experience the warmth of home-style gourmet donuts.') }}</p>
                 <div class="hero-actions">
-                    <a href="#menu" class="btn btn-primary">Order Now</a>
-                    <a href="{{ route('about') }}" class="btn btn-outline">About Us</a>
+                    <a href="#menu" class="btn btn-primary">{{ __('Order Now') }}</a>
+                    <a href="{{ route('about') }}" class="btn btn-outline">{{ __('About Us') }}</a>
                 </div>
             </div>
         </div>
@@ -29,8 +28,8 @@
     <section class="section" id="bundling">
         <div class="container-ww">
             <div class="section-heading">
-                <h2>Favorite Bundle Packages</h2>
-                <p>The perfect choice to enjoy with family, close friends, or office colleagues.</p>
+                <h2>{{ __('Favorite Bundle Packages') }}</h2>
+                <p>{{ __('The perfect choice to enjoy with family, close friends, or office colleagues.') }}</p>
             </div>
             <div class="bundle-grid">
                 @foreach($bundles as $bundle)
@@ -43,14 +42,14 @@
     <section class="section" id="menu" style="padding-top:0;">
         <div class="container-ww">
             <div class="section-heading">
-                <h2>Favorite Menu</h2>
-                <p>Choose your favorite flavor. Made fresh every day with high-quality ingredients.</p>
+                <h2>{{ __('Favorite Menu') }}</h2>
+                <p>{{ __('Choose your favorite flavor. Made fresh every day with high-quality ingredients.') }}</p>
             </div>
             <div class="menu-grid">
                 @forelse($menuItems as $item)
                     @include('components.menu-card', ['item' => $item])
                 @empty
-                    <p style="grid-column: 1/-1; text-align:center; color:#8A7C72;">No menu items yet — check back soon.</p>
+                    <p style="grid-column: 1/-1; text-align:center; color:#8A7C72;">{{ __('No menu items yet — check back soon.') }}</p>
                 @endforelse
             </div>
         </div>
@@ -63,22 +62,21 @@
                 <div class="overlay"></div>
                 <div class="promo-content">
                     <div class="promo-text">
-                        <p class="promo-eyebrow" style="color: #FBBF24;">100% QUALITY</p>
-                        <h2>The Delight of Brioche Donuts Without Synthetic Preservatives.</h2>
-                        <p>Every batch of dough is made with high-quality butter, natural yeast, and omega eggs. Fried at
-                            precise temperatures to produce donuts that rise soft without excess oiliness.</p>
+                        <p class="promo-eyebrow" style="color: #FBBF24;">{{ mb_strtoupper(__('100% Quality')) }}</p>
+                        <h2>{{ __('The Delight of Brioche Donuts Without Synthetic Preservatives.') }}</h2>
+                        <p>{{ __('Every batch of dough is made with high-quality butter, natural yeast, and omega eggs. Fried at precise temperatures to produce donuts that rise soft without excess oiliness.') }}</p>
                         <div class="promo-stats">
                             <div>
                                 <p class="stat-num">100%</p>
-                                <p class="stat-label">Natural Halal Ingredients</p>
+                                <p class="stat-label">{{ __('Natural Halal Ingredients') }}</p>
                             </div>
                             <div>
-                                <p class="stat-num">Open Daily</p>
-                                <p class="stat-label">From 9:00 AM</p>
+                                <p class="stat-num">{{ __('Open Daily') }}</p>
+                                <p class="stat-label">{{ __('From 2:00 PM') }}</p>
                             </div>
                         </div>
                     </div>
-                    <a href="menu" class="btn btn-white">Order for Your Event</a>
+                    <a href="menu" class="btn btn-white">{{ __('Order for Your Event') }}</a>
                 </div>
             </div>
         </div>
