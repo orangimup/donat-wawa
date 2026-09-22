@@ -281,7 +281,7 @@
     }
 }
 
-.od-body {    
+.od-body {
     background: #fff;
 }
 
@@ -710,4 +710,55 @@
 .od-help-bar span {
     font-size: 13px;
     color: var(--text-muted);
+}
+
+/* ===== Row actions (See Details / Beri Ulasan / Ajukan Refund) ===== */
+.order-history-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.order-history-review-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background: var(--maroon);
+    font-family: var(--font-label);
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    transition: filter 0.15s ease;
+}
+
+.order-history-review-btn:hover {
+    filter: brightness(0.95);
+}
+
+.order-history-refund-form {
+    margin: 0;
+}
+
+.order-history-refund-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: 1.5px solid var(--border-soft);
+    background: #fff;
+    font-family: var(--font-label);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.order-history-refund-btn:hover {
+    border-color: var(--maroon);
+    color: var(--maroon);
 }

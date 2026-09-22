@@ -99,7 +99,7 @@
                                     $extra = $order['items']->count() - 1;
                                     $rowGroup = $groupOfStatus[$order['status']];
                                 @endphp
-                                <tr>
+                                <tr class="order-history-row" data-href="{{ route('settings.orders.show', $order['id']) }}">
                                     <td>
                                         <div class="order-history-item-cell">
                                             <img src="{{ $first['image'] }}" alt="{{ $first['name'] }}">
@@ -123,9 +123,24 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{{ route('settings.orders.show', $order['id']) }}" class="order-history-see">
-                                            {{ __('See Details') }}
-                                        </a>
+                                        <div class="order-history-actions" onclick="event.stopPropagation()">
+                                            @if ($rowGroup === 'pending')
+                                                <a href="{{ route('settings.orders.show', $order['id']) }}" class="order-history-see">
+                                                    {{ __('See Details') }}
+                                                </a>
+                                            @elseif ($order['status'] === 'done')
+                                                <a href="{{ route('settings.orders.review', $order['id']) }}" class="order-history-review-btn">
+                                                    {{ __('Beri Ulasan') }}
+                                                </a>
+                                                <a href="{{ route('settings.orders.refund', $order['id']) }}" class="order-history-refund-btn">
+                                                    {{ __('Ajukan Refund') }}
+                                                </a>
+                                            @elseif ($order['status'] === 'rejected')
+                                                <a href="{{ route('settings.orders.refund', $order['id']) }}" class="order-history-refund-btn">
+                                                    {{ __('Ajukan Refund') }}
+                                                </a>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
@@ -155,3 +170,13 @@
     </div>
 
 @endsection
+
+@push('scripts')
+    <script>
+        document.querySelectorAll('.order-history-row[data-href]').forEach(function (row) {
+            row.addEventListener('click', function () {
+                window.location = row.dataset.href;
+            });
+        });
+    </script>
+@endpush

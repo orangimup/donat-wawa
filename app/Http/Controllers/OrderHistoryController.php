@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\MenuItem;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class OrderHistoryController extends Controller
@@ -24,6 +26,22 @@ class OrderHistoryController extends Controller
         'pending' => ['waiting', 'process', 'shipped'],
         'completed' => ['done'],
         'cancelled' => ['rejected'],
+    ];
+
+    public const REVIEW_LABELS = [
+        1 => 'Sangat mengecewakan, tidak sesuai harapan',
+        2 => 'Kurang memuaskan, banyak yang perlu diperbaiki',
+        3 => 'Cukup baik, tapi masih bisa lebih baik',
+        4 => 'Enak dan memuaskan!',
+        5 => 'Luar biasa lezat! Pasti pesan lagi',
+    ];
+
+    public const REFUND_REASONS = [
+        'damaged' => 'Barang rusak/cacat',
+        'wrong_item' => 'Pesanan tidak sesuai',
+        'not_delivered' => 'Pesanan tidak sampai',
+        'changed_mind' => 'Berubah pikiran',
+        'other' => 'Lainnya',
     ];
 
     public function index(Request $request): View
@@ -79,6 +97,75 @@ class OrderHistoryController extends Controller
             'order' => $found,
             'statusLabels' => self::STATUS_LABELS,
         ]);
+    }
+
+    public function review(Request $request, int $order): View
+    {
+        $found = $this->orders($request->user()->id)->firstWhere('id', $order);
+
+        abort_if($found === null, 404);
+        abort_unless($found['status'] === 'done', 403);
+
+        return view('user.settings.order-review', [
+            'order' => $found,
+            'reviewLabels' => self::REVIEW_LABELS,
+        ]);
+    }
+
+    public function storeReview(Request $request, int $order): RedirectResponse
+    {
+        $found = $this->orders($request->user()->id)->firstWhere('id', $order);
+
+        abort_if($found === null, 404);
+        abort_unless($found['status'] === 'done', 403);
+
+        $validated = $request->validate([
+            'rating' => ['required', 'integer', 'between:1,5'],
+            'comment' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        // TODO: simpan ke tabel reviews begitu modelnya ada
+
+        return redirect()
+            ->route('settings.orders.show', $order)
+            ->with('success', __('Terima kasih atas ulasanmu!'));
+    }
+
+    public function refund(Request $request, int $order): View
+    {
+        $found = $this->orders($request->user()->id)->firstWhere('id', $order);
+
+        abort_if($found === null, 404);
+        abort_unless(in_array($found['status'], ['done', 'rejected'], true), 403);
+
+        return view('user.settings.order-refund', [
+            'order' => $found,
+            'statusLabels' => self::STATUS_LABELS,
+            'reasons' => self::REFUND_REASONS,
+        ]);
+    }
+
+    public function storeRefund(Request $request, int $order): RedirectResponse
+    {
+        $found = $this->orders($request->user()->id)->firstWhere('id', $order);
+
+        abort_if($found === null, 404);
+        abort_unless(in_array($found['status'], ['done', 'rejected'], true), 403);
+
+        $validated = $request->validate([
+            'reason' => ['required', Rule::in(array_keys(self::REFUND_REASONS))],
+            'details' => ['required', 'string', 'max:1000'],
+            'evidence' => ['nullable', 'image', 'max:5120'],
+            'bank_name' => ['required', 'string', 'max:100'],
+            'account_number' => ['required', 'string', 'max:50'],
+            'account_holder_name' => ['required', 'string', 'max:100'],
+        ]);
+
+        // TODO: simpan ke tabel refund_requests + upload evidence-nya begitu modelnya ada
+
+        return redirect()
+            ->route('settings.orders.show', $order)
+            ->with('success', __('Pengajuan refund berhasil dikirim.'));
     }
 
     private function orders(int $userId): Collection

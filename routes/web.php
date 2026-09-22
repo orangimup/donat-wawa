@@ -47,6 +47,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/settings/orders', [OrderHistoryController::class, 'index'])->name('settings.orders');
     Route::get('/settings/orders/{order}', [OrderHistoryController::class, 'show'])->whereNumber('order')->name('settings.orders.show');
+    Route::get('/settings/orders/{order}/review', [OrderHistoryController::class, 'review'])->name('settings.orders.review');
+    Route::post('/settings/orders/{order}/review', [OrderHistoryController::class, 'storeReview'])->name('settings.orders.review.store');
+    Route::get('/settings/orders/{order}/refund', [OrderHistoryController::class, 'refund'])->name('settings.orders.refund');
+    Route::post('/settings/orders/{order}/refund', [OrderHistoryController::class, 'storeRefund'])->name('settings.orders.refund.store');
 
     Route::get('/settings/languages', [LanguageController::class, 'show'])->name('settings.languages');
     Route::post('/settings/languages', [LanguageController::class, 'update'])->name('settings.languages.update');
