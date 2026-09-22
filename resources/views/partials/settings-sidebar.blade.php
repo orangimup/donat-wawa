@@ -2,7 +2,7 @@
     $settingsNav = [
         ['label' => 'Account', 'route' => 'profile', 'key' => 'account'],
         ['label' => 'Notifications', 'route' => 'settings.notifications', 'key' => 'notifications'],
-        ['label' => 'My Orders', 'route' => null, 'key' => 'my-orders'],
+        ['label' => 'My Orders', 'route' => 'settings.orders', 'key' => 'my-orders'],
         ['label' => 'Languages', 'route' => 'settings.languages', 'key' => 'languages'],
     ];
 @endphp

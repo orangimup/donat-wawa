@@ -12,6 +12,7 @@ class LanguageController extends Controller
     {
         return view('user.settings.languages', [
             'user' => $request->user(),
+            'currentLanguage' => session('language', app()->getLocale()),
         ]);
     }
 
@@ -21,24 +22,19 @@ class LanguageController extends Controller
             'language' => ['required', 'in:id,en'],
         ]);
 
-        $user = $request->user();
-        $user->language = $validated['language'];
-        $user->save();
+        session(['language' => $validated['language']]);
 
         // so the confirmation below is already written in the new language
         app()->setLocale($validated['language']);
 
         return redirect()->route('settings.languages')->with('status', __('Language updated successfully.'));
     }
+
     public function switch(Request $request, string $locale): RedirectResponse
     {
         abort_unless(in_array($locale, ['id', 'en']), 404);
 
-        if (auth()->check()) {
-            auth()->user()->update(['language' => $locale]);
-        } else {
-            session(['language' => $locale]);
-        }
+        session(['language' => $locale]);
 
         return back();
     }

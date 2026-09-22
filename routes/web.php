@@ -8,6 +8,7 @@ use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationSettingsController;
+use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuItemController;
@@ -43,6 +44,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/settings/notifications', [NotificationSettingsController::class, 'show'])->name('settings.notifications');
     Route::post('/settings/notifications', [NotificationSettingsController::class, 'update'])->name('settings.notifications.update');
+
+    Route::get('/settings/orders', [OrderHistoryController::class, 'index'])->name('settings.orders');
+    Route::get('/settings/orders/{order}', [OrderHistoryController::class, 'show'])->whereNumber('order')->name('settings.orders.show');
 
     Route::get('/settings/languages', [LanguageController::class, 'show'])->name('settings.languages');
     Route::post('/settings/languages', [LanguageController::class, 'update'])->name('settings.languages.update');

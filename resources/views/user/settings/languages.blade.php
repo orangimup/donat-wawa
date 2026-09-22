@@ -39,10 +39,10 @@
                         <label class="settings-row settings-lang-row">
                             <span class="settings-lang-option">
                                 <input type="radio" name="language" value="{{ $lang['code'] }}" class="settings-radio"
-                                    {{ old('language', $user->language) === $lang['code'] ? 'checked' : '' }}>
+                                    {{ old('language', $currentLanguage) === $lang['code'] ? 'checked' : '' }}>
                                 <span class="settings-lang-label">{{ $lang['label'] }}</span>
                             </span>
-                            @if ($user->language === $lang['code'])
+                            @if ($currentLanguage === $lang['code'])
                                 <span class="settings-lang-badge">{{ __('Active') }}</span>
                             @endif
                         </label>

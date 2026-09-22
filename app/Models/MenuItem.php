@@ -26,6 +26,7 @@ class MenuItem extends Model
     use HasFactory;
 
     protected $fillable = [
+        'id_produk',
         'name',
         'slug',
         'description',
@@ -51,7 +52,26 @@ class MenuItem extends Model
             if (blank($menuItem->slug) && filled($menuItem->name)) {
                 $menuItem->slug = static::uniqueSlugFor($menuItem->name, $menuItem->id);
             }
+
+            if (blank($menuItem->id_produk)) {
+                $menuItem->id_produk = static::nextIdProduk();
+            }
         });
+    }
+
+    /**
+     * Generate the next global sequential product code, e.g. DW-001, DW-002.
+     */
+    public static function nextIdProduk(): string
+    {
+        $last = static::query()
+            ->where('id_produk', 'like', 'DW-%')
+            ->orderByRaw('CAST(SUBSTR(id_produk, 4) AS INTEGER) DESC')
+            ->value('id_produk');
+
+        $next = $last ? ((int) substr($last, 3)) + 1 : 1;
+
+        return 'DW-' . str_pad((string) $next, 3, '0', STR_PAD_LEFT);
     }
 
     public static function uniqueSlugFor(string $name, ?int $ignoreId = null): string

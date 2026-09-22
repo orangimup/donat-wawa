@@ -18,6 +18,7 @@ export default defineConfig({
                 'resources/css/home.css',
                 'resources/css/menu.css',
                 'resources/css/order-confirmed.css',
+                'resources/css/order-history.css',
                 'resources/css/product.css',
                 'resources/css/settings.css',
                 'resources/js/app.js',

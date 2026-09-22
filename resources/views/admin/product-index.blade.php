@@ -70,6 +70,7 @@
                 <thead>
                     <tr>
                         <th>No.</th>
+                        <th>ID Produk</th>
                         <th>Image</th>
                         <th>Name</th>
                         <th>Description</th>
@@ -84,6 +85,7 @@
                     @forelse ($menuItems as $item)
                         <tr>
                             <td>{{ $loop->iteration + ($menuItems->currentPage() - 1) * $menuItems->perPage() }}</td>
+                            <td>{{ $item->id_produk }}</td>
                             <td><img src="{{ $item->image_url }}" alt="{{ $item->name }}" class="admin-table-thumb"></td>
                             <td>
                                 <span class="admin-table-name">{{ $item->name }}</span>
@@ -103,7 +105,7 @@
                             <td>
                                 <div class="admin-table-actions">
                                     <button type="button" class="admin-icon-btn" aria-label="Edit {{ $item->name }}"
-                                        onclick="openEditModal(this)" data-id="{{ $item->id }}" data-name="{{ $item->name }}"
+                                        onclick="openEditModal(this)" data-id="{{ $item->id }}" data-id-produk="{{ $item->id_produk }}" data-name="{{ $item->name }}"
                                         data-description="{{ $item->description }}" data-category="{{ $item->category }}"
                                         data-price="{{ $item->price }}"
                                         data-stock="{{ $item->stock }}" data-status="{{ $item->status }}"
@@ -136,7 +138,7 @@
                         </tr>
                     @empty
                         <tr class="admin-empty-row">
-                            <td colspan="9">No products yet. Click "New Product" to add one.</td>
+                            <td colspan="10">No products yet. Click "New Product" to add one.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -431,7 +433,7 @@
                 editIdField.value = btn.dataset.id;
                 removeImageFlag.value = '0';
                 title.textContent = 'Edit Product Variant';
-                subtitle.textContent = 'Update the price, stock, or recipe details for this donut';
+                subtitle.textContent = 'Update the price, stock, or recipe details for this donut · ID Produk: ' + (btn.dataset.idProduk || '-');
                 stockLabel.innerHTML = 'AVAILABLE STOCK <span class="admin-required">*</span>';
                 statusToggleTitle.textContent = 'Product Status';
                 statusToggleHint.textContent = 'Availability of this variant on the public menu';
@@ -462,7 +464,7 @@
                     form.action = "{{ route('admin.menu-items.update', $retryItem) }}";
                     methodField.value = 'PUT';
                     title.textContent = 'Edit Product Variant';
-                    subtitle.textContent = 'Update the price, stock, or recipe details for this donut';
+                    subtitle.textContent = 'Update the price, stock, or recipe details for this donut · ID Produk: {{ $retryItem->id_produk }}';
                     stockLabel.innerHTML = 'AVAILABLE STOCK <span class="admin-required">*</span>';
                     statusToggleTitle.textContent = 'Product Status';
                     statusToggleHint.textContent = 'Availability of this variant on the public menu';
