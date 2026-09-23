@@ -20,9 +20,9 @@ class HomeController extends Controller
             ],
             [
                 'badge' => 'Best Seller',
-                'image' => asset('assets/images/donat-bundling.png'),
-                'name' => 'Combo Party Box 12 + 2 Iced Coffee',
-                'description' => '12 selected artisan donuts (a combination of Classic Glaze, Choco Melt, Strawberry Dream, Zen Matcha, Salted Caramel, Honey Lemon) + 2 Salted Caramel Latte flavored coffees. Perfect for office gatherings or hangouts.',
+                'image' => asset('assets/images/bundling-chocolate.png'),
+                'name' => 'Combo Party Box Chocolate + 2 Iced Coffee',
+                'description' => '12 selected artisan donuts a combination of Chocolate + 2 Salted Caramel Latte flavored coffees. Perfect for office gatherings or hangouts.',
                 'price' => 68000,
                 'price_formatted' => $this->formatRupiah(68000),
             ],

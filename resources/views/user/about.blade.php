@@ -56,24 +56,14 @@
                 </div>
 
                 <div class="location-actions">
-                    <a href="https://www.instagram.com/ddesintaa_/" target="_blank" rel="noopener"
-                        class="btn-contact btn-contact-outline">
+                    <a href="#" class="btn-contact btn-contact-solid">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                             stroke-linecap="round" stroke-linejoin="round">
                             <path
                                 d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-4-1L3 20l1-4.5a8.4 8.4 0 0 1-1-4A8.5 8.5 0 0 1 11.5 3h.5a8.5 8.5 0 0 1 9 8.5Z">
                             </path>
                         </svg>
-                        {{ __('Contact Us via Instagram') }}
-                    </a>
-                    <a href="https://wa.me/" target="_blank" rel="noopener" class="btn-contact btn-contact-solid">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path
-                                d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.4 8.4 0 0 1-4-1L3 20l1-4.5a8.4 8.4 0 0 1-1-4A8.5 8.5 0 0 1 11.5 3h.5a8.5 8.5 0 0 1 9 8.5Z">
-                            </path>
-                        </svg>
-                        {{ __('Contact Us via WhatsApp') }}
+                        {{ __('Contact CS') }}
                     </a>
                 </div>
             </div>
