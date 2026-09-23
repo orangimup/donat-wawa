@@ -44,7 +44,7 @@
 
     <div class="container-ww settings-layout">
 
-        @include('partials.settings-sidebar', ['active' => 'order-history'])
+        @include('partials.settings-sidebar', ['active' => 'my-orders'])
 
         <div class="settings-content order-history-content">
 

@@ -14,8 +14,9 @@
     <div class="container-ww order-review-layout">
         <div class="order-review-card-outer">
             <div class="order-review-head">
-                <h1>{{ __('Beri Ulasan Pesanan') }}</h1>
-                <p>{{ __('Bagikan pengalaman manis Anda menikmati donat artisanal kami untuk membantu kami terus menyajikan kehangatan rasa terbaik setiap hari.') }}</p>
+                <h1>{{ __('Rate Your Order') }}</h1>
+                <p>{{ __('Share your sweet experience enjoying our artisanal donuts to help us keep serving the best warmth of flavor every day.') }}
+                </p>
             </div>
 
             <div class="order-review-card">
@@ -23,15 +24,17 @@
                     @csrf
 
                     <div class="order-review-section">
-                        <h2><span class="order-review-step">1</span>{{ __('Kepuasan Keseluruhan') }}</h2>
-                        <p>{{ __('Bagaimana pengalaman donat hangat artisanal Donat Wawa kali ini?') }}</p>
+                        <h2><span class="order-review-step">1</span>{{ __('Overall Satisfaction') }}</h2>
+                        <p>{{ __("How was your experience with Donat Wawa's warm artisanal donuts this time?") }}</p>
 
                         <div class="order-review-rating-box">
                             <div class="order-review-stars" id="review-stars">
                                 @for ($i = 1; $i <= 5; $i++)
-                                    <button type="button" class="order-review-star" data-value="{{ $i }}" aria-label="{{ $i }} star">
+                                    <button type="button" class="order-review-star" data-value="{{ $i }}"
+                                        aria-label="{{ $i }} star">
                                         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                            <path d="M12 2.5l2.98 6.04 6.67.97-4.83 4.7 1.14 6.65L12 17.9l-5.96 3.13 1.14-6.65-4.83-4.7 6.67-.97L12 2.5z"/>
+                                            <path
+                                                d="M12 2.5l2.98 6.04 6.67.97-4.83 4.7 1.14 6.65L12 17.9l-5.96 3.13 1.14-6.65-4.83-4.7 6.67-.97L12 2.5z" />
                                         </svg>
                                     </button>
                                 @endfor
@@ -42,18 +45,20 @@
                     </div>
 
                     <div class="order-review-section">
-                        <h2><span class="order-review-step">2</span>{{ __('Ulasan Detail') }}</h2>
-                        <p>{{ __('Ceritakan detail rasa donat favoritmu, tekstur adonan kentangnya, atau keramahan pelayanan kami.') }}</p>
+                        <h2><span class="order-review-step">2</span>{{ __('Detailed Review') }}</h2>
+                        <p>{{ __('Tell us the details of your favorite donut flavor, the texture of the potato dough, or how friendly our service was.') }}
+                        </p>
 
                         <div class="order-review-comment-box">
                             <textarea name="comment" id="review-comment" rows="4"
-                                placeholder="{{ __('Tulis ulasanmu di sini...') }}"></textarea>
+                                placeholder="{{ __('Write your review here...') }}"></textarea>
                         </div>
                     </div>
 
                     <div class="order-review-actions">
-                        <a href="{{ route('settings.orders.show', $order['id']) }}" class="order-review-cancel">{{ __('Batal') }}</a>
-                        <button type="submit" class="order-review-submit">{{ __('Kirim Ulasan') }}</button>
+                        <a href="{{ route('settings.orders.show', $order['id']) }}"
+                            class="order-review-cancel">{{ __('Cancel') }}</a>
+                        <button type="submit" class="order-review-submit">{{ __('Submit Review') }}</button>
                     </div>
                 </form>
             </div>

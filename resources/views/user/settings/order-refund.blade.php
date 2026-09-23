@@ -8,7 +8,9 @@
 @push('styles')
     @vite('resources/css/order-refund.css')
     <style>
-        body { background: #fff; }
+        body {
+            background: #fff;
+        }
     </style>
 @endpush
 
@@ -21,14 +23,16 @@
             <p>{{ __('We apologize for the inconvenience. Please fill out the form below to process the refund.') }}</p>
         </div>
 
-        <form method="POST" action="{{ route('settings.orders.refund.store', $order['id']) }}" enctype="multipart/form-data" class="order-refund-grid">
+        <form method="POST" action="{{ route('settings.orders.refund.store', $order['id']) }}" enctype="multipart/form-data"
+            class="order-refund-grid">
             @csrf
 
             <div class="order-refund-col">
 
                 <div class="order-refund-card accent-1">
                     <h2>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M4 4h16v16H4z"></path>
                             <path d="M8 8h8M8 12h8M8 16h5"></path>
                         </svg>
@@ -41,7 +45,8 @@
                     @endphp
 
                     <div class="order-refund-order-row">
-                        <img src="{{ $refundFirst['image'] }}" alt="{{ $refundFirst['name'] }}" class="order-refund-order-image">
+                        <img src="{{ $refundFirst['image'] }}" alt="{{ $refundFirst['name'] }}"
+                            class="order-refund-order-image">
                         <div class="order-refund-order-info">
                             <span>{{ $order['code'] }}</span>
                             <strong>{{ $refundFirst['name'] }}</strong>
@@ -60,7 +65,8 @@
 
                 <div class="order-refund-card accent-2">
                     <h2>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <circle cx="12" cy="12" r="10"></circle>
                             <path d="M9.1 9a3 3 0 1 1 3.6 3c-.7.6-1.2 1.1-1.2 2"></path>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -71,14 +77,17 @@
                     <div class="order-refund-dropdown" id="reason-dropdown">
                         <button type="button" class="order-refund-dropdown-trigger" id="reason-trigger">
                             <span id="reason-trigger-label">{{ __('Select a reason...') }}</span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="order-refund-dropdown-chevron">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                                class="order-refund-dropdown-chevron">
                                 <polyline points="6 9 12 15 18 9"></polyline>
                             </svg>
                         </button>
 
                         <div class="order-refund-dropdown-panel" id="reason-panel" hidden>
                             @foreach ($reasons as $key => $label)
-                                <button type="button" class="order-refund-dropdown-option" data-value="{{ $key }}" data-label="{{ $label }}">
+                                <button type="button" class="order-refund-dropdown-option" data-value="{{ $key }}"
+                                    data-label="{{ $label }}">
                                     {{ $label }}
                                 </button>
                             @endforeach
@@ -95,7 +104,8 @@
 
                 <div class="order-refund-card accent-3">
                     <h2>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <circle cx="12" cy="12" r="10"></circle>
                             <path d="M9.1 9a3 3 0 1 1 3.6 3c-.7.6-1.2 1.1-1.2 2"></path>
                             <line x1="12" y1="17" x2="12.01" y2="17"></line>
@@ -103,7 +113,8 @@
                         {{ __('Step 3: What went wrong') }}
                     </h2>
 
-                    <textarea name="details" rows="5" class="order-refund-textarea" placeholder="{{ __('Please describe the issue with your donut...') }}" required></textarea>
+                    <textarea name="details" rows="5" class="order-refund-textarea"
+                        placeholder="{{ __('Please describe the issue with your donut...') }}" required></textarea>
                 </div>
 
             </div>
@@ -112,7 +123,8 @@
 
                 <div class="order-refund-card accent-4">
                     <h2>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M3 21h18M4 10h16M4 10 12 3l8 7M6 10v11M18 10v11M10 14v4M14 14v4"></path>
                         </svg>
                         {{ __('Step 4: Upload Evidence') }}
@@ -121,7 +133,8 @@
                     <label class="order-refund-dropzone" id="refund-dropzone">
                         <input type="file" name="evidence" id="refund-evidence" accept="image/png,image/jpeg" hidden>
                         <span class="order-refund-dropzone-icon">
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                 <rect x="3" y="3" width="18" height="18" rx="2"></rect>
                                 <circle cx="9" cy="9" r="2"></circle>
                                 <path d="M21 15l-5-5L5 21"></path>
@@ -134,24 +147,29 @@
 
                 <div class="order-refund-card accent-5">
                     <h2>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M3 21h18M4 10h16M4 10 12 3l8 7M6 10v11M18 10v11M10 14v4M14 14v4"></path>
                         </svg>
                         {{ __('Step 5: Bank Details') }}
                     </h2>
 
                     <div class="order-refund-fields">
-                        <input type="text" name="bank_name" class="order-refund-input" placeholder="{{ __('Bank Name (e.g. BCA, Mandiri)') }}" required>
-                        <input type="text" name="account_number" class="order-refund-input" placeholder="{{ __('Account Number') }}" required>
-                        <input type="text" name="account_holder_name" class="order-refund-input" placeholder="{{ __('Account Holder Name') }}" required>
+                        <input type="text" name="bank_name" class="order-refund-input"
+                            placeholder="{{ __('Bank Name (e.g. BCA, Mandiri)') }}" required>
+                        <input type="text" name="account_number" class="order-refund-input"
+                            placeholder="{{ __('Account Number') }}" required>
+                        <input type="text" name="account_holder_name" class="order-refund-input"
+                            placeholder="{{ __('Account Holder Name') }}" required>
                     </div>
                 </div>
 
             </div>
 
             <div class="order-refund-actions">
-                <a href="{{ route('settings.orders.show', $order['id']) }}" class="order-refund-cancel">{{ __('Batal') }}</a>
-                <button type="submit" class="order-refund-submit">{{ __('Kirim pengajuan') }}</button>
+                <a href="{{ route('settings.orders.show', $order['id']) }}"
+                    class="order-refund-cancel">{{ __('Cancel') }}</a>
+                <button type="submit" class="order-refund-submit">{{ __('Submit Request') }}</button>
             </div>
         </form>
 
