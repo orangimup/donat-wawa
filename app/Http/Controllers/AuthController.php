@@ -60,6 +60,18 @@ class AuthController extends Controller
             ]);
         }
 
+        if (Auth::user()->status === 'inactive') {
+            $reason = Auth::user()->deactivation_reason;
+
+            Auth::logout();
+
+            throw ValidationException::withMessages([
+                'email' => $reason
+                    ? __('Your account has been deactivated. Reason: :reason', ['reason' => $reason])
+                    : __('Your account has been deactivated.'),
+            ]);
+        }
+
         $request->session()->regenerate();
 
         if (in_array(session('language'), ['en', 'id'], true)) {

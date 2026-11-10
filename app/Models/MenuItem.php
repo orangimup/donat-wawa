@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 #[Fillable([
@@ -66,7 +68,7 @@ class MenuItem extends Model
     {
         $last = static::query()
             ->where('id_produk', 'like', 'DW-%')
-            ->orderByRaw('CAST(SUBSTR(id_produk, 4) AS INTEGER) DESC')
+            ->orderByRaw('CAST(SUBSTR(id_produk, 4) AS UNSIGNED) DESC')
             ->value('id_produk');
 
         $next = $last ? ((int) substr($last, 3)) + 1 : 1;
@@ -82,13 +84,18 @@ class MenuItem extends Model
 
         while (
             static::where('slug', $slug)
-                ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+                ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
                 ->exists()
         ) {
             $slug = $base . '-' . (++$i);
         }
 
         return $slug;
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
     }
 
     /**
@@ -102,29 +109,96 @@ class MenuItem extends Model
     protected function priceFormatted(): Attribute
     {
         return Attribute::make(
-            get: fn () => 'Rp' . number_format((float) $this->price, 0, ',', '.'),
+            get: fn() => 'Rp' . number_format((float) $this->price, 0, ',', '.'),
         );
     }
 
     protected function imageUrl(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->image
+            get: fn() => $this->image
                 ? asset('storage/' . $this->image)
                 : asset('assets/images/donat.png'),
+        );
+    }
+
+    /**
+     * Stock people can still order = physical stock minus what unpaid orders are holding.
+     * An unpaid order only holds stock until its payment window closes, so no cron is needed:
+     * once the window passes the order simply stops being counted.
+     */
+    protected function availableStock(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => max(0, $this->stock - $this->reservedQuantity()),
         );
     }
 
     protected function isAvailable(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->status === 'active' && $this->stock > 0,
+            get: fn() => $this->status === 'active' && $this->available_stock > 0,
         );
+    }
+
+    /**
+     * Order lines that currently hold stock: the order is still waiting, its payment window is
+     * open, and it has not been paid yet (paid orders already had their stock deducted).
+     */
+    private static function reservationQuery(): \Illuminate\Database\Query\Builder
+    {
+        return DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->leftJoin('transactions', 'transactions.id_pesanan', '=', 'orders.id_pesanan')
+            ->where('orders.status', Order::STATUS_WAITING)
+            ->where('orders.created_at', '>', now()->subMinutes(Order::reservationMinutes()))
+            ->where(function ($q) {
+                $q->whereNull('transactions.status')
+                    ->orWhere('transactions.status', '!=', Transaction::STATUS_SETTLED);
+            });
+    }
+
+    /** @return array<int,int> menu_item_id => reserved quantity */
+    public static function reservedQuantities(iterable $menuItemIds): array
+    {
+        return static::reservationQuery()
+            ->whereIn('order_items.menu_item_id', collect($menuItemIds)->all())
+            ->groupBy('order_items.menu_item_id')
+            ->selectRaw('order_items.menu_item_id, SUM(order_items.quantity) as reserved')
+            ->pluck('reserved', 'menu_item_id')
+            ->map(fn($v) => (int) $v)
+            ->all();
+    }
+
+    public function reservedQuantity(): int
+    {
+        // Listings use scopeWithReserved() so this does not run one query per item.
+        if (array_key_exists('reserved_qty', $this->attributes)) {
+            return (int) $this->attributes['reserved_qty'];
+        }
+
+        return (int) static::reservationQuery()
+            ->where('order_items.menu_item_id', $this->id)
+            ->sum('order_items.quantity');
+    }
+
+    /** Load reserved quantities in the same query. Use on every list that shows availability. */
+    public function scopeWithReserved(Builder $query): Builder
+    {
+        if (empty($query->getQuery()->columns)) {
+            $query->select($query->getModel()->getTable() . '.*');
+        }
+
+        return $query->addSelect([
+            'reserved_qty' => static::reservationQuery()
+                ->selectRaw('COALESCE(SUM(order_items.quantity), 0)')
+                ->whereColumn('order_items.menu_item_id', 'menu_items.id'),
+        ]);
     }
 
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
-        return $query->when(filled($term), fn ($q) => $q->where('name', 'like', '%' . $term . '%'));
+        return $query->when(filled($term), fn($q) => $q->where('name', 'like', '%' . $term . '%'));
     }
 
     /**
@@ -135,7 +209,7 @@ class MenuItem extends Model
     {
         return $query->when(
             $category && $category !== 'all',
-            fn ($q) => $q->where('category', $category)
+            fn($q) => $q->where('category', $category)
         );
     }
 
@@ -145,7 +219,7 @@ class MenuItem extends Model
      */
     public function scopeOfMenuFilter(Builder $query, ?string $filter): Builder
     {
-        if (! $filter || $filter === 'all') {
+        if (!$filter || $filter === 'all') {
             return $query;
         }
 

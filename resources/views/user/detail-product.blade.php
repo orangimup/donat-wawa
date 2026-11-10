@@ -93,79 +93,62 @@
             <div class="container-ww">
                 <h2 class="reviews-title">{{ __('Customer Reviews') }}</h2>
 
-                @php
-                    $staticReviews = [
-                        ['initial' => 'S', 'name' => 'Siti N.', 'time' => __('1 week ago'), 'rating' => 4.5, 'star_group' => 4,
-                            'text' => __("Delicious, the chocolate glaze is thick and great. If you love chocolate you will definitely enjoy it. Really good for this price.")],
-                        ['initial' => 'B', 'name' => 'Budi S.', 'time' => __('2 weeks ago'), 'rating' => 5, 'star_group' => 5,
-                            'text' => __("The kids' favorite at home! The quality is really good. The taste has been consistent all along, and the chocolate is premium.")],
-                        ['initial' => 'D', 'name' => 'Dian M.', 'time' => __('3 weeks ago'), 'rating' => 4.5, 'star_group' => 4,
-                            'text' => __("Goes so well with black coffee. Sweet just right, not overdone. Great, recommended!")],
-                        ['initial' => 'R', 'name' => 'Rina K.', 'time' => __('1 month ago'), 'rating' => 5, 'star_group' => 5,
-                            'text' => __("The best donuts in Jakarta! The service is fast too. The chocolate is real, expensive dark chocolate.")],
-                        ['initial' => 'F', 'name' => 'Fajar H.', 'time' => __('1 month ago'), 'rating' => 5, 'star_group' => 5,
-                            'text' => __("The texture is so soft and the toppings are generous. Great as a gift or an afternoon snack.")],
-                    ];
-
-                    $ratingBreakdown = [
-                        5 => 82,
-                        4 => 14,
-                        3 => 3,
-                        2 => 1,
-                        1 => 0,
-                    ];
-                @endphp
-
-                <div class="reviews-grid">
-                    <div class="rating-summary-card">
-                        <h3>{{ __('Rating Summary') }}</h3>
-                        <div class="rating-summary-body">
-                            <div class="rating-summary-left">
-                                <div class="rating-score">4.9</div>
-                                <div class="star-rating" aria-label="{{ __(':rating out of 5 stars', ['rating' => '4.9']) }}">
-                                    <span class="star-rating-bg">★★★★★</span>
-                                    <span class="star-rating-fg" style="width: {{ (4.9 / 5) * 100 }}%">★★★★★</span>
-                                </div>
-                                <span class="rating-count">{{ __(':count Reviews', ['count' => 128]) }}</span>
-                            </div>
-                            <div class="rating-bars">
-                                @foreach ($ratingBreakdown as $star => $percent)
-                                    <div class="rating-bar-row">
-                                        <span>{{ $star }}</span>
-                                        <div class="rating-bar-track">
-                                            <div class="rating-bar-fill" style="width: {{ $percent }}%"></div>
-                                        </div>
+                @if ($reviewSummary['count'] === 0)
+                    <p class="reviews-empty">{{ __('Belum ada ulasan untuk produk ini.') }}</p>
+                @else
+                    <div class="reviews-grid">
+                        <div class="rating-summary-card">
+                            <h3>{{ __('Rating Summary') }}</h3>
+                            <div class="rating-summary-body">
+                                <div class="rating-summary-left">
+                                    <div class="rating-score">{{ number_format($reviewSummary['average'], 1) }}</div>
+                                    <div class="star-rating" aria-label="{{ __(':rating out of 5 stars', ['rating' => number_format($reviewSummary['average'], 1)]) }}">
+                                        <span class="star-rating-bg">★★★★★</span>
+                                        <span class="star-rating-fg" style="width: {{ ($reviewSummary['average'] / 5) * 100 }}%">★★★★★</span>
                                     </div>
-                                @endforeach
+                                    <span class="rating-count">{{ __(':count Reviews', ['count' => $reviewSummary['count']]) }}</span>
+                                </div>
+                                <div class="rating-bars">
+                                    @foreach ($reviewSummary['breakdown'] as $star => $row)
+                                        <div class="rating-bar-row">
+                                            <span>{{ $star }}</span>
+                                            <div class="rating-bar-track">
+                                                <div class="rating-bar-fill" style="width: {{ $row['percent'] }}%"></div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
+
+                        @foreach ($reviews as $review)
+                            <div class="review-card">
+                                <div class="review-card-head">
+                                    <div class="review-avatar">{{ $review['initial'] }}</div>
+                                    <div class="review-meta">
+                                        <strong>{{ $review['name'] }}</strong>
+                                        <span class="review-time">{{ $review['time'] }}</span>
+                                    </div>
+                                    <div class="star-rating star-rating-sm" aria-label="{{ __(':rating out of 5 stars', ['rating' => $review['rating']]) }}">
+                                        <span class="star-rating-bg">★★★★★</span>
+                                        <span class="star-rating-fg" style="width: {{ ($review['rating'] / 5) * 100 }}%">★★★★★</span>
+                                    </div>
+                                </div>
+                                @if (filled($review['text']))
+                                    <p class="review-text">{{ $review['text'] }}</p>
+                                @endif
+                            </div>
+                        @endforeach
                     </div>
 
-                    @foreach ($staticReviews as $review)
-                        <div class="review-card">
-                            <div class="review-card-head">
-                                <div class="review-avatar">{{ $review['initial'] }}</div>
-                                <div class="review-meta">
-                                    <strong>{{ $review['name'] }}</strong>
-                                    <span class="review-time">{{ $review['time'] }}</span>
-                                </div>
-                                <div class="star-rating star-rating-sm" aria-label="{{ __(':rating out of 5 stars', ['rating' => $review['rating']]) }}">
-                                    <span class="star-rating-bg">★★★★★</span>
-                                    <span class="star-rating-fg" style="width: {{ ($review['rating'] / 5) * 100 }}%">★★★★★</span>
-                                </div>
-                            </div>
-                            <p class="review-text">{{ $review['text'] }}</p>
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="reviews-footer">
-                    <a href="{{ route('product.reviews', $product->slug) }}" class="reviews-view-all-btn">
-                        <span>{{ __('See All Reviews') }}</span>
-                        <span class="reviews-view-all-pill">128</span>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                    </a>
-                </div>
+                    <div class="reviews-footer">
+                        <a href="{{ route('product.reviews', $product->slug) }}" class="reviews-view-all-btn">
+                            <span>{{ __('See All Reviews') }}</span>
+                            <span class="reviews-view-all-pill">{{ $reviewSummary['count'] }}</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </a>
+                    </div>
+                @endif
             </div>
         </section>
 

@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\MidtransNotificationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\OrderController;
@@ -27,8 +28,9 @@ Route::get('/menu/{menu_item}/reviews', [ProductController::class, 'reviews'])->
 Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::get('/checkout/sync-basket', [CheckoutController::class, 'syncBasket'])->name('checkout.sync-basket');
-Route::post('/checkout/create-snap-token', [CheckoutController::class, 'createSnapToken'])->name('checkout.snap-token');
 Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+// Server-to-server webhook from Midtrans (no session / CSRF; authenticated by signature_key).
+Route::post('/midtrans/notification', MidtransNotificationController::class)->name('midtrans.notification');
 Route::post('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
 
 Route::middleware('guest')->group(function () {
@@ -38,6 +40,10 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    Route::post('/checkout/orders', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::post('/checkout/create-snap-token', [CheckoutController::class, 'createSnapToken'])->name('checkout.snap-token');
+    Route::post('/checkout/orders/{code}/sync', [CheckoutController::class, 'syncPayment'])->name('checkout.sync-payment');
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
@@ -47,8 +53,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/settings/orders', [OrderHistoryController::class, 'index'])->name('settings.orders');
     Route::get('/settings/orders/{order}', [OrderHistoryController::class, 'show'])->whereNumber('order')->name('settings.orders.show');
-    Route::get('/settings/orders/{order}/review', [OrderHistoryController::class, 'review'])->name('settings.orders.review');
-    Route::post('/settings/orders/{order}/review', [OrderHistoryController::class, 'storeReview'])->name('settings.orders.review.store');
+    Route::post('/settings/orders/{order}/cancel', [OrderHistoryController::class, 'cancel'])->whereNumber('order')->name('settings.orders.cancel');
+    Route::get('/settings/orders/{order}/review', [OrderHistoryController::class, 'review'])->whereNumber('order')->name('settings.orders.review');
+    Route::post('/settings/orders/{order}/review', [OrderHistoryController::class, 'storeReview'])->whereNumber('order')->middleware('throttle:10,1')->name('settings.orders.review.store');
     Route::get('/settings/orders/{order}/refund', [OrderHistoryController::class, 'refund'])->name('settings.orders.refund');
     Route::post('/settings/orders/{order}/refund', [OrderHistoryController::class, 'storeRefund'])->name('settings.orders.refund.store');
 

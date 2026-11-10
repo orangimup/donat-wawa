@@ -101,7 +101,7 @@
                                 </svg>
                             </div>
                             <p>{{ __('Estimated arrival in 60-90 minutes') }}</p>
-                            <span class="delivery-option-price">Rp5.000</span>
+                            <span class="delivery-option-price">Rp{{ number_format($shippingFees['same_day'], 0, ',', '.') }}</span>
                         </div>
 
                         <div class="delivery-option" id="deliveryPreorder" data-method="preorder">
@@ -114,21 +114,20 @@
                                 </svg>
                             </div>
                             <p>{{ __('Choose your own delivery time') }}</p>
-                            <span class="delivery-option-price">Rp4.000</span>
+                            <span class="delivery-option-price">Rp{{ number_format($shippingFees['pre_order'], 0, ',', '.') }}</span>
                         </div>
 
                         <div class="delivery-schedule" id="deliverySchedule" hidden>
                             <label>
                                 <span>{{ __('Delivery Date') }}</span>
-                                <input type="date" name="delivery_date">
+                                <input type="date" name="delivery_date" min="{{ $earliestPreOrderDate }}">
                             </label>
                             <label>
                                 <span>{{ __('Delivery Slot') }}</span>
                                 <select name="delivery_time">
-                                    <option>09:00 - 10:00</option>
-                                    <option>10:00 - 11:00</option>
-                                    <option>13:00 - 14:00</option>
-                                    <option>16:00 - 17:00</option>
+                                    @foreach ($deliverySlots as $slot)
+                                        <option>{{ $slot }}</option>
+                                    @endforeach
                                 </select>
                             </label>
                         </div>
@@ -156,7 +155,9 @@
     @vite('resources/js/basket.js')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const SHIPPING_FEE = { today: 5000, preorder: 10000 };
+            const SHIPPING_FEE = { today: {{ $shippingFees['same_day'] }}, preorder: {{ $shippingFees['pre_order'] }} };
+            const DELIVERY_TYPE = { today: 'same_day', preorder: 'pre_order' };
+            let pendingPayment = null;
             let deliveryMethod = 'today';
 
             function adjustBottomPadding() {
@@ -247,6 +248,7 @@
                 option.addEventListener('click', function (e) {
                     if (e.target.closest('.delivery-schedule')) return;
                     deliveryMethod = option.dataset.method;
+                    pendingPayment = null;
                     render();
 
                     if (deliveryMethod === 'preorder') {
@@ -256,6 +258,57 @@
                         });
                     }
                 });
+            });
+
+            function postJson(url, payload) {
+                return fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify(payload),
+                }).then(function (res) {
+                    return res.json().catch(function () { return {}; }).then(function (body) {
+                        if (!res.ok) {
+                            const first = body.errors ? Object.values(body.errors)[0] : null;
+                            const error = new Error((first && first[0]) || body.message || window.I18N.somethingWrong);
+                            error.status = res.status;
+                            throw error;
+                        }
+                        return body;
+                    });
+                });
+            }
+
+            function createPayment(form, formData, items) {
+                const payload = {
+                    name: formData.get('name'),
+                    phone: formData.get('phone'),
+                    address: formData.get('address'),
+                    delivery_type: DELIVERY_TYPE[deliveryMethod],
+                    items: items.map(function (item) { return { slug: item.slug, qty: item.qty }; }),
+                };
+
+                if (deliveryMethod === 'preorder') {
+                    payload.delivery_date = formData.get('delivery_date');
+                    payload.delivery_slot = formData.get('delivery_time');
+                }
+
+                return postJson('{{ route('checkout.store') }}', payload).then(function (order) {
+                    return postJson('{{ route('checkout.snap-token') }}', { order_code: order.order_code })
+                        .then(function (data) {
+                            return { order: order, snapToken: data.snap_token };
+                        });
+                });
+            }
+
+            document.getElementById('checkoutForm').addEventListener('input', function () {
+                pendingPayment = null;
+            });
+            window.addEventListener('basket:updated', function () {
+                pendingPayment = null;
             });
 
             document.getElementById('checkoutPayBtn').addEventListener('click', function () {
@@ -269,91 +322,69 @@
                 }
 
                 const items = DonatBasket.getItems();
-                const subtotal = DonatBasket.getTotalPrice();
-                const shipping = SHIPPING_FEE[deliveryMethod];
                 const formData = new FormData(form);
-
-                const now = new Date();
-                const orderCode = 'DW-' +
-                    now.getFullYear().toString() +
-                    String(now.getMonth() + 1).padStart(2, '0') +
-                    String(now.getDate()).padStart(2, '0') +
-                    '-' + String(Math.floor(Math.random() * 900) + 100);
-
-                // simpan dulu data order (dipakai halaman success nanti)
-                const orderPayload = {
-                    code: orderCode,
-                    placedAtLabel: now.toLocaleDateString(window.I18N.locale, {
-                        day: 'numeric', month: 'long', year: 'numeric',
-                    }) + ', ' + now.toLocaleTimeString(window.I18N.locale, {
-                        hour: '2-digit', minute: '2-digit',
-                    }) + ' WIB',
-                    items: items,
-                    subtotal: subtotal,
-                    shippingFee: shipping,
-                    total: subtotal + shipping,
-                    name: formData.get('name'),
-                    email: formData.get('email'),
-                    phone: formData.get('phone'),
-                    address: formData.get('address'),
-                    deliveryMethod: deliveryMethod,
-                    deliveryDate: formData.get('delivery_date'),
-                    deliveryTime: formData.get('delivery_time'),
-                };
 
                 const payBtn = document.getElementById('checkoutPayBtn');
                 payBtn.disabled = true;
                 payBtn.textContent = window.I18N.processing;
 
-                fetch('{{ route('checkout.snap-token') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    },
-                    body: JSON.stringify({
-                        order_code: orderCode,
-                        items: items,
-                        shipping_fee: shipping,
-                        name: formData.get('name'),
-                        phone: formData.get('phone'),
-                        email: formData.get('email'),
-                    }),
-                })
-                    .then(function (res) {
-                        if (!res.ok) throw new Error('Gagal membuat transaksi');
-                        return res.json();
-                    })
-                    .then(function (data) {
-                        window.snap.pay(data.snap_token, {
-                            onSuccess: function (result) {
-                                orderPayload.status = 'success';
-                                orderPayload.paymentResult = result;
-                                sessionStorage.setItem('donat_last_order', JSON.stringify(orderPayload));
-                                window.location.href = '{{ route('checkout.success') }}';
-                            },
-                            onPending: function (result) {
-                                orderPayload.status = 'pending';
-                                orderPayload.paymentResult = result;
-                                sessionStorage.setItem('donat_last_order', JSON.stringify(orderPayload));
-                                window.location.href = '{{ route('checkout.success') }}';
-                            },
-                            onError: function (result) {
+                function resetButton() {
+                    payBtn.disabled = false;
+                    payBtn.textContent = window.I18N.proceed;
+                }
+
+                const ready = pendingPayment
+                    ? Promise.resolve(pendingPayment)
+                    : createPayment(form, formData, items);
+
+                ready
+                    .then(function (payment) {
+                        pendingPayment = payment;
+
+                        const now = new Date();
+                        const orderPayload = {
+                            code: payment.order.order_code,
+                            placedAtLabel: now.toLocaleDateString(window.I18N.locale, {
+                                day: 'numeric', month: 'long', year: 'numeric',
+                            }) + ', ' + now.toLocaleTimeString(window.I18N.locale, {
+                                hour: '2-digit', minute: '2-digit',
+                            }) + ' WIB',
+                            items: items,
+                            subtotal: payment.order.subtotal,
+                            shippingFee: payment.order.shipping_fee,
+                            total: payment.order.total,
+                            name: formData.get('name'),
+                            email: formData.get('email'),
+                            phone: formData.get('phone'),
+                            address: formData.get('address'),
+                            deliveryMethod: deliveryMethod,
+                            deliveryDate: formData.get('delivery_date'),
+                            deliveryTime: formData.get('delivery_time'),
+                        };
+
+                        function finish(status, result) {
+                            orderPayload.status = status;
+                            orderPayload.paymentResult = result;
+                            sessionStorage.setItem('donat_last_order', JSON.stringify(orderPayload));
+                            window.location.href = '{{ route('checkout.success') }}';
+                        }
+
+                        window.snap.pay(payment.snapToken, {
+                            onSuccess: function (result) { finish('success', result); },
+                            onPending: function (result) { finish('pending', result); },
+                            onError: function () {
                                 alert(window.I18N.paymentFailed);
-                                payBtn.disabled = false;
-                                payBtn.textContent = window.I18N.proceed;
+                                resetButton();
                             },
                             onClose: function () {
-                                // user nutup popup tanpa bayar, biarin aja di halaman checkout
-                                payBtn.disabled = false;
-                                payBtn.textContent = window.I18N.proceed;
+                                resetButton();
                             },
                         });
                     })
                     .catch(function (err) {
-                        alert(window.I18N.somethingWrong);
-                        payBtn.disabled = false;
-                        payBtn.textContent = window.I18N.proceed;
+                        pendingPayment = null;
+                        alert(err.message || window.I18N.somethingWrong);
+                        resetButton();
                     });
             });
 
@@ -387,7 +418,7 @@
 
                         DonatBasket.replaceAll(synced);
                     })
-                    .catch(function () { /* offline/gagal fetch: pakai data sessionStorage apa adanya */ })
+                    .catch(function () { })
                     .finally(render);
             }
 

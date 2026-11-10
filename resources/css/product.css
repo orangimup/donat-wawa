@@ -718,3 +718,49 @@
     font-size: 0.9rem;
     padding: 0 2px;
 }
+/* Reviews are rendered server side now: pills are links, pagination uses components.pagination. */
+a.review-filter-pill {
+    display: inline-block;
+    text-decoration: none;
+}
+
+.reviews-pagination a,
+.reviews-pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+    border: 1.5px solid #DCC0BF;
+    background: #FFFFFF;
+    color: #564241;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: all 0.18s ease;
+}
+
+.reviews-pagination a:hover {
+    border-color: #7B2026;
+    color: #7B2026;
+    background: #FFF9F8;
+}
+
+.reviews-pagination a.is-active {
+    background: #7B2026;
+    color: #FFFFFF;
+    border-color: #7B2026;
+}
+
+.reviews-pagination span.disabled {
+    opacity: 0.4;
+}
+
+.reviews-empty {
+    padding: 24px 0;
+    color: #897C74;
+    font-size: 0.95rem;
+}

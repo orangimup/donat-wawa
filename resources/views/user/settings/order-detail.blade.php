@@ -44,19 +44,28 @@
                 {{ __('Back to Order History') }}
             </a>
 
-            @unless ($isCancelled)
-                {{-- NOTE: invoice generation isn't wired up yet (no order backend/PDF export). --}}
-                {{-- This is UI-only for now; hook it up to a real route once invoices are implemented. --}}
-                <a href="#" class="od-invoice-btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    {{ __('Download Invoice') }}
-                </a>
-            @endunless
+            <div class="od-topbar-actions">
+                @unless ($isCancelled)
+                    {{-- NOTE: invoice generation isn't wired up yet (no order backend/PDF export). --}}
+                    {{-- This is UI-only for now; hook it up to a real route once invoices are implemented. --}}
+                    <a href="#" class="od-invoice-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        {{ __('Download Invoice') }}
+                    </a>
+                @endunless
+                @if ($order['can_cancel'])
+                    <form method="POST" action="{{ route('settings.orders.cancel', $order['id']) }}"
+                        onsubmit="return confirm({{ Js::from(__('Are you sure you want to cancel this order?')) }});">
+                        @csrf
+                        <button type="submit" class="od-invoice-btn od-cancel-btn">{{ __('Cancel Order') }}</button>
+                    </form>
+                @endif
+            </div>
         </div>
 
         <div class="od-card od-summary-card">
@@ -75,6 +84,14 @@
                 <strong>{{ $formatRupiah($order['total']) }}</strong>
             </div>
         </div>
+
+        @if ($errors->has('order'))
+            <div class="od-card od-cancelled-notice">
+                <div>
+                    <strong>{{ $errors->first('order') }}</strong>
+                </div>
+            </div>
+        @endif
 
         @if ($isCancelled)
             <div class="od-card od-cancelled-notice">

@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MenuItem;
-use Carbon\Carbon;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Review;
+use App\Services\OrderService;
+use App\Services\ReviewService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -89,7 +92,7 @@ class OrderHistoryController extends Controller
 
     public function show(Request $request, int $order): View
     {
-        $found = $this->orders($request->user()->id)->firstWhere('id', $order);
+        $found = $this->findFor($request->user()->id, $order);
 
         abort_if($found === null, 404);
 
@@ -99,41 +102,87 @@ class OrderHistoryController extends Controller
         ]);
     }
 
-    public function review(Request $request, int $order): View
+    public function review(Request $request, ReviewService $reviews, int $order): View|RedirectResponse
     {
-        $found = $this->orders($request->user()->id)->firstWhere('id', $order);
+        $model = $this->findModelFor($request->user()->id, $order);
 
-        abort_if($found === null, 404);
-        abort_unless($found['status'] === 'done', 403);
+        abort_if($model === null, 404);
+        abort_unless($reviews->canReview($model), 403);
+
+        $reviewItems = $reviews->reviewableItems($model);
+
+        if ($reviewItems->isEmpty()) {
+            return redirect()
+                ->route('settings.orders.show', $order)
+                ->with('success', __('Semua produk di pesanan ini sudah kamu ulas.'));
+        }
 
         return view('user.settings.order-review', [
-            'order' => $found,
+            'order' => $this->present($model),
+            'reviewItems' => $reviewItems->map(fn (OrderItem $line) => [
+                'id' => $line->id,
+                'name' => $line->name,
+                'image' => $line->menuItem?->image_url ?? asset('assets/images/donat.png'),
+            ]),
             'reviewLabels' => self::REVIEW_LABELS,
         ]);
     }
 
-    public function storeReview(Request $request, int $order): RedirectResponse
+    public function storeReview(Request $request, ReviewService $reviews, int $order): RedirectResponse
     {
-        $found = $this->orders($request->user()->id)->firstWhere('id', $order);
+        $model = $this->findModelFor($request->user()->id, $order);
 
-        abort_if($found === null, 404);
-        abort_unless($found['status'] === 'done', 403);
+        abort_if($model === null, 404);
+        abort_unless($reviews->canReview($model), 403);
 
         $validated = $request->validate([
-            'rating' => ['required', 'integer', 'between:1,5'],
-            'comment' => ['nullable', 'string', 'max:1000'],
+            'reviews' => ['required', 'array'],
+            // Keys are order_items.id. A line without a rating is simply skipped.
+            'reviews.*.rating' => ['nullable', 'integer', 'between:' . Review::MIN_RATING . ',' . Review::MAX_RATING],
+            'reviews.*.comment' => ['nullable', 'string', 'max:' . Review::COMMENT_MAX_LENGTH],
         ]);
 
-        // TODO: simpan ke tabel reviews begitu modelnya ada
+        if ($reviews->reviewableItems($model)->isEmpty()) {
+            return redirect()
+                ->route('settings.orders.show', $order)
+                ->withErrors(['order' => __('Semua produk di pesanan ini sudah kamu ulas.')]);
+        }
+
+        $created = $reviews->submit($request->user(), $model, $validated['reviews']);
+
+        if ($created === 0) {
+            return back()
+                ->withInput()
+                ->withErrors(['reviews' => __('Pilih rating untuk minimal satu produk.')]);
+        }
 
         return redirect()
             ->route('settings.orders.show', $order)
             ->with('success', __('Terima kasih atas ulasanmu!'));
     }
 
+    public function cancel(Request $request, OrderService $orders, int $order): RedirectResponse
+    {
+        $found = $this->findFor($request->user()->id, $order);
+
+        abort_if($found === null, 404);
+
+        $cancelled = $orders->reject($order, 'Cancelled by customer', [Order::STATUS_WAITING]);
+
+        if ($cancelled === null) {
+            return redirect()
+                ->route('settings.orders.show', $order)
+                ->withErrors(['order' => __('This order can no longer be cancelled.')]);
+        }
+
+        return redirect()
+            ->route('settings.orders.show', $order)
+            ->with('success', __('Your order has been cancelled.'));
+    }
+
     public function refund(Request $request, int $order): View
     {
-        $found = $this->orders($request->user()->id)->firstWhere('id', $order);
+        $found = $this->findFor($request->user()->id, $order);
 
         abort_if($found === null, 404);
         abort_unless(in_array($found['status'], ['done', 'rejected'], true), 403);
@@ -147,7 +196,7 @@ class OrderHistoryController extends Controller
 
     public function storeRefund(Request $request, int $order): RedirectResponse
     {
-        $found = $this->orders($request->user()->id)->firstWhere('id', $order);
+        $found = $this->findFor($request->user()->id, $order);
 
         abort_if($found === null, 404);
         abort_unless(in_array($found['status'], ['done', 'rejected'], true), 403);
@@ -161,8 +210,6 @@ class OrderHistoryController extends Controller
             'account_holder_name' => ['required', 'string', 'max:100'],
         ]);
 
-        // TODO: simpan ke tabel refund_requests + upload evidence-nya begitu modelnya ada
-
         return redirect()
             ->route('settings.orders.show', $order)
             ->with('success', __('Pengajuan refund berhasil dikirim.'));
@@ -170,154 +217,57 @@ class OrderHistoryController extends Controller
 
     private function orders(int $userId): Collection
     {
-        $products = MenuItem::all()->keyBy('name');
+        return Order::query()
+            ->with(['items.menuItem', 'items.review'])
+            ->where('user_id', $userId)
+            ->latest('id')
+            ->get()
+            ->map(fn (Order $order) => $this->present($order));
+    }
 
-        $rows = [
-            [
-                'id' => 1,
-                'placed_at' => '2026-09-02 14:20',
-                'status' => 'process',
-                'method' => 'GoPay QRIS',
-                'txn' => 'TRX-88492042',
-                'shipping_fee' => 10000,
-                'address_label' => 'Home Address',
-                'address_lines' => 'Jl. Pahlawan No. 339, Balearjosari, Lowokwaru, Kota Malang, Jawa Timur 65126',
-                'address_note' => 'Leave at the security post / by the front door',
-                'items' => [['Original Glaze', 2]],
-            ],
-            [
-                'id' => 2,
-                'placed_at' => '2026-08-29 10:05',
-                'status' => 'shipped',
-                'method' => 'Bank Transfer BCA',
-                'txn' => 'TRX-88401118',
-                'shipping_fee' => 10000,
-                'address_label' => 'Home Address',
-                'address_lines' => 'Jl. Pahlawan No. 339, Balearjosari, Lowokwaru, Kota Malang, Jawa Timur 65126',
-                'address_note' => null,
-                'items' => [['Choco with Oreo Crumbs', 3], ['Dark Chocolate Drizzle', 3]],
-            ],
-            [
-                'id' => 3,
-                'placed_at' => '2026-08-24 16:45',
-                'status' => 'done',
-                'method' => 'OVO',
-                'txn' => 'TRX-88322091',
-                'shipping_fee' => 5000,
-                'address_label' => 'Office Address',
-                'address_lines' => 'Jl. Soekarno Hatta No. 12, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur 65142',
-                'address_note' => 'Leave with the front-desk receptionist',
-                'items' => [['Original Glaze', 6]],
-            ],
-            [
-                'id' => 4,
-                'placed_at' => '2026-08-20 09:30',
-                'status' => 'done',
-                'method' => 'GoPay QRIS',
-                'txn' => 'TRX-88255034',
-                'shipping_fee' => 10000,
-                'address_label' => 'Home Address',
-                'address_lines' => 'Jl. Pahlawan No. 339, Balearjosari, Lowokwaru, Kota Malang, Jawa Timur 65126',
-                'address_note' => null,
-                'items' => [['Strawberry Sprinkle', 2], ['Red Velvet', 2]],
-            ],
-            [
-                'id' => 5,
-                'placed_at' => '2026-08-14 13:10',
-                'status' => 'waiting',
-                'method' => 'Cash on Delivery',
-                'txn' => null,
-                'shipping_fee' => 10000,
-                'address_label' => 'Home Address',
-                'address_lines' => 'Jl. Pahlawan No. 339, Balearjosari, Lowokwaru, Kota Malang, Jawa Timur 65126',
-                'address_note' => null,
-                'items' => [['Blueberry Burst', 3], ['Oreo Crumbs', 2]],
-            ],
-            [
-                'id' => 6,
-                'placed_at' => '2026-08-09 11:55',
-                'status' => 'rejected',
-                'method' => 'GoPay QRIS',
-                'txn' => 'TRX-88118820',
-                'shipping_fee' => 10000,
-                'address_label' => 'Home Address',
-                'address_lines' => 'Jl. Pahlawan No. 339, Balearjosari, Lowokwaru, Kota Malang, Jawa Timur 65126',
-                'address_note' => null,
-                'rejection_reason' => 'Blueberry Burst is sold out for today.',
-                'items' => [['Blueberry Burst', 3]],
-            ],
-            [
-                'id' => 7,
-                'placed_at' => '2026-08-03 15:20',
-                'status' => 'done',
-                'method' => 'Bank Transfer BCA',
-                'txn' => 'TRX-88041207',
-                'shipping_fee' => 5000,
-                'address_label' => 'Office Address',
-                'address_lines' => 'Jl. Soekarno Hatta No. 12, Mojolangu, Lowokwaru, Kota Malang, Jawa Timur 65142',
-                'address_note' => null,
-                'items' => [['Strawberry Sprinkle', 4]],
-            ],
-            [
-                'id' => 8,
-                'placed_at' => '2026-07-28 12:00',
-                'status' => 'done',
-                'method' => 'OVO',
-                'txn' => 'TRX-87910044',
-                'shipping_fee' => 10000,
-                'address_label' => 'Home Address',
-                'address_lines' => 'Jl. Pahlawan No. 339, Balearjosari, Lowokwaru, Kota Malang, Jawa Timur 65126',
-                'address_note' => null,
-                'items' => [['Dark Chocolate Drizzle', 2], ['Choco with Oreo Crumbs', 2]],
-            ],
-            [
-                'id' => 9,
-                'placed_at' => '2026-07-19 14:40',
-                'status' => 'process',
-                'method' => 'GoPay QRIS',
-                'txn' => 'TRX-87765512',
-                'shipping_fee' => 10000,
-                'address_label' => 'Home Address',
-                'address_lines' => 'Jl. Pahlawan No. 339, Balearjosari, Lowokwaru, Kota Malang, Jawa Timur 65126',
-                'address_note' => null,
-                'items' => [['Red Velvet', 4]],
-            ],
+    private function findFor(int $userId, int $orderId): ?array
+    {
+        $order = $this->findModelFor($userId, $orderId);
+
+        return $order ? $this->present($order) : null;
+    }
+
+    private function findModelFor(int $userId, int $orderId): ?Order
+    {
+        return Order::query()
+            ->with(['items.menuItem', 'items.review'])
+            ->where('user_id', $userId)
+            ->find($orderId);
+    }
+
+    private function present(Order $order): array
+    {
+        $items = $order->items->map(fn (OrderItem $line) => [
+            'name' => $line->name,
+            'image' => $line->menuItem?->image_url ?? asset('assets/images/donat.png'),
+            'price' => $line->price,
+            'qty' => $line->quantity,
+        ]);
+
+        return [
+            'id' => $order->id,
+            'code' => $order->display_code,
+            'placed_at' => $order->placed_at,
+            'status' => $order->status,
+            'method' => '-',
+            'txn' => null,
+            'items' => $items,
+            'items_label' => $items->map(fn (array $i) => $i['name'] . ' (' . $i['qty'] . ')')->implode(', '),
+            'qty_total' => $items->sum('qty'),
+            'subtotal' => $order->subtotal,
+            'shipping_fee' => $order->shipping_fee,
+            'total' => $order->total,
+            'address_label' => 'Delivery Address',
+            'address_lines' => $order->address,
+            'address_note' => null,
+            'rejection_reason' => $order->rejection_reason,
+            'can_cancel' => $order->canBeCancelledByCustomer(),
+            'can_review' => app(ReviewService::class)->reviewableItems($order)->isNotEmpty(),
         ];
-
-        return collect($rows)->map(function (array $row) use ($products) {
-            $items = collect($row['items'])->map(function (array $line) use ($products) {
-                $product = $products->get($line[0]);
-
-                return [
-                    'name' => $product->name ?? $line[0],
-                    'image' => $product?->image_url ?: self::PLACEHOLDER_IMAGE,
-                    'price' => (int) ($product->price ?? 0),
-                    'qty' => $line[1],
-                ];
-            });
-
-            $subtotal = $items->sum(fn (array $i) => $i['price'] * $i['qty']);
-            $qtyTotal = $items->sum('qty');
-            $placedAt = Carbon::parse($row['placed_at']);
-
-            return [
-                'id' => $row['id'],
-                'code' => '#DW-' . $placedAt->format('Ymd') . '-' . str_pad((string) $row['id'], 3, '0', STR_PAD_LEFT),
-                'placed_at' => $placedAt,
-                'status' => $row['status'],
-                'method' => $row['method'],
-                'txn' => $row['txn'],
-                'items' => $items,
-                'items_label' => $items->map(fn (array $i) => $i['name'] . ' (' . $i['qty'] . ')')->implode(', '),
-                'qty_total' => $qtyTotal,
-                'subtotal' => $subtotal,
-                'shipping_fee' => $row['shipping_fee'],
-                'total' => $subtotal + $row['shipping_fee'],
-                'address_label' => $row['address_label'],
-                'address_lines' => $row['address_lines'],
-                'address_note' => $row['address_note'],
-                'rejection_reason' => $row['rejection_reason'] ?? null,
-            ];
-        });
     }
 }

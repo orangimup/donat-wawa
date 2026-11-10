@@ -334,6 +334,28 @@
     filter: brightness(1.08);
 }
 
+.od-topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.od-topbar-actions form {
+    margin: 0;
+}
+
+.od-cancel-btn {
+    border: 1px solid #c0392b;
+    background: #fff;
+    color: #c0392b;
+    cursor: pointer;
+}
+
+.od-cancel-btn:hover {
+    background: #fdf1ef;
+    filter: none;
+}
+
 .od-card {
     border: 1px solid var(--border-soft);
     border-radius: 20px;

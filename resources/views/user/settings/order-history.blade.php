@@ -129,9 +129,11 @@
                                                     {{ __('See Details') }}
                                                 </a>
                                             @elseif ($order['status'] === 'done')
-                                                <a href="{{ route('settings.orders.review', $order['id']) }}" class="order-history-review-btn">
-                                                    {{ __('Beri Ulasan') }}
-                                                </a>
+                                                @if ($order['can_review'])
+                                                    <a href="{{ route('settings.orders.review', $order['id']) }}" class="order-history-review-btn">
+                                                        {{ __('Beri Ulasan') }}
+                                                    </a>
+                                                @endif
                                                 <a href="{{ route('settings.orders.refund', $order['id']) }}" class="order-history-refund-btn">
                                                     {{ __('Ajukan Refund') }}
                                                 </a>

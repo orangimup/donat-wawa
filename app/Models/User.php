@@ -57,6 +57,11 @@ class User extends Authenticatable
         return $this->hasOne(NotificationPreference::class);
     }
 
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
     public function notificationPreferenceOrDefault(): NotificationPreference
     {
         return $this->notificationPreference ?? $this->notificationPreference()->create([]);

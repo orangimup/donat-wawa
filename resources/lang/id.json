@@ -503,6 +503,8 @@
     "Password must be at least 8 characters.": "Kata sandi minimal 8 karakter.",
     "Registration successful! Welcome, :name.": "Pendaftaran berhasil! Selamat datang, :name.",
     "The email or password you entered is incorrect.": "Email atau kata sandi yang Anda masukkan salah.",
+    "Your account has been deactivated.": "Akun Anda telah dinonaktifkan.",
+    "Your account has been deactivated. Reason: :reason": "Akun Anda telah dinonaktifkan. Alasan: :reason",
     "Signed in successfully. Welcome back!": "Berhasil masuk. Selamat datang kembali!",
     "You have been signed out.": "Anda telah keluar.",
     "Profile updated successfully.": "Profil berhasil diperbarui.",
@@ -573,5 +575,14 @@
     "Submit Review": "Kirim Ulasan",
     "Give Review": "Give Review",
     "Request Refund": "Request Refund",
-    "Hibiscus Bloom is sold out for today.": "Hibiscus Bloom sedang habis untuk hari ini."
+    "Hibiscus Bloom is sold out for today.": "Hibiscus Bloom sedang habis untuk hari ini.",
+    ":name is unavailable or has insufficient stock.": ":name tidak tersedia atau stoknya tidak mencukupi.",
+    "This order can no longer be cancelled.": "Pesanan ini tidak dapat dibatalkan lagi.",
+    "Your order has been cancelled.": "Pesananmu berhasil dibatalkan.",
+    "Are you sure you want to cancel this order?": "Yakin ingin membatalkan pesanan ini?",
+    "Cancel Order": "Batalkan Pesanan",
+    "Cancelled by customer": "Dibatalkan oleh pembeli",
+    "Semua produk di pesanan ini sudah kamu ulas.": "Semua produk di pesanan ini sudah kamu ulas.",
+    "Pilih rating untuk minimal satu produk.": "Pilih rating untuk minimal satu produk.",
+    "Belum ada ulasan untuk produk ini.": "Belum ada ulasan untuk produk ini."
 }

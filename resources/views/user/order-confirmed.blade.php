@@ -20,7 +20,8 @@
                 <img src="{{ asset('assets/icons/success.svg') }}" alt="{{ __('Order placed successfully') }}">
             </div>
             <h1>{{ __('Thank You!') }}</h1>
-            <p>{{ __("Your delicious donut journey has begun. We've received your order and are waiting for payment confirmation to start baking.") }}</p>
+            <p>{{ __("Your delicious donut journey has begun. We've received your order and are waiting for payment confirmation to start baking.") }}
+            </p>
         </div>
 
         <div class="confirm-meta">
@@ -116,6 +117,15 @@
             }
 
             document.getElementById('confirmContent').hidden = false;
+
+            /* Ask the server to pull the real payment status from Midtrans (nothing from the browser is trusted). */
+            fetch('{{ url('/checkout/orders') }}/' + encodeURIComponent(order.code) + '/sync', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+            }).catch(function () { /* the page works without it; the admin list just updates later */ });
             document.getElementById('confirmOrderCode').textContent = '#' + order.code;
             document.getElementById('confirmOrderDate').textContent = order.placedAtLabel || '';
             document.getElementById('confirmAddress').textContent = order.address || '—';
@@ -138,15 +148,15 @@
 
             document.getElementById('confirmItems').innerHTML = order.items.map(function (item) {
                 return `
-                            <div class="confirm-item">
-                                <img src="${item.image}" alt="${item.name}">
-                                <div class="confirm-item-info">
-                                    <strong>${item.name}</strong>
-                                    <span>${item.qty} x ${formatRupiah(item.price)}</span>
+                                <div class="confirm-item">
+                                    <img src="${item.image}" alt="${item.name}">
+                                    <div class="confirm-item-info">
+                                        <strong>${item.name}</strong>
+                                        <span>${item.qty} x ${formatRupiah(item.price)}</span>
+                                    </div>
+                                    <span class="confirm-item-price">${formatRupiah(item.price * item.qty)}</span>
                                 </div>
-                                <span class="confirm-item-price">${formatRupiah(item.price * item.qty)}</span>
-                            </div>
-                        `;
+                            `;
             }).join('');
 
             document.getElementById('confirmSubtotal').textContent = formatRupiah(order.subtotal);
