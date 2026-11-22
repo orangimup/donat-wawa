@@ -29,7 +29,6 @@ Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::get('/checkout/sync-basket', [CheckoutController::class, 'syncBasket'])->name('checkout.sync-basket');
 Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
-// Server-to-server webhook from Midtrans (no session / CSRF; authenticated by signature_key).
 Route::post('/midtrans/notification', MidtransNotificationController::class)->name('midtrans.notification');
 Route::post('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
 
@@ -56,8 +55,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings/orders/{order}/cancel', [OrderHistoryController::class, 'cancel'])->whereNumber('order')->name('settings.orders.cancel');
     Route::get('/settings/orders/{order}/review', [OrderHistoryController::class, 'review'])->whereNumber('order')->name('settings.orders.review');
     Route::post('/settings/orders/{order}/review', [OrderHistoryController::class, 'storeReview'])->whereNumber('order')->middleware('throttle:10,1')->name('settings.orders.review.store');
-    Route::get('/settings/orders/{order}/refund', [OrderHistoryController::class, 'refund'])->name('settings.orders.refund');
-    Route::post('/settings/orders/{order}/refund', [OrderHistoryController::class, 'storeRefund'])->name('settings.orders.refund.store');
+    Route::post('/settings/orders/{order}/complete', [OrderHistoryController::class, 'complete'])->whereNumber('order')->name('settings.orders.complete');
+    Route::get('/settings/orders/{order}/refund', [OrderHistoryController::class, 'refund'])->whereNumber('order')->name('settings.orders.refund');
+    Route::post('/settings/orders/{order}/refund', [OrderHistoryController::class, 'storeRefund'])->whereNumber('order')->middleware('throttle:10,1')->name('settings.orders.refund.store');
+    Route::get('/settings/orders/{order}/refund/bank', [OrderHistoryController::class, 'bank'])->whereNumber('order')->name('settings.orders.refund.bank');
+    Route::post('/settings/orders/{order}/refund/bank', [OrderHistoryController::class, 'storeBank'])->whereNumber('order')->middleware('throttle:10,1')->name('settings.orders.refund.bank.store');
 
     Route::get('/settings/languages', [LanguageController::class, 'show'])->name('settings.languages');
     Route::post('/settings/languages', [LanguageController::class, 'update'])->name('settings.languages.update');
@@ -73,6 +75,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::delete('/menu-items/{menuItem}', [MenuItemController::class, 'destroy'])->name('menu-items.destroy');
 
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->whereNumber('order')->name('orders.show');
     Route::post('/orders/{order}/confirm', [OrderController::class, 'confirm'])->whereNumber('order')->name('orders.confirm');
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->whereNumber('order')->name('orders.status');
 

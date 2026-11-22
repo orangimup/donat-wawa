@@ -6,6 +6,7 @@ use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Services\PaymentService;
+use App\Services\RefundService;
 use Carbon\Carbon;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
@@ -154,7 +155,7 @@ class CheckoutController extends Controller
      * status and stores it, so it works even where the webhook cannot reach (localhost).
      * The browser's "success" callback is never trusted: only Midtrans' answer is saved.
      */
-    public function syncPayment(Request $request, PaymentService $payments, string $code): JsonResponse
+    public function syncPayment(Request $request, PaymentService $payments, RefundService $refunds, string $code): JsonResponse
     {
         $order = Order::with('transaction')
             ->where('id_pesanan', $code)
@@ -167,12 +168,26 @@ class CheckoutController extends Controller
             $status = json_decode(json_encode(\Midtrans\Transaction::status($order->id_pesanan)), true);
         } catch (\Throwable $e) {
             // Midtrans has no payment for this order yet (customer never picked a method).
-            return response()->json(['status' => $order->transaction?->status ?? Transaction::STATUS_PENDING]);
+            return $this->paymentState($order, $order->transaction?->status ?? Transaction::STATUS_PENDING);
         }
 
         $payments->handleNotification($status);
+        $refunds->refundRejectedOrder($order);
 
-        return response()->json(['status' => $order->transaction()->value('status')]);
+        return $this->paymentState($order, $order->transaction()->value('status'));
+    }
+
+    /**
+     * What the success page needs: the real payment status (never the browser's own claim),
+     * whether the order is actually paid, and where this order lives in the customer's history.
+     */
+    private function paymentState(Order $order, ?string $status): JsonResponse
+    {
+        return response()->json([
+            'status' => $status,
+            'paid' => $status === Transaction::STATUS_SETTLED,
+            'order_url' => route('settings.orders.show', $order->id),
+        ]);
     }
 
     public function success(): View

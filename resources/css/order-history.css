@@ -56,19 +56,26 @@
 .order-history-tabs {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
+    max-width: 100%;
+}
+
+.order-history-tabs::-webkit-scrollbar {
+    display: none;
 }
 
 .order-history-tab {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    padding: 9px 18px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 7px 12px;
     border: 1.5px solid var(--border-soft);
     border-radius: 999px;
     background: #fff;
     font-family: var(--font-label);
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-body);
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
@@ -430,11 +437,11 @@
     white-space: nowrap;
 }
 
-.oh-status-pill.is-waiting { background: #f59e0b; }
-.oh-status-pill.is-process { background: #d97706; }
+.oh-status-pill.is-waiting { background: #6b7280; }
+.oh-status-pill.is-process { background: #7c3aed; }
 .oh-status-pill.is-shipped { background: #2563eb; }
 .oh-status-pill.is-done { background: #2ea44f; }
-.oh-status-pill.is-cancelled { background: var(--maroon); }
+.oh-status-pill.is-cancelled { background: #dc2626; }
 
 /* -- Cancelled notice -- */
 .od-cancelled-notice {
@@ -466,6 +473,8 @@
 .od-stepper {
     display: flex;
     align-items: flex-start;
+    overflow-x: auto;
+    padding: 6px 4px;
 }
 
 .od-step {
@@ -473,7 +482,7 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    min-width: 110px;
+    min-width: 96px;
     text-align: center;
 }
 
@@ -499,14 +508,103 @@
 }
 
 .od-step-line {
+    position: relative;
     flex: 1;
+    min-width: 24px;
     height: 2px;
     background: var(--border-soft);
-    margin-top: 23px;
+    margin-top: 29px;
+    overflow: hidden;
 }
 
-.od-step-line.is-filled {
+/* Filled lines draw left to right, one after another. */
+.od-step-line.is-filled::after {
+    content: "";
+    position: absolute;
+    inset: 0;
     background: var(--maroon);
+    transform-origin: left center;
+    animation: od-line-fill 0.45s ease-out both;
+    animation-delay: calc(var(--i) * 0.45s + 0.1s);
+}
+
+/* The line leading to the next step keeps moving: the order is on its way there. */
+.od-step-line.is-progress::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, var(--maroon), transparent);
+    animation: od-line-travel 1.6s ease-in-out infinite;
+    animation-delay: calc(var(--i) * 0.45s + 0.3s);
+    opacity: 0;
+    animation-fill-mode: backwards;
+}
+
+.od-step--done .od-step-dot,
+.od-step--current .od-step-dot {
+    animation: od-dot-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: calc(var(--i) * 0.45s);
+}
+
+.od-step--current .od-step-dot {
+    animation: od-dot-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+        od-dot-pulse 1.8s ease-out infinite;
+    animation-delay: calc(var(--i) * 0.45s), calc(var(--i) * 0.45s + 0.4s);
+}
+
+/* A finished order has nothing left to wait for: no pulse. */
+.od-stepper--done .od-step--current .od-step-dot {
+    animation: od-dot-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation-delay: calc(var(--i) * 0.45s);
+}
+
+.od-step--done .od-step-label,
+.od-step--current .od-step-label,
+.od-step--done .od-step-time,
+.od-step--current .od-step-time {
+    animation: od-text-in 0.4s ease-out both;
+    animation-delay: calc(var(--i) * 0.45s + 0.15s);
+}
+
+@keyframes od-line-fill {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+@keyframes od-line-travel {
+    0% { left: -40%; opacity: 1; }
+    100% { left: 100%; opacity: 1; }
+}
+
+@keyframes od-dot-pop {
+    from { transform: scale(0.55); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes od-dot-pulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--maroon) 45%, transparent); }
+    70%, 100% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--maroon) 0%, transparent); }
+}
+
+@keyframes od-text-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .od-step-line.is-filled::after,
+    .od-step-line.is-progress::before,
+    .od-step-dot,
+    .od-step-label,
+    .od-step-time {
+        animation: none !important;
+    }
+
+    .od-step-line.is-progress::before {
+        display: none;
+    }
 }
 
 .od-step-label {
@@ -709,7 +807,12 @@
     font-style: italic;
 }
 
-/* -- Help bar -- */
+/* -- Refund prompt at the bottom of the detail page (replaced the old help bar) -- */
+.od-refund-prompt {
+    margin-top: 0;
+}
+
+/* -- Help bar (no longer used on the detail page) -- */
 .od-help-bar {
     display: flex;
     align-items: center;
@@ -783,4 +886,756 @@
 .order-history-refund-btn:hover {
     border-color: var(--maroon);
     color: var(--maroon);
+}
+
+/* -- Refund: waiting for the customer's bank account -- */
+.od-refund-notice {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #fdf6f3;
+}
+
+.od-refund-notice-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #f5e3df;
+    color: var(--maroon);
+}
+
+.od-refund-notice-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.od-refund-notice-text strong {
+    display: block;
+    font-family: var(--font-label);
+    font-size: 15px;
+    color: var(--text-dark);
+    margin-bottom: 2px;
+}
+
+.od-refund-notice-text span {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.od-bank-btn,
+.order-history-bank-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 999px;
+    background: var(--maroon);
+    color: #fff;
+    font-family: var(--font-label);
+    font-weight: 700;
+    white-space: nowrap;
+    transition: filter 0.15s ease;
+}
+
+.od-bank-btn {
+    padding: 10px 22px;
+    font-size: 13.5px;
+}
+
+.order-history-bank-btn {
+    padding: 8px 18px;
+    font-size: 13px;
+}
+
+.od-bank-btn:hover,
+.order-history-bank-btn:hover {
+    filter: brightness(1.1);
+}
+
+.order-history-inline-form {
+    margin: 0;
+}
+
+.order-history-review-btn {
+    gap: 6px;
+    border: 0;
+    cursor: pointer;
+}
+
+.order-history-actions {
+    flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .od-refund-notice {
+        flex-wrap: wrap;
+    }
+
+    .od-bank-btn {
+        width: 100%;
+    }
+}
+
+
+/* ===== Row actions: plain icons, no circles ===== */
+.order-history-actions {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 16px;
+}
+
+.oh-icon-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: 0;
+    background: none;
+    color: var(--maroon);
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.oh-icon-btn:hover {
+    transform: scale(1.15);
+}
+
+.oh-icon-btn:focus-visible {
+    outline: 2px solid var(--maroon);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+/* Tooltip (label of the icon) */
+.oh-icon-btn::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: -6px;
+    transform: translateY(4px);
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: var(--tertiary-700, #2e1e1a);
+    color: #fff;
+    font-family: var(--font-label);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 5;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.oh-icon-btn:hover::after,
+.oh-icon-btn:focus-visible::after {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Refunded status pill (list + detail) */
+.order-history-pill-refunded {
+    background: #0f766e;
+}
+
+.oh-status-pill.is-refunded {
+    background: #0f766e;
+}
+
+/* Refund card on the order detail page */
+.od-refund-status p {
+    margin: 0 0 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.od-refund-status-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.od-refund-status-head .od-card-title {
+    margin: 0;
+}
+
+.od-refund-status-pill {
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-family: var(--font-label);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #fff;
+    background: #d97706;
+}
+
+.od-refund-status--refunded .od-refund-status-pill {
+    background: #0f766e;
+}
+
+.od-refund-status--rejected .od-refund-status-pill {
+    background: var(--maroon);
+}
+
+.od-refund-status-note {
+    margin: 12px 0 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #fdf6f3;
+}
+
+/* ===== Confirm modal (plain, same look as the admin popups) ===== */
+.dw-modal[hidden] {
+    display: none;
+}
+
+.dw-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.dw-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.dw-modal-box {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    padding: 24px 26px 22px;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.dw-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.dw-modal-head h3 {
+    margin: 0;
+    font-family: var(--font-label);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.dw-modal-close {
+    display: inline-flex;
+    padding: 4px;
+    border: 0;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.dw-modal-close:hover {
+    color: var(--text-dark);
+}
+
+.dw-modal-box p {
+    margin: 0 0 22px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--text-muted);
+}
+
+.dw-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.dw-modal-btn {
+    padding: 10px 22px;
+    border-radius: 999px;
+    border: 0;
+    font-family: var(--font-label);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.dw-modal-btn--ghost {
+    background: #f3efeb;
+    color: var(--text-dark);
+}
+
+.dw-modal-btn--ghost:hover {
+    background: #e9e3dd;
+}
+
+.dw-modal-btn--primary {
+    background: var(--maroon);
+    color: #fff;
+}
+
+.dw-modal-btn--primary:hover {
+    filter: brightness(1.1);
+}
+
+.dw-modal-btn:focus-visible {
+    outline: 2px solid var(--maroon);
+    outline-offset: 2px;
+}
+
+/* ===== Row action icons: <button> variant + attention state ===== */
+button.oh-icon-btn {
+    font: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.oh-icon-btn svg {
+    display: block;
+}
+
+.oh-icon-btn--attention {
+    color: #d97706;
+}
+
+.order-history-actions {
+    min-width: 120px;
+}
+
+/* Refund still being processed (list) */
+.order-history-pill-refund-pending {
+    background: #d97706;
+}
+
+/* Detail page: secondary action buttons next to the main one */
+.od-topbar-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.od-outline-btn {
+    border: 1px solid #7b2026;
+    background: #fff;
+    color: #7b2026;
+    cursor: pointer;
+}
+
+.od-outline-btn:hover {
+    background: #fdf6f3;
+    filter: none;
+}
+
+.od-paid-pill--refunded {
+    background: #0f766e;
+    color: #fff;
+}
+
+/* Icon at the top of the confirm modal */
+.dw-modal-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 12px;
+    border-radius: 50%;
+    background: #f5e3df;
+    color: var(--maroon);
+}
+
+/* ===== Order list v3 ===== */
+
+/* Filter tabs: compact so all seven fit on one line */
+.order-history-tabs {
+    gap: 6px;
+}
+
+.order-history-tab {
+    padding: 7px 11px;
+    font-size: 13px;
+    gap: 6px;
+}
+
+.order-history-tab-count {
+    padding: 0 6px;
+    font-size: 11.5px;
+}
+
+/* Card + table */
+.order-history-card {
+    border: 1px solid #efe6e0;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 8px 28px rgba(46, 12, 14, 0.05);
+}
+
+.order-history-table {
+    min-width: 640px;
+}
+
+.order-history-table thead th {
+    padding: 16px;
+    background: transparent;
+    border-bottom: 1px solid #efe6e0;
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    color: var(--tertiary-tint);
+}
+
+.order-history-table tbody td {
+    padding: 16px;
+    border-bottom: 1px solid #f5eee9;
+}
+
+.order-history-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.order-history-table th:first-child,
+.order-history-table td:first-child {
+    padding-left: 24px;
+}
+
+.order-history-table th:last-child,
+.order-history-table td:last-child {
+    padding-right: 24px;
+}
+
+.order-history-row {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.order-history-row:hover {
+    background: #fffaf7;
+}
+
+/* Item cell */
+.order-history-item-cell {
+    min-width: 0;
+    gap: 12px;
+}
+
+.order-history-item-cell img {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+}
+
+.order-history-item-cell strong {
+    max-width: 170px;
+    font-size: 14.5px;
+}
+
+.order-history-item-cell span {
+    font-size: 12.5px;
+}
+
+.order-history-item-cell .order-history-code {
+    letter-spacing: 0.02em;
+    color: var(--tertiary-tint);
+}
+
+/* Date / total: main value + muted line */
+.oh-cell-main,
+.order-history-amount {
+    display: block;
+    font-family: var(--font-label);
+    font-size: 13.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--text-dark);
+}
+
+.order-history-amount {
+    font-weight: 700;
+}
+
+.oh-cell-sub {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+    color: var(--text-muted);
+}
+
+.oh-cell-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.oh-cell-hint.is-danger {
+    color: #b3261e;
+}
+
+/* Status: solid pills, same colours as before */
+.oh-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-family: var(--font-label);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.oh-badge--waiting { background: #6b7280; }
+.oh-badge--process { background: #7c3aed; }
+.oh-badge--shipped { background: #2563eb; }
+.oh-badge--done { background: #2ea44f; }
+.oh-badge--cancelled { background: #dc2626; }
+.oh-badge--refunded { background: #0f766e; }
+.oh-badge--refund-pending { background: #ea580c; }
+
+/* Actions: header says "Aksi"; one labelled button + quiet "Lihat Detail" */
+.order-history-table th.is-action,
+.order-history-table td.is-action {
+    width: 1%;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.order-history-table .order-history-actions {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 6px;
+    width: 140px;
+    min-width: 0;
+    margin: 0 auto;
+}
+
+.order-history-inline-form {
+    margin: 0;
+    display: block;
+}
+
+.oh-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1.5px solid var(--maroon);
+    border-radius: 999px;
+    font-family: var(--font-label);
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: filter 0.15s ease, background 0.15s ease;
+}
+
+.oh-btn--primary {
+    background: var(--maroon);
+    color: #fff;
+}
+
+.oh-btn--primary:hover,
+.oh-btn--attention:hover {
+    filter: brightness(1.08);
+}
+
+.oh-btn--outline {
+    background: #fff;
+    color: var(--maroon);
+}
+
+.oh-btn--outline:hover {
+    background: #fbf1ee;
+}
+
+.oh-btn--attention {
+    border-color: #d97706;
+    background: #d97706;
+    color: #fff;
+}
+
+.oh-link {
+    text-align: center;
+    font-family: var(--font-label);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--maroon);
+}
+
+.oh-link:hover {
+    text-decoration: underline;
+}
+
+/* Phones: each order becomes a small card instead of a squeezed table */
+@media (max-width: 680px) {
+    .order-history-table {
+        min-width: 0;
+    }
+
+    .order-history-table thead {
+        display: none;
+    }
+
+    .order-history-table,
+    .order-history-table tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .order-history-table tbody tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 16px;
+        padding: 18px;
+        border-bottom: 1px solid #f5eee9;
+    }
+
+    .order-history-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .order-history-table tbody td,
+    .order-history-table td:first-child,
+    .order-history-table td:last-child {
+        display: block;
+        padding: 0;
+        border: 0;
+    }
+
+    .order-history-table tbody td:first-child,
+    .order-history-table tbody td.is-action {
+        grid-column: 1 / -1;
+    }
+
+    .order-history-table td[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 4px;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--tertiary-tint);
+    }
+
+    .order-history-table .order-history-actions {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .oh-btn {
+        width: auto;
+        padding: 8px 18px;
+    }
+}
+
+.order-history-item-cell .order-history-code {
+    white-space: nowrap;
+}
+
+.od-paid-pill--unpaid {
+    background: #6b7280;
+    color: #fff;
+}
+
+/* Payment method card: logo of the method that was used */
+.od-method-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.od-method-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 76px;
+    height: 44px;
+    padding: 7px 10px;
+    border: 1px solid #efe6e0;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.od-method-logo img {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+/* Status column: badge centered under its header (desktop table only) */
+@media (min-width: 681px) {
+    .order-history-table th:nth-child(4),
+    .order-history-table td:nth-child(4) {
+        text-align: center;
+    }
+}
+
+.od-method-logo svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Payment method: big centered logo in a plain white box */
+.od-method-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 26px 20px 20px;
+    border: 1px solid #efe6e0;
+    border-radius: 16px;
+    background: #fff;
+    text-align: center;
+}
+
+.od-method-box .od-method-logo {
+    width: 100%;
+    max-width: 200px;
+    height: 60px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+}
+
+.od-method-box .od-method-name {
+    font-family: var(--font-label);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.od-method-logo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }

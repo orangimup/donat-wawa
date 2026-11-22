@@ -26,13 +26,15 @@ class ReviewController extends Controller
         $search = trim((string) $request->get('search', ''));
         $sort = (string) $request->get('sort', 'latest');
 
-        // order_items is joined for the product name as it was at purchase time, users for the
+        // order_items gives the product name as it was at purchase time (seeded reviews have no order
+        // line, so menu_items is the fallback), users gives the
         // reviewer name. Both are needed by the search box and the "product" sort.
         $query = Review::query()
             ->select('reviews.*')
-            ->join('order_items', 'order_items.id', '=', 'reviews.order_item_id')
+            ->leftJoin('order_items', 'order_items.id', '=', 'reviews.order_item_id')
+            ->leftJoin('menu_items', 'menu_items.id', '=', 'reviews.menu_item_id')
             ->join('users', 'users.id', '=', 'reviews.user_id')
-            ->with(['user', 'order', 'orderItem.menuItem']);
+            ->with(['user', 'order', 'orderItem.menuItem', 'menuItem']);
 
         match ($rating) {
             '5' => $query->where('reviews.rating', 5),
@@ -45,6 +47,7 @@ class ReviewController extends Controller
             $like = '%' . $search . '%';
             $query->where(function ($q) use ($like) {
                 $q->where('order_items.name', 'like', $like)
+                    ->orWhere('menu_items.name', 'like', $like)
                     ->orWhere('users.name', 'like', $like)
                     ->orWhere('reviews.comment', 'like', $like);
             });
@@ -54,7 +57,7 @@ class ReviewController extends Controller
             'oldest' => $query->orderBy('reviews.created_at')->orderBy('reviews.id'),
             'rating_high' => $query->orderByDesc('reviews.rating')->orderByDesc('reviews.id'),
             'rating_low' => $query->orderBy('reviews.rating')->orderByDesc('reviews.id'),
-            'product' => $query->orderBy('order_items.name')->orderByDesc('reviews.id'),
+            'product' => $query->orderByRaw('COALESCE(order_items.name, menu_items.name)')->orderByDesc('reviews.id'),
             default => $query->orderByDesc('reviews.created_at')->orderByDesc('reviews.id'),
         };
 
@@ -79,10 +82,10 @@ class ReviewController extends Controller
 
     public function destroy(int $review): RedirectResponse
     {
-        $current = Review::with(['user', 'orderItem'])->findOrFail($review);
+        $current = Review::with(['user', 'orderItem', 'menuItem'])->findOrFail($review);
 
         $reviewer = $current->user?->name ?? 'a customer';
-        $product = $current->orderItem?->name ?? 'a product';
+        $product = $current->orderItem?->name ?? $current->menuItem?->name ?? 'a product';
 
         $current->delete();
 
@@ -92,12 +95,12 @@ class ReviewController extends Controller
     private function present(Review $review): array
     {
         $line = $review->orderItem;
-        $product = $line?->menuItem;
+        $product = $review->menuItem ?? $line?->menuItem;
         $reviewedAt = $review->created_at?->clone()->timezone(Order::TIMEZONE);
 
         return [
             'id' => $review->id,
-            'product' => $line?->name ?? '-',
+            'product' => $line?->name ?? $product?->name ?? '-',
             'product_price' => 'Rp ' . number_format((int) ($product?->price ?? $line?->price ?? 0), 0, ',', '.'),
             'product_image' => $product?->image_url ?? asset('assets/images/donat.png'),
             'reviewer' => $review->user?->name ?? '-',

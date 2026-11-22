@@ -19,6 +19,8 @@ class Order extends Model
     public const STATUS_DONE = 'done';
     public const STATUS_REJECTED = 'rejected';
     public const FLOW = [self::STATUS_PROCESS, self::STATUS_SHIPPED, self::STATUS_DONE];
+    /** What an admin can set. "done" is confirmed by the customer only (like Shopee's "Pesanan Selesai"). */
+    public const ADMIN_FLOW = [self::STATUS_PROCESS, self::STATUS_SHIPPED];
 
     public const SHIPPING_FEES = [
         'same_day' => 5000,
@@ -52,12 +54,18 @@ class Order extends Model
         'total',
         'status',
         'rejection_reason',
+        'confirmed_at',
+        'shipped_at',
+        'completed_at',
     ];
 
     protected function casts(): array
     {
         return [
             'delivery_date' => 'date',
+            'confirmed_at' => 'datetime',
+            'shipped_at' => 'datetime',
+            'completed_at' => 'datetime',
             'subtotal' => 'integer',
             'shipping_fee' => 'integer',
             'total' => 'integer',

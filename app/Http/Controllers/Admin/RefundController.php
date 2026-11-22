@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Carbon\Carbon;
+use App\Http\Controllers\OrderHistoryController;
+use App\Models\Order;
+use App\Models\Refund;
+use App\Services\RefundService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -15,13 +17,10 @@ class RefundController extends Controller
 {
     private const PER_PAGE = 10;
 
-    private const SESSION_KEY = 'admin_refund_overrides';
-
     public const STATUS_LABELS = [
-        'approved' => 'Approved',
-        'rejected' => 'Rejected',
         'pending' => 'Pending',
         'refunded' => 'Refunded',
+        'rejected' => 'Rejected',
     ];
 
     public function __construct()
@@ -33,47 +32,47 @@ class RefundController extends Controller
 
     public function index(Request $request): View
     {
-        $status = $request->get('status', 'all');
+        $status = (string) $request->get('status', 'all');
         $search = trim((string) $request->get('search', ''));
-        $sort = $request->get('sort', 'latest');
+        $sort = (string) $request->get('sort', 'latest');
 
-        $all = $this->refunds();
-        $refunds = $all;
+        $query = Refund::query()
+            ->select('refunds.*')
+            ->join('orders', 'orders.id_pesanan', '=', 'refunds.id_pesanan')
+            ->with('order.transaction');
 
         if ($status !== 'all' && isset(self::STATUS_LABELS[$status])) {
-            $refunds = $refunds->where('status', $status);
+            $query->where('refunds.status', $status);
         }
 
         if ($search !== '') {
-            $needle = mb_strtolower($search);
-            $refunds = $refunds->filter(fn (array $refund) => str_contains(
-                mb_strtolower($refund['order_code'] . ' ' . $refund['code'] . ' ' . $refund['customer']),
-                $needle
-            ));
+            $needle = '%' . ltrim($search, '#') . '%';
+            $digits = preg_replace('/\D/', '', $search);
+
+            $query->where(function ($q) use ($needle, $digits) {
+                $q->where('orders.id_pesanan', 'like', $needle)
+                    ->orWhere('orders.customer_name', 'like', $needle);
+
+                if ($digits !== '' && strlen($digits) <= 9) {
+                    $q->orWhere('refunds.id', (int) ltrim(substr($digits, -4), '0') ?: 0);
+                }
+            });
         }
 
-        $refunds = match ($sort) {
-            'oldest' => $refunds->sortBy('timestamp'),
-            'customer' => $refunds->sortBy('customer', SORT_NATURAL | SORT_FLAG_CASE),
-            'amount_high' => $refunds->sortByDesc('amount'),
-            'amount_low' => $refunds->sortBy('amount'),
-            default => $refunds->sortByDesc('timestamp'),
+        match ($sort) {
+            'oldest' => $query->orderBy('refunds.tgl_pengajuan')->orderBy('refunds.id'),
+            'customer' => $query->orderBy('orders.customer_name'),
+            'amount_high' => $query->orderByDesc('refunds.jumlah_refund')->orderByDesc('refunds.id'),
+            'amount_low' => $query->orderBy('refunds.jumlah_refund')->orderByDesc('refunds.id'),
+            default => $query->orderByDesc('refunds.tgl_pengajuan')->orderByDesc('refunds.id'),
         };
-        $refunds = $refunds->values();
-
-        $page = LengthAwarePaginator::resolveCurrentPage();
-        $paginator = new LengthAwarePaginator(
-            $refunds->forPage($page, self::PER_PAGE)->values(),
-            $refunds->count(),
-            self::PER_PAGE,
-            $page,
-            ['path' => $request->url(), 'query' => $request->query()]
-        );
 
         return view('admin.refund-index', [
-            'refunds' => $paginator,
-            'pendingCount' => $all->where('status', 'pending')->count(),
-            'totalRefunded' => $all->where('status', 'refunded')->sum('amount'),
+            'refunds' => $query->paginate(self::PER_PAGE)->withQueryString()
+                ->through(fn (Refund $refund) => $this->present($refund)),
+            'pendingCount' => Refund::where('status', Refund::STATUS_PENDING)->count(),
+            'waitingBankCount' => $this->waitingBankCount(),
+            'totalRefunded' => (int) Refund::where('status', Refund::STATUS_REFUNDED)->sum('jumlah_refund'),
             'status' => $status,
             'search' => $search,
             'sort' => $sort,
@@ -83,195 +82,157 @@ class RefundController extends Controller
 
     public function show(int $refund): View
     {
-        $refund = $this->findOrFail($refund);
+        $model = Refund::with(['order.transaction'])->findOrFail($refund);
 
         return view('admin.refund-show', [
-            'refund' => $refund,
-            'isFinal' => in_array($refund['status'], ['rejected', 'refunded'], true),
-            'awaitingTransfer' => $refund['status'] === 'approved',
+            'refund' => $this->present($model),
+            'isFinal' => ! $model->isPending(),
+            'isCustomerRequest' => $model->asal_refund === Refund::SOURCE_CUSTOMER,
             'statusLabels' => self::STATUS_LABELS,
         ]);
     }
 
-    /**
-     * Pending  -> Approved (no proof) | Refunded (approve + proof) | Rejected (reject + notes)
-     * Approved -> Refunded (proof of transfer required)
-     * Rejected / Refunded are final.
-     */
-    public function finalize(Request $request, int $refund): RedirectResponse
+    public function finalize(Request $request, RefundService $refunds, int $refund): RedirectResponse
     {
-        $current = $this->findOrFail($refund);
+        $current = Refund::with('order.transaction')->findOrFail($refund);
+        $code = $this->code($current);
 
-        if (! in_array($current['status'], ['pending', 'approved'], true)) {
+        if (! $current->isPending()) {
             return back()->withErrors(['refund' => 'This refund request has already been finalized.']);
         }
 
-        $awaitingTransfer = $current['status'] === 'approved';
+        $manual = $refunds->isManual($current);
+        $allowed = $current->asal_refund === Refund::SOURCE_CUSTOMER ? ['approve', 'reject'] : ['approve'];
 
-        $validated = $request->validate([
-            'decision' => ['required', $awaitingTransfer ? Rule::in(['approve']) : Rule::in(['approve', 'reject'])],
-            'proof' => [
-                Rule::requiredIf($awaitingTransfer),
-                'nullable', 'file', 'mimes:png,jpg,jpeg,pdf', 'max:5120',
-            ],
+        $rules = [
+            'decision' => ['required', Rule::in($allowed)],
             'notes' => ['nullable', 'string', 'max:1000', 'required_if:decision,reject'],
-        ], [
+        ];
+
+        if ($manual) {
+            $rules['bukti_transfer'] = ['required_if:decision,approve', 'nullable', 'image', 'max:5120'];
+        }
+
+        $validated = $request->validate($rules, [
             'decision.required' => 'Please choose Approve or Reject.',
-            'proof.required' => 'Please upload the proof of transfer.',
-            'proof.mimes' => 'The proof must be a PNG, JPG or PDF file.',
-            'proof.max' => 'The proof may not be larger than 5MB.',
             'notes.required_if' => 'Please write a note explaining why the refund is rejected.',
+            'bukti_transfer.required_if' => 'Please upload the proof of the bank transfer.',
         ]);
 
         $notes = $validated['notes'] ?? null;
 
         if ($validated['decision'] === 'reject') {
-            $this->saveOverride($refund, ['status' => 'rejected', 'notes' => $notes, 'proof_name' => null]);
-
-            return redirect()->route('admin.refund')
-                ->with('status', "Refund {$current['code']} has been rejected.");
-        }
-
-        if ($request->hasFile('proof')) {
-            // The file itself is not stored yet (no refunds table). Only its name is kept.
-            $this->saveOverride($refund, [
-                'status' => 'refunded',
-                'notes' => $notes ?? $current['notes'],
-                'proof_name' => $request->file('proof')->getClientOriginalName(),
-            ]);
-
-            return redirect()->route('admin.refund')
-                ->with('status', "Refund {$current['code']} has been marked as refunded.");
-        }
-
-        $this->saveOverride($refund, ['status' => 'approved', 'notes' => $notes]);
-
-        return redirect()->route('admin.refund')
-            ->with('status', "Refund {$current['code']} approved. Upload the proof of transfer to complete it.");
-    }
-
-    /* ------------------------------------------------------------------
-     | Temporary data layer.
-     | Refund requests are hardcoded until the refunds table exists.
-     | Decisions made on the detail page are kept in the session so the
-     | flow can be demonstrated. Replace refunds(), findOrFail() and
-     | saveOverride() with Eloquent queries / updates later.
-     ------------------------------------------------------------------ */
-
-    private function refunds(): Collection
-    {
-        $overrides = session(self::SESSION_KEY, []);
-
-        return $this->seed()->map(function (array $refund) use ($overrides) {
-            if (isset($overrides[$refund['id']])) {
-                $refund = array_merge($refund, $overrides[$refund['id']]);
+            if (! $refunds->reject($current, $notes)) {
+                return back()->withErrors(['refund' => 'This refund request has already been finalized.']);
             }
 
-            return $refund;
-        });
+            return redirect()->route('admin.refund')->with('status', "Refund {$code} has been rejected.");
+        }
+
+        if ($manual) {
+            if (! $current->hasBankDetails()) {
+                return back()->withErrors(['refund' => 'The customer has not provided bank details yet, so there is nowhere to transfer the refund.']);
+            }
+
+            $proof = $request->file('bukti_transfer')->store('refund-transfer-proof', 'public');
+
+            if (! $refunds->completeManually($current, $proof, $notes)) {
+                Storage::disk('public')->delete($proof);
+
+                return back()->withErrors(['refund' => 'This refund request has already been finalized.']);
+            }
+
+            return redirect()->route('admin.refund')
+                ->with('status', "Refund {$code} has been marked as refunded (bank transfer).");
+        }
+
+        $result = $refunds->approve($current, $notes);
+
+        if ($result->status !== Refund::STATUS_REFUNDED) {
+            return back()->withErrors([
+                'refund' => 'Midtrans could not process this refund yet: ' . ($result->pesan_error ?? 'unknown error') . ' You can try again.',
+            ]);
+        }
+
+        return redirect()->route('admin.refund')
+            ->with('status', "Refund {$code} has been sent back to the customer through Midtrans.");
     }
 
-    private function findOrFail(int $id): array
+    private function waitingBankCount(): int
     {
-        $refund = $this->refunds()->firstWhere('id', $id);
+        $refunds = app(RefundService::class);
 
-        abort_if($refund === null, 404);
-
-        return $refund;
+        return Refund::with('order.transaction')
+            ->where('status', Refund::STATUS_PENDING)
+            ->get()
+            ->filter(fn (Refund $refund) => $refunds->isManual($refund) && ! $refund->hasBankDetails())
+            ->count();
     }
 
-    private function saveOverride(int $id, array $data): void
+    private function code(Refund $refund): string
     {
-        $overrides = session(self::SESSION_KEY, []);
-        $overrides[$id] = array_merge($overrides[$id] ?? [], $data);
+        $year = ($refund->tgl_pengajuan ?? now())->format('Y');
 
-        session([self::SESSION_KEY => $overrides]);
+        return '#REF-' . $year . '-' . str_pad((string) $refund->id, 4, '0', STR_PAD_LEFT);
     }
 
-    private function seed(): Collection
+    private function paymentLogo(?string $label): ?string
     {
-        $reasons = [
-            'D-02' => [
-                'label' => 'Damaged Goods (D-02)',
-                'description' => 'The box arrived crushed on one side, and three of the seasonal glazed donuts were completely flattened into the cardboard. Unacceptable for a birthday gift.',
-                'evidence' => 1,
-            ],
-            'W-01' => [
-                'label' => 'Wrong Item (W-01)',
-                'description' => 'I ordered Zen Matcha but received Salted Caramel instead. The order summary clearly says matcha, so this was a mix-up on your side.',
-                'evidence' => 1,
-            ],
-            'N-01' => [
-                'label' => 'Not Received (N-01)',
-                'description' => 'The courier marked my order as delivered but nothing arrived. I already checked with my neighbors and the front desk.',
-                'evidence' => 0,
-            ],
-            'Q-03' => [
-                'label' => 'Quality Issue (Q-03)',
-                'description' => 'The donuts were stale and dry when they arrived, which is not what I expect from a same-day order.',
-                'evidence' => 2,
-            ],
-            'L-04' => [
-                'label' => 'Late Delivery (L-04)',
-                'description' => 'My pre-order arrived more than three hours after the promised time, so it missed the event completely.',
-                'evidence' => 0,
-            ],
+        if (blank($label)) {
+            return null;
+        }
+
+        $known = ['bca', 'mandiri', 'qris', 'gopay', 'shopeepay', 'dana', 'ovo'];
+
+        foreach (array_reverse(preg_split('/[^a-z0-9]+/', strtolower($label), -1, PREG_SPLIT_NO_EMPTY)) as $word) {
+            if (in_array($word, $known, true) && file_exists(public_path("assets/payment/{$word}.svg"))) {
+                return asset("assets/payment/{$word}.svg");
+            }
+        }
+
+        return null;
+    }
+
+    private function present(Refund $refund): array
+    {
+        $manual = app(RefundService::class)->isManual($refund);
+        $order = $refund->order;
+        $transaction = $order?->transaction;
+        $requestedAt = $refund->tgl_pengajuan?->copy()->timezone(Order::TIMEZONE);
+        $reasons = OrderHistoryController::REFUND_REASONS + Refund::SYSTEM_REASONS;
+
+        return [
+            'id' => $refund->id,
+            'code' => $this->code($refund),
+            'order_code' => $order?->display_code ?? '-',
+            'customer' => $order?->customer_name ?? '-',
+            'amount' => $refund->jumlah_refund,
+            'status' => $refund->status,
+            'source' => Refund::SOURCE_LABELS[$refund->asal_refund] ?? $refund->asal_refund,
+            'is_manual' => $manual,
+            'payout' => $manual ? 'Manual bank transfer' : 'Midtrans',
+            'bank' => $refund->hasBankDetails() ? [
+                'name' => $refund->nama_bank,
+                'number' => $refund->nomor_rekening,
+                'holder' => $refund->nama_pemilik_rekening,
+            ] : null,
+            'proof' => $refund->bukti_transfer ? asset('storage/' . $refund->bukti_transfer) : null,
+            'timestamp' => $requestedAt?->timestamp ?? 0,
+            'request_label' => $requestedAt ? $requestedAt->format('d M Y, H:i') . ' WIB' : '-',
+            'request_date' => $requestedAt ? $requestedAt->format('d M Y') : '-',
+            'request_time' => $requestedAt ? $requestedAt->format('H:i') . ' WIB' : '',
+            'source_key' => $refund->asal_refund,
+            'needs_bank' => $manual && $refund->isPending() && ! $refund->hasBankDetails(),
+            'order_label' => $order?->placed_at ? $order->placed_at->format('d F Y, H:i') . ' WIB' : '-',
+            'reason' => $reasons[$refund->alasan] ?? $refund->alasan,
+            'description' => $refund->detail_alasan,
+            'evidence' => $refund->foto_bukti ? [asset('storage/' . $refund->foto_bukti)] : [],
+            'payment_method' => $transaction?->metode_pembayaran ?? '-',
+            'payment_logo' => $this->paymentLogo($transaction?->metode_pembayaran),
+            'midtrans_order_id' => $refund->id_pesanan,
+            'midtrans_refund_id' => $refund->id_refund_midtrans,
+            'notes' => $refund->catatan_admin,
+            'error' => $refund->pesan_error,
         ];
-
-        $banks = [
-            'bca' => 'Bank Central Asia (BCA)',
-            'bni' => 'Bank Negara Indonesia (BNI)',
-            'mandiri' => 'Bank Mandiri',
-            'bri' => 'Bank Rakyat Indonesia (BRI)',
-        ];
-
-        $evidenceImages = [
-            asset('assets/images/donat.png'),
-            asset('assets/images/donat-bundling.png'),
-        ];
-
-        // id, order no., customer, amount, status, reason, order date, request date, bank, last 4 digits, notes, proof file
-        $rows = [
-            [1, 1, 'Antonio', 28000, 'approved', 'D-02', '2026-08-30 14:32', '2026-09-01 15:40', 'bca', '4492', 'Approved. The transfer will be made within 1x24 hours.', null],
-            [2, 2, 'Rina Wulandari', 20000, 'pending', 'D-02', '2026-08-31 14:32', '2026-09-02 10:15', 'bni', '7731', null, null],
-            [3, 3, 'Budi Santoso', 24000, 'rejected', 'W-01', '2026-09-02 10:05', '2026-09-03 09:12', 'bni', '1183', 'The photos show the correct item was delivered, so we cannot process this refund.', null],
-            [4, 4, 'Dewi Lestari', 36000, 'refunded', 'Q-03', '2026-09-03 11:20', '2026-09-04 08:47', 'mandiri', '7720', 'Refund transferred. Thank you for your patience.', 'transfer-proof-0004.png'],
-            [5, 5, 'Keysha Marsha', 78000, 'refunded', 'N-01', '2026-09-04 16:45', '2026-09-05 13:30', 'bca', '3051', 'Full refund transferred.', 'transfer-proof-0005.pdf'],
-            [6, 7, 'Siti Nurhaliza', 32000, 'rejected', 'L-04', '2026-09-06 10:03', '2026-09-07 12:15', 'bri', '6614', 'The order was delivered within the promised pre-order window.', null],
-            [7, 8, 'Rizky Pratama', 18000, 'refunded', 'D-02', '2026-09-07 09:40', '2026-09-08 10:22', 'bni', '9027', 'Refund transferred.', 'transfer-proof-0007.png'],
-            [8, 9, 'Nadia Putri', 15000, 'approved', 'Q-03', '2026-09-08 14:10', '2026-09-09 16:48', 'mandiri', '4408', 'Approved. Waiting for the transfer.', null],
-            [9, 10, 'Hendra Wijaya', 38000, 'pending', 'D-02', '2026-09-09 12:33', '2026-09-10 09:05', 'bca', '2265', null, null],
-            [10, 11, 'Antonio', 14000, 'pending', 'W-01', '2026-09-10 15:21', '2026-09-11 11:36', 'bri', '5379', null, null],
-            [11, 12, 'Maya Anggraini', 68000, 'pending', 'N-01', '2026-09-12 14:32', '2026-09-13 10:18', 'bni', '8842', null, null],
-            [12, 13, 'Galih Permana', 12000, 'pending', 'L-04', '2026-09-13 13:05', '2026-09-14 09:57', 'bca', '1930', null, null],
-            [13, 14, 'Lestari Ningrum', 18000, 'pending', 'Q-03', '2026-09-14 11:48', '2026-09-15 15:24', 'mandiri', '7051', null, null],
-        ];
-
-        return collect($rows)->map(function (array $row) use ($reasons, $banks, $evidenceImages) {
-            [$id, $orderNo, $customer, $amount, $status, $reasonKey, $orderAt, $requestAt, $bankKey, $last4, $notes, $proof] = $row;
-
-            $orderDate = Carbon::parse($orderAt, 'Asia/Jakarta');
-            $requestDate = Carbon::parse($requestAt, 'Asia/Jakarta');
-
-            return [
-                'id' => $id,
-                'code' => '#REF-2026-' . str_pad((string) $id, 4, '0', STR_PAD_LEFT),
-                'order_code' => '#DW-' . str_pad((string) $orderNo, 4, '0', STR_PAD_LEFT),
-                'customer' => $customer,
-                'amount' => $amount,
-                'status' => $status,
-                'timestamp' => $requestDate->timestamp,
-                'request_label' => $requestDate->format('d M Y, H:i') . ' WIB',
-                'order_label' => $orderDate->format('d F Y, H:i') . ' WIB',
-                'reason' => $reasons[$reasonKey]['label'],
-                'description' => $reasons[$reasonKey]['description'],
-                'evidence' => array_slice($evidenceImages, 0, $reasons[$reasonKey]['evidence']),
-                'bank_name' => $banks[$bankKey],
-                'bank_holder' => $customer,
-                'bank_last4' => $last4,
-                'notes' => $notes,
-                'proof_name' => $proof,
-            ];
-        });
     }
 }

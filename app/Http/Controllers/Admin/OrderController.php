@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Refund;
 use App\Services\OrderService;
+use App\Services\RefundService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -78,9 +80,20 @@ class OrderController extends Controller
         ]);
     }
 
-    public function confirm(Request $request, OrderService $orders, int $order): RedirectResponse
+    /** Everything the admin needs to cross-check an order before accepting or rejecting it. */
+    public function show(int $order): View
     {
-        $current = Order::findOrFail($order);
+        $model = Order::with(['items.menuItem', 'transaction', 'refund'])->findOrFail($order);
+
+        return view('admin.order-show', [
+            'order' => $this->presentDetail($model),
+            'statusLabels' => self::STATUS_LABELS,
+        ]);
+    }
+
+    public function confirm(Request $request, OrderService $orders, RefundService $refunds, int $order): RedirectResponse
+    {
+        $current = Order::with('transaction')->findOrFail($order);
 
         if ($current->status !== Order::STATUS_WAITING) {
             return back()->withErrors(['order' => 'Only orders with Waiting status can be confirmed.']);
@@ -95,9 +108,14 @@ class OrderController extends Controller
         ]);
 
         if ($validated['action'] === 'accept') {
+            // Once accepted an order can no longer be rejected, so it must already be paid.
+            if (! $current->transaction?->isPaid()) {
+                return back()->withErrors(['order' => 'Payment has not been received for this order yet, so it cannot be accepted.']);
+            }
+
             $accepted = Order::whereKey($order)
                 ->where('status', Order::STATUS_WAITING)
-                ->update(['status' => Order::STATUS_PROCESS, 'rejection_reason' => null]);
+                ->update(['status' => Order::STATUS_PROCESS, 'rejection_reason' => null, 'confirmed_at' => now()]);
 
             if ($accepted === 0) {
                 return back()->withErrors(['order' => 'This order was already updated. Please refresh the page.']);
@@ -112,36 +130,101 @@ class OrderController extends Controller
             return back()->withErrors(['order' => 'This order was already updated. Please refresh the page.']);
         }
 
-        return back()->with('status', "Order {$current->display_code} has been rejected.");
+        $message = "Order {$current->display_code} has been rejected.";
+
+        // A paid order is refunded automatically; the customer does not have to ask.
+        $refund = $refunds->refundRejectedOrder($rejected);
+
+        if ($refund !== null) {
+            if ($refunds->isManual($refund)) {
+                $message .= ' It was paid by bank transfer, so the customer was asked to provide a bank account. Transfer the refund manually from the Refunds page.';
+            } else {
+                $message .= $refund->status === Refund::STATUS_REFUNDED
+                    ? ' The payment has been refunded to the customer automatically.'
+                    : ' The automatic refund could not be completed. Open Refunds to retry it.';
+            }
+        }
+
+        return back()->with('status', $message);
     }
 
     public function updateStatus(Request $request, int $order): RedirectResponse
     {
         $current = Order::findOrFail($order);
 
-        if (!in_array($current->status, Order::FLOW, true)) {
-            return back()->withErrors(['order' => 'This order must be accepted before its status can be updated.']);
+        // The admin only moves an accepted order to "shipped". "Done" is confirmed by the customer.
+        if ($current->status !== Order::STATUS_PROCESS) {
+            return back()->withErrors(['order' => match ($current->status) {
+                Order::STATUS_SHIPPED => 'This order is on its way. It is completed when the customer confirms they received it.',
+                Order::STATUS_DONE => 'This order has already been completed by the customer.',
+                default => 'This order must be accepted before its status can be updated.',
+            }]);
         }
 
         $validated = $request->validate([
-            'status' => ['required', 'in:' . implode(',', Order::FLOW)],
+            'status' => ['required', 'in:' . implode(',', Order::ADMIN_FLOW)],
         ], [
             'status.required' => 'Please select a new status.',
         ]);
 
-        $from = array_search($current->status, Order::FLOW, true);
-        $to = array_search($validated['status'], Order::FLOW, true);
-
-        if ($to < $from) {
-            return back()->withErrors(['status' => 'An order cannot be moved back to an earlier status.'])
-                ->withInput();
+        if ($validated['status'] === Order::STATUS_PROCESS) {
+            return back()->with('status', "Order {$current->display_code} is still in process.");
         }
 
-        $current->update(['status' => $validated['status']]);
+        $current->update([
+            'status' => $validated['status'],
+            'shipped_at' => $validated['status'] === Order::STATUS_SHIPPED ? now() : $current->shipped_at,
+        ]);
 
         $label = self::STATUS_LABELS[$validated['status']];
 
         return back()->with('status', "Order {$current->display_code} status updated to {$label}.");
+    }
+
+    private function presentDetail(Order $order): array
+    {
+        $transaction = $order->transaction;
+        $refund = $order->refund;
+
+        return [
+            'id' => $order->id,
+            'code' => $order->display_code,
+            'status' => $order->status,
+            'placed_label' => $order->placed_at?->format('d F Y, H:i') . ' WIB',
+            'customer' => $order->customer_name,
+            'email' => $order->customer_email,
+            'phone' => $order->customer_phone,
+            'address' => $order->address,
+            'delivery' => $order->delivery_label,
+            'delivery_date' => $order->delivery_date?->format('d F Y'),
+            'delivery_slot' => $order->delivery_slot,
+            'items' => $order->items->map(fn ($line) => [
+                'name' => $line->name,
+                'image' => $line->menuItem?->image_url ?? asset('assets/images/donat.png'),
+                'price' => $line->price,
+                'qty' => $line->quantity,
+                'line_total' => $line->price * $line->quantity,
+            ]),
+            'subtotal' => $order->subtotal,
+            'shipping_fee' => $order->shipping_fee,
+            'total' => $order->total,
+            'rejection_reason' => $order->rejection_reason,
+            'payment' => [
+                'is_paid' => (bool) $transaction?->isPaid(),
+                'status' => $transaction?->status,
+                'method' => $transaction?->metode_pembayaran ?? '-',
+                'midtrans_id' => $transaction?->id_transaksi_midtrans,
+                'paid_label' => $transaction?->waktu_bayar
+                    ? $transaction->waktu_bayar->copy()->timezone(Order::TIMEZONE)->format('d F Y, H:i') . ' WIB'
+                    : null,
+            ],
+            'refund' => $refund ? [
+                'id' => $refund->id,
+                'status' => $refund->status,
+                'source' => Refund::SOURCE_LABELS[$refund->asal_refund] ?? $refund->asal_refund,
+                'amount' => $refund->jumlah_refund,
+            ] : null,
+        ];
     }
 
     private function present(Order $order): array

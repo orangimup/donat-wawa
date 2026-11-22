@@ -11,8 +11,10 @@ use Illuminate\Support\Str;
 
 class PaymentService
 {
-    public function __construct(private readonly OrderService $orders)
-    {
+    public function __construct(
+        private readonly OrderService $orders,
+        private readonly RefundService $refunds,
+    ) {
     }
 
     public function configureMidtrans(): void
@@ -60,6 +62,42 @@ class PaymentService
         };
     }
 
+    /**
+     * QRIS is one QR for many wallets. Midtrans says which one paid in "issuer" ("gopay", ...),
+     * so keep it: "QRIS (GoPay)". Plain "QRIS" when Midtrans did not send it.
+     */
+    private function qrisLabel(array $payload): string
+    {
+        $issuer = Str::lower(trim((string) ($payload['issuer'] ?? '')));
+
+        if ($issuer === '') {
+            return 'QRIS';
+        }
+
+        $names = [
+            'gopay' => 'GoPay',
+            'shopeepay' => 'ShopeePay',
+            'airpay shopee' => 'ShopeePay',
+            'dana' => 'DANA',
+            'ovo' => 'OVO',
+            'linkaja' => 'LinkAja',
+        ];
+
+        return 'QRIS (' . ($names[$issuer] ?? Str::headline($issuer)) . ')';
+    }
+
+    /** A later notification without "issuer" must not turn "QRIS (GoPay)" back into plain "QRIS". */
+    private function methodFor(Transaction $transaction, array $payload): ?string
+    {
+        $label = $this->methodLabel($payload);
+
+        if ($label === 'QRIS' && str_starts_with((string) $transaction->metode_pembayaran, 'QRIS (')) {
+            return $transaction->metode_pembayaran;
+        }
+
+        return $label ?? $transaction->metode_pembayaran;
+    }
+
     /** Short label for the admin table ("QRIS", "BCA VA", ...). Column is varchar(30). */
     public function methodLabel(array $payload): ?string
     {
@@ -67,7 +105,7 @@ class PaymentService
 
         $label = match ($type) {
             null => null,
-            'qris' => 'QRIS',
+            'qris' => $this->qrisLabel($payload),
             'gopay' => 'GoPay',
             'shopeepay' => 'ShopeePay',
             'dana' => 'DANA',
@@ -113,7 +151,11 @@ class PaymentService
                 return 'unknown';
             }
 
-            if ((int) round((float) $payload['gross_amount']) !== (int) $order->total) {
+            // Refund notifications may carry the refunded amount instead of the original one, and
+            // the signature has already been verified, so the amount is only compared for payments.
+            $isRefundNotification = $newStatus === Transaction::STATUS_REFUNDED;
+
+            if (! $isRefundNotification && (int) round((float) $payload['gross_amount']) !== (int) $order->total) {
                 Log::error('Midtrans amount mismatch', [
                     'order_id' => $order->id_pesanan,
                     'expected' => $order->total,
@@ -129,7 +171,7 @@ class PaymentService
                 $transaction->update([
                     'status_midtrans' => Str::limit((string) ($payload['transaction_status'] ?? ''), 30, ''),
                     'id_transaksi_midtrans' => $payload['transaction_id'] ?? $transaction->id_transaksi_midtrans,
-                    'metode_pembayaran' => $this->methodLabel($payload) ?? $transaction->metode_pembayaran,
+                    'metode_pembayaran' => $this->methodFor($transaction, $payload),
                 ]);
 
                 return 'updated';
@@ -143,7 +185,7 @@ class PaymentService
                 'status' => $newStatus,
                 'status_midtrans' => Str::limit((string) ($payload['transaction_status'] ?? ''), 30, ''),
                 'id_transaksi_midtrans' => $payload['transaction_id'] ?? $transaction->id_transaksi_midtrans,
-                'metode_pembayaran' => $this->methodLabel($payload) ?? $transaction->metode_pembayaran,
+                'metode_pembayaran' => $this->methodFor($transaction, $payload),
             ];
 
             if ($newStatus === Transaction::STATUS_SETTLED && $transaction->waktu_bayar === null) {
@@ -151,6 +193,11 @@ class PaymentService
             }
 
             $transaction->update($update);
+
+            if ($newStatus === Transaction::STATUS_REFUNDED) {
+                // Refunded from the Midtrans side (or confirmation of ours): keep our refunds table in step.
+                $this->refunds->recordFromWebhook($order, $payload);
+            }
 
             if (in_array($newStatus, [Transaction::STATUS_EXPIRED, Transaction::STATUS_FAILED, Transaction::STATUS_CANCELLED], true)) {
                 // Payment is dead: the order leaves "waiting", which also releases its reservation.
@@ -235,7 +282,6 @@ class PaymentService
     private function paidAt(array $payload)
     {
         if (! empty($payload['settlement_time'])) {
-            // Midtrans sends WIB (UTC+7) timestamps.
             return \Carbon\Carbon::parse($payload['settlement_time'], 'Asia/Jakarta')->utc();
         }
 

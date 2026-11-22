@@ -286,3 +286,147 @@
         padding-right: 18px;
     }
 }
+
+
+/* Order detail page */
+.order-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.order-detail-main,
+.order-detail-side {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.order-detail-title {
+    margin: 0 0 16px;
+    font-family: var(--font-label);
+    font-size: 16px;
+    color: var(--text-dark);
+}
+
+.order-detail-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 24px;
+}
+
+.order-detail-facts .is-wide {
+    grid-column: 1 / -1;
+}
+
+.order-detail-product {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.order-detail-product img {
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.order-detail-card .order-summary {
+    margin-bottom: 0;
+}
+
+.order-detail-card .admin-form-group {
+    margin-bottom: 16px;
+}
+
+.order-detail-card .admin-form-group label {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.order-detail-card .admin-form-group label small {
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.order-detail-card .admin-form-group input[type="text"] {
+    border-radius: 10px;
+    background: #fff;
+}
+
+.order-detail-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.order-detail-actions .admin-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.order-detail-text {
+    margin: 0 0 12px;
+    color: var(--text-body);
+}
+
+.order-detail-link {
+    display: inline-flex;
+}
+
+.order-detail-back {
+    margin-top: 20px;
+}
+
+.order-detail-back a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+@media (max-width: 960px) {
+    .order-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Ordered items table on the order detail page.
+   The generic .admin-table rules (min-width 940px, narrow/centred first column) are made for the
+   product table, so they are reset here; otherwise the product name overlaps the price. */
+.admin-table.order-detail-items {
+    min-width: 0;
+    table-layout: auto;
+}
+
+.admin-table.order-detail-items th:first-child,
+.admin-table.order-detail-items td:first-child {
+    width: auto;
+    text-align: left;
+}
+
+.admin-table.order-detail-items th:nth-child(2),
+.admin-table.order-detail-items td:nth-child(2),
+.admin-table.order-detail-items th:nth-child(4),
+.admin-table.order-detail-items td:nth-child(4) {
+    width: auto;
+}
+
+.admin-table.order-detail-items th.is-num,
+.admin-table.order-detail-items td.is-num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.admin-table.order-detail-items td.is-strong {
+    font-weight: 600;
+}
+
+.order-detail-product img {
+    flex-shrink: 0;
+}
+
+.order-detail-product span {
+    min-width: 0;
+    font-weight: 600;
+}

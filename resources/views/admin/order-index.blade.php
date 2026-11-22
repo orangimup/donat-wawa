@@ -93,10 +93,22 @@
                             </td>
                             <td>
                                 <div class="admin-table-actions">
+                                    <a href="{{ route('admin.orders.show', $order['id']) }}" class="admin-icon-btn"
+                                        aria-label="View order {{ $order['code'] }}" title="View details">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                    </a>
                                     <button type="button" class="admin-icon-btn"
                                         aria-label="Manage order {{ $order['code'] }}"
-                                        @if ($order['status'] === 'rejected')
-                                            disabled title="Rejected orders cannot be changed"
+                                        @if (in_array($order['status'], ['rejected', 'shipped', 'done'], true))
+                                            disabled title="{{ match ($order['status']) {
+                                                'rejected' => 'Rejected orders cannot be changed',
+                                                'shipped' => 'On its way: completed when the customer confirms receipt',
+                                                default => 'Completed by the customer',
+                                            } }}"
                                         @else
                                             onclick="openOrderPopup(this)"
                                         @endif
@@ -224,7 +236,7 @@
         </div>
     </div>
 
-    {{-- Popup 2: Update Order Status (for accepted orders: Process / Shipped / Done) --}}
+    {{-- Popup 2: Update Order Status (accepted orders: Process / Shipped; "Done" is confirmed by the customer) --}}
     <div class="admin-modal-overlay admin-modal-overlay-center order-modal-overlay" id="orderStatusOverlay">
         <div class="admin-modal order-modal" role="dialog" aria-modal="true" aria-labelledby="orderStatusTitle">
             <div class="order-modal-head">
@@ -245,7 +257,7 @@
 
                 <div class="order-modal-body">
                     @php
-                        $statusChoices = ['process' => 'Process', 'shipped' => 'Shipped', 'done' => 'Done'];
+                        $statusChoices = ['process' => 'Process', 'shipped' => 'Shipped'];
                     @endphp
                     <div class="admin-form-group">
                         <label for="orderStatusTrigger">New Status</label>
@@ -323,7 +335,7 @@
             });
         })();
 
-        /* Order popups: Waiting -> Confirmation, Process/Shipped/Done -> Update Status */
+        /* Order popups: Waiting -> Confirmation, Process -> Update Status (Shipped/Done are locked) */
         (function () {
             const confirmOverlay = document.getElementById('orderConfirmOverlay');
             const confirmForm = document.getElementById('orderConfirmForm');
@@ -390,7 +402,7 @@
             window.openOrderPopup = function (btn) {
                 if (btn.dataset.status === 'waiting') {
                     openConfirm(btn, false);
-                } else if (btn.dataset.status !== 'rejected') {
+                } else if (btn.dataset.status === 'process') {
                     openStatus(btn, false);
                 }
             };

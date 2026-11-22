@@ -9,7 +9,7 @@
 @section('content')
 
     @php
-        $formatRupiah = fn ($amount) => 'Rp ' . number_format($amount, 2, ',', '.');
+        $formatRupiah = fn ($amount) => 'Rp ' . number_format($amount, 0, ',', '.');
 
         $sortLabels = [
             'latest' => 'Latest',
@@ -45,8 +45,14 @@
             <div class="refund-stat-foot">
                 <p class="refund-stat-value">{{ $pendingCount }}<small>request</small></p>
                 <div class="refund-stat-meta">
-                    <span class="refund-stat-badge">+12%</span>
-                    <span>this month</span>
+                    @if ($waitingBankCount > 0)
+                        <span class="refund-stat-badge">{{ $waitingBankCount }}</span>
+                        <span>waiting for bank details</span>
+                    @elseif ($pendingCount > 0)
+                        <span>Needs your action</span>
+                    @else
+                        <span>All caught up</span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -109,42 +115,73 @@
             <table class="admin-table refund-table">
                 <thead>
                     <tr>
-                        <th>No.</th>
-                        <th class="refund-col-order">Order ID</th>
-                        <th>Request Date</th>
-                        <th class="refund-col-customer">Customer</th>
-                        <th>Amount</th>
+                        <th>Refund</th>
+                        <th>Customer</th>
+                        <th>Requested</th>
+                        <th class="is-num">Amount</th>
+                        <th>Type</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th class="is-action">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($refunds as $refund)
-                        <tr>
-                            <td>{{ $loop->iteration + ($refunds->currentPage() - 1) * $refunds->perPage() }}</td>
-                            <td class="refund-col-order">{{ $refund['order_code'] }}</td>
-                            <td class="refund-nowrap">{{ $refund['request_label'] }}</td>
-                            <td class="refund-col-customer">{{ $refund['customer'] }}</td>
-                            <td class="refund-nowrap">{{ $formatRupiah($refund['amount']) }}</td>
+                        <tr class="refund-row" data-href="{{ route('admin.refund.show', $refund['id']) }}">
+                            <td>
+                                <span class="refund-cell-main">{{ $refund['code'] }}</span>
+                                <span class="refund-cell-sub">{{ $refund['order_code'] }}</span>
+                            </td>
+                            <td>
+                                <div class="refund-customer">
+                                    <span class="refund-avatar" aria-hidden="true">{{ strtoupper(mb_substr($refund['customer'], 0, 1)) }}</span>
+                                    <span class="refund-cell-main">{{ $refund['customer'] }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="refund-cell-main refund-nowrap">{{ $refund['request_date'] }}</span>
+                                <span class="refund-cell-sub">{{ $refund['request_time'] }}</span>
+                            </td>
+                            <td class="is-num">
+                                <span class="refund-amount">{{ $formatRupiah($refund['amount']) }}</span>
+                            </td>
+                            <td>
+                                <span class="refund-cell-main">{{ $refund['source'] }}</span>
+                                <span class="refund-payout {{ $refund['is_manual'] ? 'is-manual' : 'is-auto' }}">
+                                    {{ $refund['is_manual'] ? 'Bank transfer' : 'Midtrans' }}
+                                </span>
+                            </td>
                             <td>
                                 <span class="refund-status-pill refund-status-{{ $refund['status'] }}">
                                     {{ $statusLabels[$refund['status']] }}
                                 </span>
+                                @if ($refund['status'] === 'pending' && $refund['needs_bank'])
+                                    <span class="refund-cell-hint is-warn">Waiting for bank details</span>
+                                @elseif ($refund['status'] === 'pending' && $refund['error'])
+                                    <span class="refund-cell-hint is-danger">Midtrans failed &middot; retry</span>
+                                @endif
                             </td>
-                            <td>
-                                <div class="admin-table-actions">
-                                    <a href="{{ route('admin.refund.show', $refund['id']) }}" class="admin-icon-btn"
-                                        aria-label="Process refund {{ $refund['code'] }}">
-                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="1.9" stroke-linecap="round"
-                                            stroke-linejoin="round">
+                            <td class="is-action">
+                                @if ($refund['status'] === 'pending')
+                                    <a href="{{ route('admin.refund.show', $refund['id']) }}" class="refund-icon-btn"
+                                        title="Process refund" aria-label="Process refund {{ $refund['code'] }}">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path>
                                             <path d="M3 3v5h5"></path>
                                             <path d="M14.5 9.5h-3a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-3"></path>
                                             <path d="M12 8v1.5M12 15.5V17"></path>
                                         </svg>
                                     </a>
-                                </div>
+                                @else
+                                    <a href="{{ route('admin.refund.show', $refund['id']) }}" class="refund-icon-btn"
+                                        title="View refund" aria-label="View refund {{ $refund['code'] }}">
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                    </a>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -168,6 +205,13 @@
 
 @push('scripts')
     <script>
+        document.querySelectorAll('.refund-row[data-href]').forEach(function (row) {
+            row.addEventListener('click', function (e) {
+                if (e.target.closest('a, button')) return;
+                window.location = row.dataset.href;
+            });
+        });
+
         /* Sort-by dropdown (same behaviour as the other admin index pages) */
         (function () {
             const sortSelect = document.getElementById('sortSelect');

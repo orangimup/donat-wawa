@@ -13,6 +13,10 @@
 
 @section('content')
 
+    <p id="confirmVerifying" class="confirm-verifying" style="text-align:center;padding:4rem 1rem;">
+        {{ __('Verifying your payment...') }}
+    </p>
+
     <div id="confirmContent" class="confirm-page" hidden>
 
         <div class="confirm-hero">
@@ -20,7 +24,7 @@
                 <img src="{{ asset('assets/icons/success.svg') }}" alt="{{ __('Order placed successfully') }}">
             </div>
             <h1>{{ __('Thank You!') }}</h1>
-            <p>{{ __("Your delicious donut journey has begun. We've received your order and are waiting for payment confirmation to start baking.") }}
+            <p>{{ __("Your payment has been received. We're getting your donuts ready — you can follow the progress in your order history.") }}
             </p>
         </div>
 
@@ -41,8 +45,8 @@
         <div class="confirm-card">
             <div class="confirm-card-head">
                 <h2>{{ __('Order Details') }}</h2>
-                <span class="confirm-status-badge is-pending" id="confirmStatusBadge">
-                    <span>{{ __('Awaiting Payment') }}</span>
+                <span class="confirm-status-badge is-success" id="confirmStatusBadge">
+                    <span>{{ __('Payment Success') }}</span>
                 </span>
             </div>
 
@@ -95,6 +99,8 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const HISTORY_URL = '{{ route('settings.orders') }}';
+            const CHECKOUT_URL = '{{ url('/checkout') }}';
             const DELIVERY_LABEL = {
                 today: window.I18N.sameDay,
                 preorder: window.I18N.scheduled,
@@ -108,7 +114,7 @@
             }
 
             if (!order || !Array.isArray(order.items) || order.items.length === 0) {
-                window.location.href = '{{ url('/checkout') }}';
+                window.location.href = CHECKOUT_URL;
                 return;
             }
 
@@ -116,65 +122,113 @@
                 return 'Rp' + Number(value || 0).toLocaleString('id-ID');
             }
 
-            document.getElementById('confirmContent').hidden = false;
-
-            /* Ask the server to pull the real payment status from Midtrans (nothing from the browser is trusted). */
-            fetch('{{ url('/checkout/orders') }}/' + encodeURIComponent(order.code) + '/sync', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                },
-            }).catch(function () { /* the page works without it; the admin list just updates later */ });
-            document.getElementById('confirmOrderCode').textContent = '#' + order.code;
-            document.getElementById('confirmOrderDate').textContent = order.placedAtLabel || '';
-            document.getElementById('confirmAddress').textContent = order.address || '—';
-            document.getElementById('confirmPhone').textContent = order.phone || '—';
-            document.getElementById('confirmName').textContent = order.name || '—';
-            document.getElementById('confirmDeliveryLabel').textContent =
-                DELIVERY_LABEL[order.deliveryMethod] || '—';
-
-            const statusBadge = document.getElementById('confirmStatusBadge');
-            const statusLabel = statusBadge.querySelector('span:last-child');
-            if (order.status === 'success') {
-                statusBadge.classList.remove('is-pending');
-                statusBadge.classList.add('is-success');
-                statusLabel.textContent = window.I18N.paymentSuccess;
-            } else {
-                statusBadge.classList.remove('is-success');
-                statusBadge.classList.add('is-pending');
-                statusLabel.textContent = window.I18N.awaitingPayment;
+            function escapeHtml(value) {
+                const div = document.createElement('div');
+                div.textContent = value == null ? '' : String(value);
+                return div.innerHTML;
             }
 
-            document.getElementById('confirmItems').innerHTML = order.items.map(function (item) {
-                return `
-                                <div class="confirm-item">
-                                    <img src="${item.image}" alt="${item.name}">
-                                    <div class="confirm-item-info">
-                                        <strong>${item.name}</strong>
-                                        <span>${item.qty} x ${formatRupiah(item.price)}</span>
-                                    </div>
-                                    <span class="confirm-item-price">${formatRupiah(item.price * item.qty)}</span>
-                                </div>
-                            `;
-            }).join('');
-
-            document.getElementById('confirmSubtotal').textContent = formatRupiah(order.subtotal);
-            document.getElementById('confirmShippingFee').textContent = formatRupiah(order.shippingFee);
-            document.getElementById('confirmTotal').textContent = formatRupiah(order.total);
-
-            document.getElementById('confirmCopyCode').addEventListener('click', function () {
-                navigator.clipboard.writeText(order.code);
-            });
-
-            document.getElementById('confirmTrackBtn').addEventListener('click', function () {
-                alert(window.I18N.trackUnavailable);
-            });
-            if (window.DonatBasket && typeof DonatBasket.clear === 'function') {
-                DonatBasket.clear();
-            } else {
-                sessionStorage.removeItem('donat_basket');
+            /* Ask the server to pull the real payment status from Midtrans.
+               Nothing the browser says ("success" from the Snap popup) is trusted. */
+            function checkPayment() {
+                return fetch('{{ url('/checkout/orders') }}/' + encodeURIComponent(order.code) + '/sync', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                }).then(function (res) {
+                    if (!res.ok) { throw new Error('sync failed'); }
+                    return res.json();
+                });
             }
+
+            function wait(ms) {
+                return new Promise(function (resolve) { setTimeout(resolve, ms); });
+            }
+
+            /* If the popup said "success" the payment is usually settled a moment later on
+               Midtrans' side (slow connection), so give it a couple more tries before giving up. */
+            function verify() {
+                const claimedSuccess = order.status === 'success';
+                let attempt = 0;
+
+                function run() {
+                    return checkPayment().then(function (state) {
+                        if (state.paid || !claimedSuccess || attempt >= 2) { return state; }
+                        attempt += 1;
+                        return wait(2000).then(run);
+                    });
+                }
+
+                return run();
+            }
+
+            function notPaid() {
+                /* Not paid (yet): this is NOT a success page. Send the customer back to checkout
+                   so they can try paying again. */
+                sessionStorage.removeItem('donat_last_order');
+                window.location.replace(CHECKOUT_URL);
+            }
+
+            function showSuccess(orderUrl) {
+                document.getElementById('confirmVerifying').hidden = true;
+                document.getElementById('confirmContent').hidden = false;
+
+                document.getElementById('confirmOrderCode').textContent = '#' + order.code;
+                document.getElementById('confirmOrderDate').textContent = order.placedAtLabel || '';
+                document.getElementById('confirmAddress').textContent = order.address || '—';
+                document.getElementById('confirmPhone').textContent = order.phone || '—';
+                document.getElementById('confirmName').textContent = order.name || '—';
+                document.getElementById('confirmDeliveryLabel').textContent =
+                    DELIVERY_LABEL[order.deliveryMethod] || '—';
+
+                document.getElementById('confirmItems').innerHTML = order.items.map(function (item) {
+                    return `
+                        <div class="confirm-item">
+                            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}">
+                            <div class="confirm-item-info">
+                                <strong>${escapeHtml(item.name)}</strong>
+                                <span>${item.qty} x ${formatRupiah(item.price)}</span>
+                            </div>
+                            <span class="confirm-item-price">${formatRupiah(item.price * item.qty)}</span>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('confirmSubtotal').textContent = formatRupiah(order.subtotal);
+                document.getElementById('confirmShippingFee').textContent = formatRupiah(order.shippingFee);
+                document.getElementById('confirmTotal').textContent = formatRupiah(order.total);
+
+                document.getElementById('confirmCopyCode').addEventListener('click', function () {
+                    navigator.clipboard.writeText(order.code);
+                });
+
+                /* "Track Order Status" opens this order in the customer's order history. */
+                document.getElementById('confirmTrackBtn').addEventListener('click', function () {
+                    window.location.href = orderUrl || HISTORY_URL;
+                });
+
+                /* Only a paid order empties the basket. */
+                if (window.DonatBasket && typeof DonatBasket.clear === 'function') {
+                    DonatBasket.clear();
+                } else {
+                    sessionStorage.removeItem('donat_basket');
+                }
+            }
+
+            verify()
+                .then(function (state) {
+                    if (state.paid) {
+                        showSuccess(state.order_url);
+                    } else {
+                        notPaid();
+                    }
+                })
+                .catch(function () {
+                    /* Could not confirm the payment, so do not claim success. */
+                    notPaid();
+                });
         });
     </script>
 @endpush

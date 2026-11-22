@@ -10,7 +10,7 @@ body.settings-page {
 .settings-layout {
     display: flex;
     align-items: flex-start;
-    gap: 136px;
+    gap: 48px;
     padding: 90px 0 120px;
     min-height: 60vh;
 }

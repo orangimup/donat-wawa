@@ -15,31 +15,45 @@
     @php
         $formatRupiah = fn ($amount) => 'Rp ' . number_format($amount, 0, ',', '.');
 
+        // Shopee-style tabs: one per stage of an order, plus "needs a review" and "refunds".
         $tabs = [
-            'pending' => __('Pending'),
+            'processing' => __('Processing'),
+            'shipped' => __('Shipping'),
             'completed' => __('Completed'),
+            'review' => __('To Review'),
             'cancelled' => __('Cancelled'),
+            'refund' => __('Refunds'),
         ];
 
-        $groupOfStatus = [
-            'waiting' => 'pending',
-            'process' => 'pending',
-            'shipped' => 'pending',
-            'done' => 'completed',
-            'rejected' => 'cancelled',
-        ];
+        // One badge per order: the real stage of the order, unless a refund is moving (that matters more).
+        $badgeOf = function (array $order): array {
+            if ($order['refund_status'] === 'refunded') {
+                return ['refunded', __('Refunded')];
+            }
 
-        $pillLabel = [
-            'pending' => __('Active'),
-            'completed' => __('Completed'),
-            'cancelled' => __('Cancelled'),
-        ];
+            if ($order['refund_status'] === 'pending') {
+                return ['refund-pending', ($order['refund']['source'] ?? null) === 'pembeli' ? __('Awaiting review') : __('Refund in progress')];
+            }
 
-        $pillClass = [
-            'pending' => 'active',
-            'completed' => 'completed',
-            'cancelled' => 'cancelled',
-        ];
+            return match ($order['status']) {
+                'waiting' => ['waiting', __('Waiting')],
+                'process' => ['process', __('Process')],
+                'shipped' => ['shipped', __('Shipped')],
+                'done' => ['done', __('Completed')],
+                default => ['cancelled', __('Cancelled')],
+            };
+        };
+
+        // The ONE thing the customer most likely wants to do next with this order.
+        $primaryAction = function (array $order): ?string {
+            return match (true) {
+                $order['refund_needs_bank'] => 'bank',
+                $order['can_complete'] => 'complete',
+                $order['can_review'] => 'review',
+                $order['can_refund'] => 'refund',
+                default => null,
+            };
+        };
     @endphp
 
     <div class="container-ww settings-layout">
@@ -84,12 +98,11 @@
                     <table class="order-history-table">
                         <thead>
                             <tr>
-                                <th>{{ __('Items') }}</th>
-                                <th>{{ __('Date & Time') }}</th>
-                                <th>{{ __('Amount') }}</th>
-                                <th>{{ __('Method') }}</th>
+                                <th>{{ __('Order') }}</th>
+                                <th>{{ __('Date') }}</th>
+                                <th>{{ __('Total') }}</th>
                                 <th>{{ __('Status') }}</th>
-                                <th>{{ __('Actions') }}</th>
+                                <th class="is-action">{{ __('Actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -97,7 +110,8 @@
                                 @php
                                     $first = $order['items']->first();
                                     $extra = $order['items']->count() - 1;
-                                    $rowGroup = $groupOfStatus[$order['status']];
+                                    [$badgeKey, $badgeLabel] = $badgeOf($order);
+                                    $action = $primaryAction($order);
                                 @endphp
                                 <tr class="order-history-row" data-href="{{ route('settings.orders.show', $order['id']) }}">
                                     <td>
@@ -114,40 +128,46 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{{ $order['placed_at']->translatedFormat('d M Y') }}</td>
-                                    <td class="order-history-amount">{{ $formatRupiah($order['total']) }}</td>
-                                    <td>{{ $order['method'] }}</td>
-                                    <td>
-                                        <span class="order-history-pill order-history-pill-{{ $pillClass[$rowGroup] }}">
-                                            {{ $pillLabel[$rowGroup] }}
-                                        </span>
+                                    <td data-label="{{ __('Date') }}">
+                                        <span class="oh-cell-main">{{ $order['placed_at']->translatedFormat('d M Y') }}</span>
+                                        <span class="oh-cell-sub">{{ $order['placed_at']->format('H:i') }} WIB</span>
                                     </td>
-                                    <td>
+                                    <td data-label="{{ __('Total') }}">
+                                        <span class="order-history-amount">{{ $formatRupiah($order['total']) }}</span>
+                                        <span class="oh-cell-sub">{{ ($order['paid'] || $order['refund_status'] !== null) && $order['method'] !== '-' ? $order['method'] : __('Unpaid') }}</span>
+                                    </td>
+                                    <td data-label="{{ __('Status') }}">
+                                        <span class="oh-badge oh-badge--{{ $badgeKey }}">{{ $badgeLabel }}</span>
+                                        @if ($order['refund_status'] === 'rejected')
+                                            <span class="oh-cell-hint is-danger">{{ __('Refund rejected') }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="is-action">
                                         <div class="order-history-actions" onclick="event.stopPropagation()">
-                                            @if ($rowGroup === 'pending')
-                                                <a href="{{ route('settings.orders.show', $order['id']) }}" class="order-history-see">
-                                                    {{ __('See Details') }}
-                                                </a>
-                                            @elseif ($order['status'] === 'done')
-                                                @if ($order['can_review'])
-                                                    <a href="{{ route('settings.orders.review', $order['id']) }}" class="order-history-review-btn">
-                                                        {{ __('Beri Ulasan') }}
-                                                    </a>
-                                                @endif
-                                                <a href="{{ route('settings.orders.refund', $order['id']) }}" class="order-history-refund-btn">
-                                                    {{ __('Ajukan Refund') }}
-                                                </a>
-                                            @elseif ($order['status'] === 'rejected')
-                                                <a href="{{ route('settings.orders.refund', $order['id']) }}" class="order-history-refund-btn">
-                                                    {{ __('Ajukan Refund') }}
-                                                </a>
+                                            @if ($action === 'complete')
+                                                <form method="POST" action="{{ route('settings.orders.complete', $order['id']) }}"
+                                                    class="order-history-inline-form"
+                                                    data-confirm="{{ __('Have you received this order?') }}"
+                                                    data-confirm-title="{{ __('Order received?') }}"
+                                                    data-confirm-ok="{{ __('Yes, received') }}">
+                                                    @csrf
+                                                    <button type="submit" class="oh-btn oh-btn--primary">{{ __('Pesanan Diterima') }}</button>
+                                                </form>
+                                            @elseif ($action === 'review')
+                                                <a href="{{ route('settings.orders.review', $order['id']) }}" class="oh-btn oh-btn--primary">{{ __('Beri Ulasan') }}</a>
+                                            @elseif ($action === 'bank')
+                                                <a href="{{ route('settings.orders.refund.bank', $order['id']) }}" class="oh-btn oh-btn--attention">{{ __('Isi Rekening') }}</a>
+                                            @elseif ($action === 'refund')
+                                                <a href="{{ route('settings.orders.refund', $order['id']) }}" class="oh-btn oh-btn--primary">{{ __('Ajukan Refund') }}</a>
                                             @endif
+
+                                            <a href="{{ route('settings.orders.show', $order['id']) }}" class="oh-link">{{ __('See Details') }}</a>
                                         </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr class="order-history-empty-row">
-                                    <td colspan="6">
+                                    <td colspan="5">
                                         {{ __('No orders found.') }}
                                     </td>
                                 </tr>
@@ -170,6 +190,8 @@
 
         </div>
     </div>
+
+@include('partials.confirm-modal')
 
 @endsection
 

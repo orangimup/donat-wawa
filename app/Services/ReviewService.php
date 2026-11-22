@@ -13,18 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class ReviewService
 {
-    /** Only a finished order can be reviewed. */
     public function canReview(Order $order): bool
     {
-        return $order->status === Order::STATUS_DONE;
+        return in_array($order->status, [Order::STATUS_SHIPPED, Order::STATUS_DONE], true);
     }
-
-    /**
-     * Order lines the customer can still review: the order is done, the product still exists
-     * and the line has no review yet.
-     *
-     * @return Collection<int, OrderItem>
-     */
     public function reviewableItems(Order $order): Collection
     {
         if (! $this->canReview($order)) {
@@ -35,14 +27,6 @@ class ReviewService
             ->filter(fn (OrderItem $item) => $item->menu_item_id !== null && $item->review === null)
             ->values();
     }
-
-    /**
-     * Saves the reviews the customer filled in. Lines left without a rating are skipped, as are
-     * lines that are not part of this order or are already reviewed.
-     *
-     * @param  array<int|string, array{rating?: mixed, comment?: mixed}>  $entries  keyed by order_items.id
-     * @return int number of reviews created
-     */
     public function submit(User $user, Order $order, array $entries): int
     {
         abort_unless((int) $order->user_id === (int) $user->id, 404);
@@ -50,8 +34,7 @@ class ReviewService
 
         try {
             return DB::transaction(function () use ($user, $order, $entries) {
-                // Lock the order row so a double click / double submit is handled one after the other.
-                Order::query()->whereKey($order->id)->lockForUpdate()->first();
+                $locked = Order::query()->whereKey($order->id)->lockForUpdate()->first();
 
                 $items = $order->items()
                     ->whereNotNull('menu_item_id')
@@ -88,19 +71,19 @@ class ReviewService
                     $created++;
                 }
 
+                if ($created > 0 && $locked?->status === Order::STATUS_SHIPPED) {
+                    $locked->update([
+                        'status' => Order::STATUS_DONE,
+                        'completed_at' => now(),
+                    ]);
+                }
+
                 return $created;
             });
         } catch (UniqueConstraintViolationException) {
-            // Lost a race with another request that reviewed the same line: nothing more to save.
             return 0;
         }
     }
-
-    /**
-     * Rating summary of one product.
-     *
-     * @return array{count: int, average: float, breakdown: array<int, array{count: int, percent: int}>}
-     */
     public function summary(MenuItem $menuItem): array
     {
         $counts = Review::query()
@@ -127,8 +110,6 @@ class ReviewService
             'breakdown' => $breakdown,
         ];
     }
-
-    /** Shape used by the public product pages. */
     public function present(Review $review): array
     {
         return [

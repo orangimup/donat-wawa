@@ -362,11 +362,41 @@
                             deliveryTime: formData.get('delivery_time'),
                         };
 
+                        function wait(ms) {
+                            return new Promise(function (resolve) { setTimeout(resolve, ms); });
+                        }
+
+                        /* Ask the server (which asks Midtrans) whether the order is really paid.
+                           The popup's own "success"/"pending" is never trusted. When it says
+                           "success" the settlement can lag a moment, so try a couple more times. */
+                        function verifyPaid(claimedSuccess, attempt) {
+                            return postJson('{{ url('/checkout/orders') }}/' + encodeURIComponent(orderPayload.code) + '/sync', {})
+                                .then(function (state) {
+                                    if (state.paid || !claimedSuccess || attempt >= 2) { return state; }
+                                    return wait(2000).then(function () { return verifyPaid(claimedSuccess, attempt + 1); });
+                                });
+                        }
+
                         function finish(status, result) {
-                            orderPayload.status = status;
-                            orderPayload.paymentResult = result;
-                            sessionStorage.setItem('donat_last_order', JSON.stringify(orderPayload));
-                            window.location.href = '{{ route('checkout.success') }}';
+                            verifyPaid(status === 'success', 0)
+                                .then(function (state) {
+                                    if (!state.paid) {
+                                        /* Not paid: stay here so the customer can try again
+                                           (same order and payment token, no duplicate order). */
+                                        alert(window.I18N.paymentNotReceived);
+                                        resetButton();
+                                        return;
+                                    }
+
+                                    orderPayload.status = 'success';
+                                    orderPayload.paymentResult = result;
+                                    sessionStorage.setItem('donat_last_order', JSON.stringify(orderPayload));
+                                    window.location.href = '{{ route('checkout.success') }}';
+                                })
+                                .catch(function () {
+                                    alert(window.I18N.paymentNotReceived);
+                                    resetButton();
+                                });
                         }
 
                         window.snap.pay(payment.snapToken, {

@@ -92,6 +92,26 @@ class OrderService
      * had been paid. Rejecting an unpaid order releases its reservation just by leaving the
      * "waiting" status, so there is nothing to restore.
      */
+    /**
+     * Shipped -> done. Normally the customer confirms receipt; orders nobody confirms are closed by the
+     * orders:complete-shipped command. Only a shipped order can move, and completed_at (the start of the
+     * 24-hour refund window) is set here and nowhere else.
+     *
+     * @param  int|null  $userId  when given, only that customer's order can be completed
+     */
+    public function markDone(int $orderId, ?int $userId = null): bool
+    {
+        return Order::query()
+            ->whereKey($orderId)
+            ->when($userId !== null, fn ($q) => $q->where('user_id', $userId))
+            ->where('status', Order::STATUS_SHIPPED)
+            ->update([
+                'status' => Order::STATUS_DONE,
+                'completed_at' => now(),
+                'updated_at' => now(),
+            ]) === 1;
+    }
+
     public function reject(int $orderId, string $reason, array $allowedFrom = [Order::STATUS_WAITING]): ?Order
     {
         return DB::transaction(function () use ($orderId, $reason, $allowedFrom) {
