@@ -98,7 +98,7 @@ class DeliveryZoneController extends Controller
 
         $this->save($zones->push($zone));
 
-        return back()->with('status', "Delivery zone {$zone['label']} has been added.");
+        return back()->with('status', __('Delivery zone :label has been added.', ['label' => $zone['label']]));
     }
 
     public function update(Request $request, int $zone): RedirectResponse
@@ -110,7 +110,7 @@ class DeliveryZoneController extends Controller
 
         $this->save($this->zones()->map(fn (array $item) => $item['id'] === $zone ? $updated : $item));
 
-        return back()->with('status', "Delivery zone {$current['label']} has been updated.");
+        return back()->with('status', __('Delivery zone :label has been updated.', ['label' => $current['label']]));
     }
 
     public function destroy(int $zone): RedirectResponse
@@ -119,7 +119,7 @@ class DeliveryZoneController extends Controller
 
         $this->save($this->zones()->reject(fn (array $item) => $item['id'] === $zone));
 
-        return back()->with('status', "Delivery zone {$current['label']} has been deleted.");
+        return back()->with('status', __('Delivery zone :label has been deleted.', ['label' => $current['label']]));
     }
 
     /**
@@ -155,7 +155,7 @@ class DeliveryZoneController extends Controller
                     );
 
                     if ($overlap) {
-                        $fail("This range overlaps with the {$overlap['label']} zone.");
+                        $fail(__('This range overlaps with the :label zone.', ['label' => $overlap['label']]));
 
                         return;
                     }
@@ -166,11 +166,11 @@ class DeliveryZoneController extends Controller
             'fee' => ['required', 'integer', 'min:0', 'max:1000000'],
             'is_active' => ['required', 'in:0,1'],
         ], [
-            'distance_range.required' => 'Please enter the distance range.',
-            'fee.required' => 'Please enter the delivery fee.',
-            'fee.integer' => 'The delivery fee must be a whole number.',
-            'fee.min' => 'The delivery fee cannot be negative.',
-            'fee.max' => 'The delivery fee is too large.',
+            'distance_range.required' => __('Please enter the distance range.'),
+            'fee.required' => __('Please enter the delivery fee.'),
+            'fee.integer' => __('The delivery fee must be a whole number.'),
+            'fee.min' => __('The delivery fee cannot be negative.'),
+            'fee.max' => __('The delivery fee is too large.'),
         ]);
 
         return [

@@ -22,8 +22,8 @@
 
     <div class="admin-page-header">
         <div>
-            <h1>Transaction Management</h1>
-            <p>Monitor and manage Midtrans payment gateways.</p>
+            <h1>{{ __('Transaction Management') }}</h1>
+            <p>{{ __('Monitor and manage Midtrans payment gateways.') }}</p>
         </div>
     </div>
 
@@ -31,7 +31,7 @@
         @foreach ($stats as $stat)
             <div class="trx-stat-card {{ $stat['featured'] ? 'is-featured' : '' }}">
                 <div class="trx-stat-head">
-                    <h2 class="trx-stat-title">{{ $stat['title'] }}</h2>
+                    <h2 class="trx-stat-title">{{ __($stat['title']) }}</h2>
                     <span class="trx-stat-icon" aria-hidden="true">
                         @if ($stat['icon'] === 'trend')
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -54,7 +54,7 @@
                     @if ($stat['badge'])
                         <span class="trx-stat-badge">{{ $stat['badge'] }}</span>
                     @endif
-                    <span>{{ $stat['caption'] }}</span>
+                    <span>{{ __($stat['caption']) }}</span>
                 </div>
             </div>
         @endforeach
@@ -64,15 +64,15 @@
         <div class="admin-toolbar">
             <div class="admin-filter-pills">
                 <a href="{{ route('admin.transactions.index', array_filter(['search' => $search, 'sort' => $sort])) }}"
-                    class="admin-filter-pill {{ $status === 'all' ? 'is-active' : '' }}">All</a>
+                    class="admin-filter-pill {{ $status === 'all' ? 'is-active' : '' }}">{{ __('All') }}</a>
                 @foreach ($statusLabels as $key => $label)
                     <a href="{{ route('admin.transactions.index', array_filter(['status' => $key, 'search' => $search, 'sort' => $sort])) }}"
-                        class="admin-filter-pill {{ $status === $key ? 'is-active' : '' }}">{{ $label }}</a>
+                        class="admin-filter-pill {{ $status === $key ? 'is-active' : '' }}">{{ __($label) }}</a>
                 @endforeach
             </div>
 
             <form method="GET" class="admin-sort" id="sortForm">
-                <label for="sortTrigger">Sort by:</label>
+                <label for="sortTrigger">{{ __('Sort by:') }}</label>
                 <input type="hidden" name="status" value="{{ $status }}">
                 <input type="hidden" name="search" value="{{ $search }}">
                 <input type="hidden" name="sort" id="sortValue" value="{{ $sort }}">
@@ -80,7 +80,7 @@
                 <div class="admin-select" id="sortSelect">
                     <button type="button" class="admin-select-trigger" id="sortTrigger" aria-haspopup="listbox"
                         aria-expanded="false">
-                        <span id="sortTriggerLabel">{{ $sortLabels[$sort] ?? 'Latest' }}</span>
+                        <span id="sortTriggerLabel">{{ __($sortLabels[$sort] ?? 'Latest') }}</span>
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
                             <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                                 stroke-linejoin="round" />
@@ -89,7 +89,7 @@
                     <ul class="admin-select-menu" id="sortMenu" role="listbox">
                         @foreach ($sortLabels as $key => $label)
                             <li role="option" data-value="{{ $key }}"
-                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ $label }}</li>
+                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ __($label) }}</li>
                         @endforeach
                     </ul>
                 </div>
@@ -100,14 +100,14 @@
             <table class="admin-table trx-table">
                 <thead>
                     <tr>
-                        <th>No.</th>
-                        <th class="trx-col-id">Transaction ID</th>
-                        <th>Date &amp; Time</th>
-                        <th class="trx-col-customer">Customer</th>
-                        <th>Amount</th>
-                        <th>Method</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('No.') }}</th>
+                        <th class="trx-col-id">{{ __('Transaction ID') }}</th>
+                        <th>{{ __('Date & Time') }}</th>
+                        <th class="trx-col-customer">{{ __('Customer') }}</th>
+                        <th>{{ __('Amount') }}</th>
+                        <th>{{ __('Method') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -124,13 +124,13 @@
                             <td class="trx-method">{{ $trx['method'] }}</td>
                             <td>
                                 <span class="trx-status-pill trx-status-{{ $trx['status'] }}">
-                                    {{ $statusLabels[$trx['status']] }}
+                                    {{ __($statusLabels[$trx['status']]) }}
                                 </span>
                             </td>
                             <td>
                                 <div class="admin-table-actions">
                                     <button type="button" class="admin-icon-btn"
-                                        aria-label="View transaction {{ $trx['code'] }}">
+                                        aria-label="{{ __('View transaction :p1', ['p1' => $trx['code']]) }}">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                                             stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
                                             stroke-linejoin="round">
@@ -143,7 +143,7 @@
                         </tr>
                     @empty
                         <tr class="admin-empty-row">
-                            <td colspan="8">No transactions found.</td>
+                            <td colspan="8">{{ __('No transactions found.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -152,7 +152,7 @@
 
         <div class="admin-pagination">
             <span class="admin-pagination-info">
-                Showing {{ $transactions->count() }} of {{ $transactions->total() }} entries
+                {{ __('Showing :count of :total entries', ['count' => $transactions->count(), 'total' => $transactions->total()]) }}
             </span>
             {{ $transactions->onEachSide(1)->links('admin.partials.pagination') }}
         </div>

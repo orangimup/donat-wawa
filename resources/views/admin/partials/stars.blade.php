@@ -4,7 +4,7 @@
     $points = '12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26';
     $rounded = floor($value * 2) / 2;
 @endphp
-<span class="review-stars" role="img" aria-label="{{ number_format($value, 1) }} out of 5 stars">
+<span class="review-stars" role="img" aria-label="{{ __(':rating out of 5 stars', ['rating' => number_format($value, 1)]) }}">
     @for ($i = 1; $i <= 5; $i++)
         @php
             $fill = $rounded >= $i ? 'full' : ($rounded >= $i - 0.5 ? 'half' : 'empty');

@@ -22,15 +22,15 @@
 
     <div class="admin-page-header">
         <div>
-            <h1>Refund Management</h1>
-            <p>Review and manage customer refund requests.</p>
+            <h1>{{ __('Refund Management') }}</h1>
+            <p>{{ __('Review and manage customer refund requests.') }}</p>
         </div>
     </div>
 
     <div class="refund-stats">
         <div class="refund-stat-card is-featured">
             <div class="refund-stat-head">
-                <h2 class="refund-stat-title">Pending Refunds</h2>
+                <h2 class="refund-stat-title">{{ __('Pending Refunds') }}</h2>
                 <span class="refund-stat-icon" aria-hidden="true">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -43,15 +43,15 @@
                 </span>
             </div>
             <div class="refund-stat-foot">
-                <p class="refund-stat-value">{{ $pendingCount }}<small>request</small></p>
+                <p class="refund-stat-value">{{ $pendingCount }}<small>{{ __('request') }}</small></p>
                 <div class="refund-stat-meta">
                     @if ($waitingBankCount > 0)
                         <span class="refund-stat-badge">{{ $waitingBankCount }}</span>
-                        <span>waiting for bank details</span>
+                        <span>{{ __('waiting for bank details') }}</span>
                     @elseif ($pendingCount > 0)
-                        <span>Needs your action</span>
+                        <span>{{ __('Needs your action') }}</span>
                     @else
-                        <span>All caught up</span>
+                        <span>{{ __('All caught up') }}</span>
                     @endif
                 </div>
             </div>
@@ -59,7 +59,7 @@
 
         <div class="refund-stat-card">
             <div class="refund-stat-head">
-                <h2 class="refund-stat-title">Total Refunded</h2>
+                <h2 class="refund-stat-title">{{ __('Total Refunded') }}</h2>
                 <span class="refund-stat-icon" aria-hidden="true">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -79,15 +79,15 @@
         <div class="admin-toolbar">
             <div class="admin-filter-pills">
                 <a href="{{ route('admin.refund', array_filter(['search' => $search, 'sort' => $sort])) }}"
-                    class="admin-filter-pill {{ $status === 'all' ? 'is-active' : '' }}">All</a>
+                    class="admin-filter-pill {{ $status === 'all' ? 'is-active' : '' }}">{{ __('All') }}</a>
                 @foreach ($statusLabels as $key => $label)
                     <a href="{{ route('admin.refund', array_filter(['status' => $key, 'search' => $search, 'sort' => $sort])) }}"
-                        class="admin-filter-pill {{ $status === $key ? 'is-active' : '' }}">{{ $label }}</a>
+                        class="admin-filter-pill {{ $status === $key ? 'is-active' : '' }}">{{ __($label) }}</a>
                 @endforeach
             </div>
 
             <form method="GET" class="admin-sort" id="sortForm">
-                <label for="sortTrigger">Sort by:</label>
+                <label for="sortTrigger">{{ __('Sort by:') }}</label>
                 <input type="hidden" name="status" value="{{ $status }}">
                 <input type="hidden" name="search" value="{{ $search }}">
                 <input type="hidden" name="sort" id="sortValue" value="{{ $sort }}">
@@ -95,7 +95,7 @@
                 <div class="admin-select" id="sortSelect">
                     <button type="button" class="admin-select-trigger" id="sortTrigger" aria-haspopup="listbox"
                         aria-expanded="false">
-                        <span id="sortTriggerLabel">{{ $sortLabels[$sort] ?? 'Latest' }}</span>
+                        <span id="sortTriggerLabel">{{ __($sortLabels[$sort] ?? 'Latest') }}</span>
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
                             <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                                 stroke-linejoin="round" />
@@ -104,7 +104,7 @@
                     <ul class="admin-select-menu" id="sortMenu" role="listbox">
                         @foreach ($sortLabels as $key => $label)
                             <li role="option" data-value="{{ $key }}"
-                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ $label }}</li>
+                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ __($label) }}</li>
                         @endforeach
                     </ul>
                 </div>
@@ -115,13 +115,13 @@
             <table class="admin-table refund-table">
                 <thead>
                     <tr>
-                        <th>Refund</th>
-                        <th>Customer</th>
-                        <th>Requested</th>
-                        <th class="is-num">Amount</th>
-                        <th>Type</th>
-                        <th>Status</th>
-                        <th class="is-action">Actions</th>
+                        <th>{{ __('Refund') }}</th>
+                        <th>{{ __('Customer') }}</th>
+                        <th>{{ __('Requested') }}</th>
+                        <th class="is-num">{{ __('Amount') }}</th>
+                        <th>{{ __('Type') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th class="is-action">{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -147,23 +147,23 @@
                             <td>
                                 <span class="refund-cell-main">{{ $refund['source'] }}</span>
                                 <span class="refund-payout {{ $refund['is_manual'] ? 'is-manual' : 'is-auto' }}">
-                                    {{ $refund['is_manual'] ? 'Bank transfer' : 'Midtrans' }}
+                                    {{ $refund['is_manual'] ? __('Bank transfer') : 'Midtrans' }}
                                 </span>
                             </td>
                             <td>
                                 <span class="refund-status-pill refund-status-{{ $refund['status'] }}">
-                                    {{ $statusLabels[$refund['status']] }}
+                                    {{ __($statusLabels[$refund['status']]) }}
                                 </span>
                                 @if ($refund['status'] === 'pending' && $refund['needs_bank'])
-                                    <span class="refund-cell-hint is-warn">Waiting for bank details</span>
+                                    <span class="refund-cell-hint is-warn">{{ __('Waiting for bank details') }}</span>
                                 @elseif ($refund['status'] === 'pending' && $refund['error'])
-                                    <span class="refund-cell-hint is-danger">Midtrans failed &middot; retry</span>
+                                    <span class="refund-cell-hint is-danger">{{ __('Midtrans failed · retry') }}</span>
                                 @endif
                             </td>
                             <td class="is-action">
                                 @if ($refund['status'] === 'pending')
                                     <a href="{{ route('admin.refund.show', $refund['id']) }}" class="refund-icon-btn"
-                                        title="Process refund" aria-label="Process refund {{ $refund['code'] }}">
+                                        title="{{ __('Process refund') }}" aria-label="{{ __('Process refund :p1', ['p1' => $refund['code']]) }}">
                                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                             stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M3 12a9 9 0 1 0 3-6.7L3 8"></path>
@@ -174,7 +174,7 @@
                                     </a>
                                 @else
                                     <a href="{{ route('admin.refund.show', $refund['id']) }}" class="refund-icon-btn"
-                                        title="View refund" aria-label="View refund {{ $refund['code'] }}">
+                                        title="{{ __('View refund') }}" aria-label="{{ __('View refund :p1', ['p1' => $refund['code']]) }}">
                                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                             stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"></path>
@@ -186,7 +186,7 @@
                         </tr>
                     @empty
                         <tr class="admin-empty-row">
-                            <td colspan="7">No refund requests found.</td>
+                            <td colspan="7">{{ __('No refund requests found.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -195,7 +195,7 @@
 
         <div class="admin-pagination">
             <span class="admin-pagination-info">
-                Showing {{ $refunds->count() }} of {{ $refunds->total() }} entries
+                {{ __('Showing :count of :total entries', ['count' => $refunds->count(), 'total' => $refunds->total()]) }}
             </span>
             {{ $refunds->onEachSide(1)->links('admin.partials.pagination') }}
         </div>

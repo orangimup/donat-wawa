@@ -14,15 +14,15 @@
 
     <div class="admin-page-header">
         <div>
-            <h1>Dashboard</h1>
-            <p>Overview of your bakery's performance today.</p>
+            <h1>{{ __('Dashboard') }}</h1>
+            <p>{{ __('Overview of your bakery\'s performance today.') }}</p>
         </div>
         <button type="button" class="admin-btn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                 stroke-linecap="round" aria-hidden="true">
                 <path d="M12 5v14M5 12h14"></path>
             </svg>
-            New Order
+            {{ __('New Order') }}
         </button>
     </div>
 
@@ -30,7 +30,7 @@
         @foreach ($stats as $stat)
             <div class="dash-stat-card {{ $stat['featured'] ? 'is-featured' : '' }}">
                 <div class="dash-stat-head">
-                    <h2 class="dash-stat-title">{{ $stat['title'] }}</h2>
+                    <h2 class="dash-stat-title">{{ __($stat['title']) }}</h2>
                     <span class="dash-stat-icon" aria-hidden="true">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
@@ -45,7 +45,7 @@
                     @if ($stat['badge'])
                         <span class="dash-stat-badge">{{ $stat['badge'] }}</span>
                     @endif
-                    <span title="{{ $stat['caption'] }}">{{ $stat['caption'] }}</span>
+                    <span title="{{ __($stat['caption']) }}">{{ __($stat['caption']) }}</span>
                 </div>
             </div>
         @endforeach
@@ -64,13 +64,13 @@
                             <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
                         </svg>
                     </span>
-                    Daily order count
+                    {{ __('Daily order count') }}
                 </h2>
 
-                <div class="dash-range" id="dashRange" role="tablist" aria-label="Chart range">
-                    <button type="button" class="dash-range-btn" data-range="today">Today</button>
-                    <button type="button" class="dash-range-btn" data-range="monthly">Monthly</button>
-                    <button type="button" class="dash-range-btn is-active" data-range="weekly">Weekly</button>
+                <div class="dash-range" id="dashRange" role="tablist" aria-label="{{ __('Chart range') }}">
+                    <button type="button" class="dash-range-btn" data-range="today">{{ __('Today') }}</button>
+                    <button type="button" class="dash-range-btn" data-range="monthly">{{ __('Monthly') }}</button>
+                    <button type="button" class="dash-range-btn is-active" data-range="weekly">{{ __('Weekly') }}</button>
                 </div>
             </div>
 
@@ -93,7 +93,7 @@
                             <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
                             <polyline points="16 7 22 7 22 13"></polyline>
                         </svg>
-                        Revenue Trend
+                        {{ __('Revenue Trend') }}
                     </h2>
                     <span class="dash-trend-badge">{{ $trend['change'] }}</span>
                 </div>
@@ -113,12 +113,12 @@
 
             {{-- Top product --}}
             <div class="dash-card dash-top-card">
-                <h2 class="dash-side-title">Top Product</h2>
+                <h2 class="dash-side-title">{{ __('Top Product') }}</h2>
                 <a href="{{ $topProduct['url'] }}" class="dash-top-item">
                     <img src="{{ $topProduct['image'] }}" alt="{{ $topProduct['name'] }}" class="dash-top-thumb">
                     <div class="dash-top-info">
                         <strong>{{ $topProduct['name'] }}</strong>
-                        <span>{{ number_format($topProduct['sold'], 0, ',', '.') }} sold</span>
+                        <span>{{ __(':count sold', ['count' => number_format($topProduct['sold'], 0, ',', '.')]) }}</span>
                     </div>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -132,21 +132,21 @@
     {{-- Latest orders --}}
     <div class="dash-card dash-orders-card">
         <div class="dash-orders-head">
-            <h2>Latest Orders</h2>
-            <a href="{{ route('admin.orders.index') }}" class="dash-view-all">View All</a>
+            <h2>{{ __('Latest Orders') }}</h2>
+            <a href="{{ route('admin.orders.index') }}" class="dash-view-all">{{ __('View All') }}</a>
         </div>
 
         <div class="admin-table-wrap">
             <table class="admin-table dash-table">
                 <thead>
                     <tr>
-                        <th>No.</th>
-                        <th class="dash-col-id">Order ID</th>
-                        <th>Customer</th>
-                        <th class="dash-col-items">Items</th>
-                        <th>Total Price</th>
-                        <th>Type Delivery</th>
-                        <th>Status</th>
+                        <th>{{ __('No.') }}</th>
+                        <th class="dash-col-id">{{ __('Order ID') }}</th>
+                        <th>{{ __('Customer') }}</th>
+                        <th class="dash-col-items">{{ __('Items') }}</th>
+                        <th>{{ __('Total Price') }}</th>
+                        <th>{{ __('Type Delivery') }}</th>
+                        <th>{{ __('Status') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -157,16 +157,16 @@
                             <td>{{ $order['customer'] }}</td>
                             <td class="dash-col-items"><span class="dash-items">{{ $order['items'] }}</span></td>
                             <td class="dash-nowrap">{{ $formatRupiah($order['total']) }}</td>
-                            <td class="dash-nowrap">{{ $order['delivery'] }}</td>
+                            <td class="dash-nowrap">{{ __($order['delivery']) }}</td>
                             <td>
                                 <span class="dash-status-pill dash-status-{{ $order['status'] }}">
-                                    {{ $statusLabels[$order['status']] }}
+                                    {{ __($statusLabels[$order['status']]) }}
                                 </span>
                             </td>
                         </tr>
                     @empty
                         <tr class="admin-empty-row">
-                            <td colspan="7">No orders yet.</td>
+                            <td colspan="7">{{ __('No orders yet.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -218,7 +218,7 @@
                     const bar = document.createElement('div');
                     bar.className = 'dash-bar' + (index === peak ? ' is-active' : '');
                     bar.style.height = '0%';
-                    bar.title = set.labels[index] + ': ' + value + ' orders';
+                    bar.title = set.labels[index] + ': ' + @json(__(':count orders')).replace(':count', value);
 
                     const tip = document.createElement('span');
                     tip.className = 'dash-bar-tip';

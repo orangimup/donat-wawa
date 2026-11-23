@@ -10,8 +10,8 @@
 
     <div class="admin-page-header">
         <div>
-            <h1>User Management</h1>
-            <p>View and manage customer accounts.</p>
+            <h1>{{ __('User Management') }}</h1>
+            <p>{{ __('View and manage customer accounts.') }}</p>
         </div>
     </div>
 
@@ -23,12 +23,12 @@
                 @endphp
                 @foreach ($tabs as $key => $label)
                     <a href="{{ route('admin.user', array_filter(['status' => $key, 'search' => $search, 'sort' => $sort])) }}"
-                        class="admin-filter-pill {{ $status === $key ? 'is-active' : '' }}">{{ $label }}</a>
+                        class="admin-filter-pill {{ $status === $key ? 'is-active' : '' }}">{{ __($label) }}</a>
                 @endforeach
             </div>
 
             <form method="GET" class="admin-sort" id="sortForm">
-                <label for="sortTrigger">Sort by:</label>
+                <label for="sortTrigger">{{ __('Sort by:') }}</label>
                 <input type="hidden" name="status" value="{{ $status }}">
                 <input type="hidden" name="search" value="{{ $search }}">
                 <input type="hidden" name="sort" id="sortValue" value="{{ $sort }}">
@@ -45,7 +45,7 @@
                 <div class="admin-select" id="sortSelect">
                     <button type="button" class="admin-select-trigger" id="sortTrigger" aria-haspopup="listbox"
                         aria-expanded="false">
-                        <span id="sortTriggerLabel">{{ $sortLabels[$sort] ?? 'Latest' }}</span>
+                        <span id="sortTriggerLabel">{{ __($sortLabels[$sort] ?? 'Latest') }}</span>
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
                             <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                                 stroke-linejoin="round" />
@@ -54,7 +54,7 @@
                     <ul class="admin-select-menu" id="sortMenu" role="listbox">
                         @foreach ($sortLabels as $key => $label)
                             <li role="option" data-value="{{ $key }}"
-                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ $label }}</li>
+                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ __($label) }}</li>
                         @endforeach
                     </ul>
                 </div>
@@ -65,13 +65,13 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>No.</th>
-                        <th>User ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>No. Telp</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('No.') }}</th>
+                        <th>{{ __('User ID') }}</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Email') }}</th>
+                        <th>{{ __('No. Telp') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -97,20 +97,20 @@
                             <td>
                                 <span
                                     class="admin-status-pill {{ $user->status === 'active' ? 'admin-status-active' : 'admin-status-inactive' }}">
-                                    {{ ucfirst($user->status) }}
+                                    {{ __(ucfirst($user->status)) }}
                                 </span>
                             </td>
                             <td>
                                 <div class="admin-table-actions">
                                     <a href="{{ route('admin.user.show', $user) }}" class="admin-icon-btn"
-                                        aria-label="View {{ $user->name }}">
+                                        aria-label="{{ __('View :p1', ['p1' => $user->name]) }}">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
                                     </a>
-                                    <button type="button" class="admin-icon-btn" aria-label="Edit status of {{ $user->name }}"
+                                    <button type="button" class="admin-icon-btn" aria-label="{{ __('Edit status of :p1', ['p1' => $user->name]) }}"
                                         onclick="openUserModal(this)"
                                         data-id="{{ $user->id }}"
                                         data-user-code="{{ $user->user_code }}"
@@ -129,7 +129,7 @@
                         </tr>
                     @empty
                         <tr class="admin-empty-row">
-                            <td colspan="7">No users found.</td>
+                            <td colspan="7">{{ __('No users found.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -138,7 +138,7 @@
 
         <div class="admin-pagination">
             <span class="admin-pagination-info">
-                Showing {{ $users->count() }} of {{ $users->total() }} entries
+                {{ __('Showing :count of :total entries', ['count' => $users->count(), 'total' => $users->total()]) }}
             </span>
             {{ $users->onEachSide(1)->links('admin.partials.pagination') }}
         </div>
@@ -156,9 +156,9 @@
                             <path d="m9 12 2 2 4-4"></path>
                         </svg>
                     </span>
-                    Account Status
+                    {{ __('Account Status') }}
                 </h2>
-                <button type="button" class="admin-modal-close" onclick="closeUserModal()" aria-label="Close">
+                <button type="button" class="admin-modal-close" onclick="closeUserModal()" aria-label="{{ __('Close') }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                         stroke-linecap="round">
                         <path d="M18 6 6 18M6 6l12 12"></path>
@@ -166,18 +166,18 @@
                 </button>
             </div>
 
-            <p class="account-status-modal-desc">Control access to the application for <strong id="userModalName"></strong>.</p>
+            <p class="account-status-modal-desc">{{ __('Control access to the application for') }} <strong id="userModalName"></strong>.</p>
 
             <form id="userForm" method="POST" action="">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="_edit_id" id="userFormEditId" value="{{ old('_edit_id') }}">
 
-                <div class="account-status-toggle" role="tablist" aria-label="Account status">
+                <div class="account-status-toggle" role="tablist" aria-label="{{ __('Account status') }}">
                     <button type="button" class="account-status-option is-active" id="statusOptionActive"
-                        role="tab" aria-selected="true">Active</button>
+                        role="tab" aria-selected="true">{{ __('Active') }}</button>
                     <button type="button" class="account-status-option" id="statusOptionInactive"
-                        role="tab" aria-selected="false">Inactive</button>
+                        role="tab" aria-selected="false">{{ __('Inactive') }}</button>
                 </div>
                 <input type="hidden" name="status" id="status" value="{{ old('status', 'active') }}">
                 @error('status')
@@ -185,9 +185,9 @@
                 @enderror
 
                 <div class="admin-form-group full" id="deactivationReasonGroup">
-                    <label for="deactivation_reason">Reason for Deactivation</label>
+                    <label for="deactivation_reason">{{ __('Reason for Deactivation') }}</label>
                     <textarea name="deactivation_reason" id="deactivation_reason"
-                        placeholder="Enter reason...">{{ old('deactivation_reason') }}</textarea>
+                        placeholder="{{ __('Enter reason...') }}">{{ old('deactivation_reason') }}</textarea>
                     @error('deactivation_reason')
                         <span class="admin-form-error">{{ $message }}</span>
                     @enderror
@@ -195,8 +195,8 @@
 
                 <div class="admin-form-actions account-status-modal-actions">
                     <div class="admin-form-actions-right">
-                        <button type="button" class="admin-btn admin-btn-outline" onclick="closeUserModal()">Cancel</button>
-                        <button type="submit" class="admin-btn">Save Changes</button>
+                        <button type="button" class="admin-btn admin-btn-outline" onclick="closeUserModal()">{{ __('Cancel') }}</button>
+                        <button type="submit" class="admin-btn">{{ __('Save Changes') }}</button>
                     </div>
                 </div>
             </form>

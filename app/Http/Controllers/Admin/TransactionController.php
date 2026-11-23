@@ -95,7 +95,7 @@ class TransactionController extends Controller
             'method' => $trx->metode_pembayaran ?? '-',
             'status' => $trx->status,
             'timestamp' => $at->timestamp,
-            'date_label' => $at->format('d M Y') . ',',
+            'date_label' => $at->translatedFormat('d M Y') . ',',
             'time_label' => $at->format('H:i:s') . ' WIB',
         ];
     }

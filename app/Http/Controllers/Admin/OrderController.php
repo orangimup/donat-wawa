@@ -96,21 +96,21 @@ class OrderController extends Controller
         $current = Order::with('transaction')->findOrFail($order);
 
         if ($current->status !== Order::STATUS_WAITING) {
-            return back()->withErrors(['order' => 'Only orders with Waiting status can be confirmed.']);
+            return back()->withErrors(['order' => __('Only orders with Waiting status can be confirmed.')]);
         }
 
         $validated = $request->validate([
             'action' => ['required', 'in:accept,reject'],
             'rejection_reason' => ['nullable', 'string', 'max:500', 'required_if:action,reject'],
         ], [
-            'action.required' => 'Please choose to accept or reject the order.',
-            'rejection_reason.required_if' => 'Please enter a reason for rejecting the order.',
+            'action.required' => __('Please choose to accept or reject the order.'),
+            'rejection_reason.required_if' => __('Please enter a reason for rejecting the order.'),
         ]);
 
         if ($validated['action'] === 'accept') {
             // Once accepted an order can no longer be rejected, so it must already be paid.
             if (! $current->transaction?->isPaid()) {
-                return back()->withErrors(['order' => 'Payment has not been received for this order yet, so it cannot be accepted.']);
+                return back()->withErrors(['order' => __('Payment has not been received for this order yet, so it cannot be accepted.')]);
             }
 
             $accepted = Order::whereKey($order)
@@ -118,30 +118,30 @@ class OrderController extends Controller
                 ->update(['status' => Order::STATUS_PROCESS, 'rejection_reason' => null, 'confirmed_at' => now()]);
 
             if ($accepted === 0) {
-                return back()->withErrors(['order' => 'This order was already updated. Please refresh the page.']);
+                return back()->withErrors(['order' => __('This order was already updated. Please refresh the page.')]);
             }
 
-            return back()->with('status', "Order {$current->display_code} accepted and moved to Process.");
+            return back()->with('status', __('Order :code accepted and moved to Process.', ['code' => $current->display_code]));
         }
 
         $rejected = $orders->reject($order, $validated['rejection_reason'], [Order::STATUS_WAITING]);
 
         if ($rejected === null) {
-            return back()->withErrors(['order' => 'This order was already updated. Please refresh the page.']);
+            return back()->withErrors(['order' => __('This order was already updated. Please refresh the page.')]);
         }
 
-        $message = "Order {$current->display_code} has been rejected.";
+        $message = __('Order :code has been rejected.', ['code' => $current->display_code]);
 
         // A paid order is refunded automatically; the customer does not have to ask.
         $refund = $refunds->refundRejectedOrder($rejected);
 
         if ($refund !== null) {
             if ($refunds->isManual($refund)) {
-                $message .= ' It was paid by bank transfer, so the customer was asked to provide a bank account. Transfer the refund manually from the Refunds page.';
+                $message .= ' ' . __('It was paid by bank transfer, so the customer was asked to provide a bank account. Transfer the refund manually from the Refunds page.');
             } else {
                 $message .= $refund->status === Refund::STATUS_REFUNDED
-                    ? ' The payment has been refunded to the customer automatically.'
-                    : ' The automatic refund could not be completed. Open Refunds to retry it.';
+                    ? ' ' . __('The payment has been refunded to the customer automatically.')
+                    : ' ' . __('The automatic refund could not be completed. Open Refunds to retry it.');
             }
         }
 
@@ -155,20 +155,20 @@ class OrderController extends Controller
         // The admin only moves an accepted order to "shipped". "Done" is confirmed by the customer.
         if ($current->status !== Order::STATUS_PROCESS) {
             return back()->withErrors(['order' => match ($current->status) {
-                Order::STATUS_SHIPPED => 'This order is on its way. It is completed when the customer confirms they received it.',
-                Order::STATUS_DONE => 'This order has already been completed by the customer.',
-                default => 'This order must be accepted before its status can be updated.',
+                Order::STATUS_SHIPPED => __('This order is on its way. It is completed when the customer confirms they received it.'),
+                Order::STATUS_DONE => __('This order has already been completed by the customer.'),
+                default => __('This order must be accepted before its status can be updated.'),
             }]);
         }
 
         $validated = $request->validate([
             'status' => ['required', 'in:' . implode(',', Order::ADMIN_FLOW)],
         ], [
-            'status.required' => 'Please select a new status.',
+            'status.required' => __('Please select a new status.'),
         ]);
 
         if ($validated['status'] === Order::STATUS_PROCESS) {
-            return back()->with('status', "Order {$current->display_code} is still in process.");
+            return back()->with('status', __('Order :code is still in process.', ['code' => $current->display_code]));
         }
 
         $current->update([
@@ -178,7 +178,7 @@ class OrderController extends Controller
 
         $label = self::STATUS_LABELS[$validated['status']];
 
-        return back()->with('status', "Order {$current->display_code} status updated to {$label}.");
+        return back()->with('status', __('Order :code status updated to :status.', ['code' => $current->display_code, 'status' => __($label)]));
     }
 
     private function presentDetail(Order $order): array
@@ -190,13 +190,13 @@ class OrderController extends Controller
             'id' => $order->id,
             'code' => $order->display_code,
             'status' => $order->status,
-            'placed_label' => $order->placed_at?->format('d F Y, H:i') . ' WIB',
+            'placed_label' => $order->placed_at?->translatedFormat('d F Y, H:i') . ' WIB',
             'customer' => $order->customer_name,
             'email' => $order->customer_email,
             'phone' => $order->customer_phone,
             'address' => $order->address,
             'delivery' => $order->delivery_label,
-            'delivery_date' => $order->delivery_date?->format('d F Y'),
+            'delivery_date' => $order->delivery_date?->translatedFormat('d F Y'),
             'delivery_slot' => $order->delivery_slot,
             'items' => $order->items->map(fn ($line) => [
                 'name' => $line->name,
@@ -215,7 +215,7 @@ class OrderController extends Controller
                 'method' => $transaction?->metode_pembayaran ?? '-',
                 'midtrans_id' => $transaction?->id_transaksi_midtrans,
                 'paid_label' => $transaction?->waktu_bayar
-                    ? $transaction->waktu_bayar->copy()->timezone(Order::TIMEZONE)->format('d F Y, H:i') . ' WIB'
+                    ? $transaction->waktu_bayar->copy()->timezone(Order::TIMEZONE)->translatedFormat('d F Y, H:i') . ' WIB'
                     : null,
             ],
             'refund' => $refund ? [

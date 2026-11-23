@@ -85,11 +85,11 @@ class ReviewController extends Controller
         $current = Review::with(['user', 'orderItem', 'menuItem'])->findOrFail($review);
 
         $reviewer = $current->user?->name ?? 'a customer';
-        $product = $current->orderItem?->name ?? $current->menuItem?->name ?? 'a product';
+        $product = $current->orderItem?->name ?? $current->menuItem?->name ?? __('a product');
 
         $current->delete();
 
-        return back()->with('status', "Review by {$reviewer} for {$product} has been deleted.");
+        return back()->with('status', __('Review by :reviewer for :product has been deleted.', ['reviewer' => $reviewer, 'product' => $product]));
     }
 
     private function present(Review $review): array
@@ -109,7 +109,7 @@ class ReviewController extends Controller
             'rating' => $review->rating,
             'text' => $review->comment ?? '—',
             'timestamp' => $reviewedAt?->timestamp ?? 0,
-            'date_label' => $reviewedAt?->format('d F Y') ?? '-',
+            'date_label' => $reviewedAt?->translatedFormat('d F Y') ?? '-',
             'order_code' => $review->order?->display_code ?? '-',
         ];
     }

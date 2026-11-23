@@ -35,15 +35,15 @@
 
     <div class="admin-page-header">
         <div>
-            <h1>Review Management</h1>
-            <p>Monitor customer feedback and maintain the quality of the Donat Wawa experience.</p>
+            <h1>{{ __('Review Management') }}</h1>
+            <p>{{ __('Monitor customer feedback and maintain the quality of the Donat Wawa experience.') }}</p>
         </div>
     </div>
 
     <div class="review-stats">
         <div class="review-stat-card is-featured">
             <div class="review-stat-head">
-                <h2 class="review-stat-title">Total Reviews</h2>
+                <h2 class="review-stat-title">{{ __('Total Reviews') }}</h2>
                 <span class="review-stat-icon" aria-hidden="true">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -57,14 +57,14 @@
                 <p class="review-stat-value">{{ $totalReviews }}</p>
                 <div class="review-stat-meta">
                     <span class="review-stat-badge">+12%</span>
-                    <span>this month</span>
+                    <span>{{ __('this month') }}</span>
                 </div>
             </div>
         </div>
 
         <div class="review-stat-card">
             <div class="review-stat-head">
-                <h2 class="review-stat-title">Average Ratings</h2>
+                <h2 class="review-stat-title">{{ __('Average Ratings') }}</h2>
                 <span class="review-stat-icon" aria-hidden="true">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"
                         stroke-width="1.5" stroke-linejoin="round">
@@ -85,15 +85,15 @@
         <div class="admin-toolbar">
             <div class="admin-filter-pills">
                 <a href="{{ route('admin.review', array_filter(['search' => $search, 'sort' => $sort])) }}"
-                    class="admin-filter-pill {{ $rating === 'all' ? 'is-active' : '' }}">All</a>
+                    class="admin-filter-pill {{ $rating === 'all' ? 'is-active' : '' }}">{{ __('All') }}</a>
                 @foreach ($ratingTabs as $key => $label)
                     <a href="{{ route('admin.review', array_filter(['rating' => $key, 'search' => $search, 'sort' => $sort])) }}"
-                        class="admin-filter-pill {{ $rating === (string) $key ? 'is-active' : '' }}">{{ $label }}</a>
+                        class="admin-filter-pill {{ $rating === (string) $key ? 'is-active' : '' }}">{{ __($label) }}</a>
                 @endforeach
             </div>
 
             <form method="GET" class="admin-sort" id="sortForm">
-                <label for="sortTrigger">Sort by:</label>
+                <label for="sortTrigger">{{ __('Sort by:') }}</label>
                 <input type="hidden" name="rating" value="{{ $rating }}">
                 <input type="hidden" name="search" value="{{ $search }}">
                 <input type="hidden" name="sort" id="sortValue" value="{{ $sort }}">
@@ -101,7 +101,7 @@
                 <div class="admin-select" id="sortSelect">
                     <button type="button" class="admin-select-trigger" id="sortTrigger" aria-haspopup="listbox"
                         aria-expanded="false">
-                        <span id="sortTriggerLabel">{{ $sortLabels[$sort] ?? 'Latest' }}</span>
+                        <span id="sortTriggerLabel">{{ __($sortLabels[$sort] ?? 'Latest') }}</span>
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
                             <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                                 stroke-linejoin="round" />
@@ -110,7 +110,7 @@
                     <ul class="admin-select-menu" id="sortMenu" role="listbox">
                         @foreach ($sortLabels as $key => $label)
                             <li role="option" data-value="{{ $key }}"
-                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ $label }}</li>
+                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ __($label) }}</li>
                         @endforeach
                     </ul>
                 </div>
@@ -121,12 +121,12 @@
             <table class="admin-table review-table">
                 <thead>
                     <tr>
-                        <th>No.</th>
-                        <th class="review-col-product">Product</th>
-                        <th>Review</th>
-                        <th class="review-col-rating">Rating</th>
-                        <th>Date</th>
-                        <th>Actions</th>
+                        <th>{{ __('No.') }}</th>
+                        <th class="review-col-product">{{ __('Product') }}</th>
+                        <th>{{ __('Review') }}</th>
+                        <th class="review-col-rating">{{ __('Rating') }}</th>
+                        <th>{{ __('Date') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,7 +142,7 @@
                             <td>
                                 <div class="admin-table-actions">
                                     <button type="button" class="admin-icon-btn"
-                                        aria-label="View review by {{ $review['reviewer'] }}"
+                                        aria-label="{{ __('View review by :p1', ['p1' => $review['reviewer']]) }}"
                                         onclick="openReviewModal(this)"
                                         data-reviewer="{{ $review['reviewer'] }}"
                                         data-email="{{ $review['email'] }}"
@@ -167,7 +167,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="admin-icon-btn admin-icon-btn-danger"
-                                            aria-label="Delete review by {{ $review['reviewer'] }}"
+                                            aria-label="{{ __('Delete review by :p1', ['p1' => $review['reviewer']]) }}"
                                             onclick="openDeleteModal(this.closest('form'))">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -184,7 +184,7 @@
                         </tr>
                     @empty
                         <tr class="admin-empty-row">
-                            <td colspan="6">No reviews found.</td>
+                            <td colspan="6">{{ __('No reviews found.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -193,7 +193,7 @@
 
         <div class="admin-pagination">
             <span class="admin-pagination-info">
-                Showing {{ $reviews->count() }} of {{ $reviews->total() }} entries
+                {{ __('Showing :count of :total entries', ['count' => $reviews->count(), 'total' => $reviews->total()]) }}
             </span>
             {{ $reviews->onEachSide(1)->links('admin.partials.pagination') }}
         </div>
@@ -203,8 +203,8 @@
     <div class="admin-modal-overlay admin-modal-overlay-center review-modal-overlay" id="reviewModalOverlay">
         <div class="admin-modal review-modal" role="dialog" aria-modal="true" aria-labelledby="reviewModalTitle">
             <div class="review-modal-head">
-                <h2 id="reviewModalTitle">Review Detail</h2>
-                <button type="button" class="admin-modal-close" onclick="closeReviewModal()" aria-label="Close">
+                <h2 id="reviewModalTitle">{{ __('Review Detail') }}</h2>
+                <button type="button" class="admin-modal-close" onclick="closeReviewModal()" aria-label="{{ __('Close') }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.2" stroke-linecap="round">
                         <path d="M18 6 6 18M6 6l12 12"></path>
@@ -220,7 +220,7 @@
                         <span class="review-user-email" id="reviewEmail"></span>
                     </div>
                     <div class="review-since">
-                        <span>Member since</span>
+                        <span>{{ __('Member since') }}</span>
                         <strong id="reviewSince"></strong>
                     </div>
                 </div>
@@ -247,7 +247,7 @@
                             <rect x="3" y="4" width="18" height="18" rx="2"></rect>
                             <path d="M16 2v4M8 2v4M3 10h18"></path>
                         </svg>
-                        Reviewed on <span id="reviewDate"></span>
+                        {{ __('Reviewed on') }} <span id="reviewDate"></span>
                     </span>
                     <span>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -262,7 +262,7 @@
             </div>
 
             <div class="review-modal-footer">
-                <button type="button" class="admin-btn" onclick="closeReviewModal()">Close</button>
+                <button type="button" class="admin-btn" onclick="closeReviewModal()">{{ __('Close') }}</button>
             </div>
         </div>
     </div>
@@ -272,10 +272,10 @@
         <div class="admin-modal admin-modal-sm">
             <div class="admin-modal-head">
                 <div>
-                    <h2>Delete Review?</h2>
-                    <p class="admin-modal-subtitle" id="deleteModalText">Are you sure you want to delete this review?</p>
+                    <h2>{{ __('Delete Review?') }}</h2>
+                    <p class="admin-modal-subtitle" id="deleteModalText">{{ __('Are you sure you want to delete this review?') }}</p>
                 </div>
-                <button type="button" class="admin-modal-close" onclick="closeDeleteModal()" aria-label="Close">
+                <button type="button" class="admin-modal-close" onclick="closeDeleteModal()" aria-label="{{ __('Close') }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.2" stroke-linecap="round">
                         <path d="M18 6 6 18M6 6l12 12"></path>
@@ -286,8 +286,8 @@
             <div class="admin-form-actions">
                 <div class="admin-form-actions-right">
                     <button type="button" class="admin-btn admin-btn-outline"
-                        onclick="closeDeleteModal()">Cancel</button>
-                    <button type="button" class="admin-btn admin-btn-danger" id="deleteConfirmBtn">Delete Review</button>
+                        onclick="closeDeleteModal()">{{ __('Cancel') }}</button>
+                    <button type="button" class="admin-btn admin-btn-danger" id="deleteConfirmBtn">{{ __('Delete Review') }}</button>
                 </div>
             </div>
         </div>
@@ -346,7 +346,7 @@
 
             function renderStars(rating) {
                 const wrap = document.getElementById('reviewStars');
-                wrap.setAttribute('aria-label', rating + ' out of 5 stars');
+                wrap.setAttribute('aria-label', @json(__(':rating out of 5 stars')).replace(':rating', rating));
                 wrap.innerHTML = '';
 
                 for (let i = 1; i <= 5; i++) {
@@ -416,7 +416,7 @@
 
             window.openDeleteModal = function (form) {
                 activeForm = form;
-                text.textContent = 'Are you sure you want to delete ' + form.dataset.name + '? This action cannot be undone.';
+                text.textContent = @json(__('Are you sure you want to delete :name? This action cannot be undone.')).replace(':name', form.dataset.name);
                 overlay.classList.add('open');
                 document.body.style.overflow = 'hidden';
             };

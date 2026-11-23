@@ -50,7 +50,7 @@
                         {!! $icons[$item['icon']] !!}
                     </svg>
                 @endif
-                <span>{{ $item['label'] }}</span>
+                <span>{{ __($item['label']) }}</span>
             </a>
         @endforeach
     </nav>
@@ -61,7 +61,7 @@
             <svg class="admin-nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 {!! $icons['logout'] !!}
             </svg>
-            <span>Logout</span>
+            <span>{{ __('Logout') }}</span>
         </button>
     </form>
 </aside>

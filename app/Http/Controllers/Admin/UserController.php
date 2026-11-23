@@ -64,8 +64,8 @@ class UserController extends Controller
             'status' => ['required', 'in:active,inactive'],
             'deactivation_reason' => ['nullable', 'string', 'max:1000', 'required_if:status,inactive'],
         ], [
-            'status.required' => 'Status wajib dipilih.',
-            'deactivation_reason.required_if' => 'Mohon isi alasan penonaktifan akun.',
+            'status.required' => __('Status wajib dipilih.'),
+            'deactivation_reason.required_if' => __('Mohon isi alasan penonaktifan akun.'),
         ]);
 
         $user->update([
@@ -77,6 +77,6 @@ class UserController extends Controller
 
         return redirect()
             ->route('admin.user')
-            ->with('status', 'Status akun berhasil diperbarui.');
+            ->with('status', __('Status akun berhasil diperbarui.'));
     }
 }

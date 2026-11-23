@@ -61,7 +61,7 @@ class MenuItemController extends Controller
 
         return redirect()
             ->route('admin.menu-items.index')
-            ->with('status', 'Produk berhasil ditambahkan.');
+            ->with('status', __('Produk berhasil ditambahkan.'));
     }
 
     public function update(Request $request, MenuItem $menuItem): RedirectResponse
@@ -82,7 +82,7 @@ class MenuItemController extends Controller
 
         return redirect()
             ->route('admin.menu-items.index')
-            ->with('status', 'Produk berhasil diperbarui.');
+            ->with('status', __('Produk berhasil diperbarui.'));
     }
 
     public function destroy(MenuItem $menuItem): RedirectResponse
@@ -95,7 +95,7 @@ class MenuItemController extends Controller
 
         return redirect()
             ->route('admin.menu-items.index')
-            ->with('status', 'Produk berhasil dihapus.');
+            ->with('status', __('Produk berhasil dihapus.'));
     }
 
     private function validated(Request $request, ?MenuItem $menuItem = null): array
@@ -114,12 +114,12 @@ class MenuItemController extends Controller
             'status' => ['required', 'in:active,inactive'],
             'image' => ['nullable', 'image', 'max:2048'],
         ], [
-            'name.required' => 'Nama produk wajib diisi.',
-            'category.required' => 'Kategori wajib dipilih.',
-            'price.required' => 'Harga wajib diisi.',
-            'stock.required' => 'Stok wajib diisi.',
-            'image.image' => 'File harus berupa gambar.',
-            'image.max' => 'Ukuran gambar maksimal 2MB.',
+            'name.required' => __('Nama produk wajib diisi.'),
+            'category.required' => __('Kategori wajib dipilih.'),
+            'price.required' => __('Harga wajib diisi.'),
+            'stock.required' => __('Stok wajib diisi.'),
+            'image.image' => __('File harus berupa gambar.'),
+            'image.max' => __('Ukuran gambar maksimal 2MB.'),
         ]);
     }
 }

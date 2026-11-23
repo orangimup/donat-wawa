@@ -23,16 +23,15 @@
 
     <div class="admin-page-header">
         <div>
-            <h1>Delivery Zone Management</h1>
-            <p>Manage delivery coverage areas and delivery fee to ensure customers get accurate information during
-                checkout.</p>
+            <h1>{{ __('Delivery Zone Management') }}</h1>
+            <p>{{ __('Manage delivery coverage areas and delivery fee to ensure customers get accurate information during checkout.') }}</p>
         </div>
         <button type="button" class="admin-btn" onclick="openZoneModal('add')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                 stroke-linecap="round" aria-hidden="true">
                 <path d="M12 5v14M5 12h14"></path>
             </svg>
-            New Delivery Fee
+            {{ __('New Delivery Fee') }}
         </button>
     </div>
 
@@ -40,15 +39,15 @@
         <div class="admin-toolbar">
             <div class="admin-filter-pills">
                 <a href="{{ route('admin.delivery-zone', array_filter(['search' => $search, 'sort' => $sort])) }}"
-                    class="admin-filter-pill {{ $status === 'all' ? 'is-active' : '' }}">All</a>
+                    class="admin-filter-pill {{ $status === 'all' ? 'is-active' : '' }}">{{ __('All') }}</a>
                 @foreach ($statusLabels as $key => $label)
                     <a href="{{ route('admin.delivery-zone', array_filter(['status' => $key, 'search' => $search, 'sort' => $sort])) }}"
-                        class="admin-filter-pill {{ $status === $key ? 'is-active' : '' }}">{{ $label }}</a>
+                        class="admin-filter-pill {{ $status === $key ? 'is-active' : '' }}">{{ __($label) }}</a>
                 @endforeach
             </div>
 
             <form method="GET" class="admin-sort" id="sortForm">
-                <label for="sortTrigger">Sort by:</label>
+                <label for="sortTrigger">{{ __('Sort by:') }}</label>
                 <input type="hidden" name="status" value="{{ $status }}">
                 <input type="hidden" name="search" value="{{ $search }}">
                 <input type="hidden" name="sort" id="sortValue" value="{{ $sort }}">
@@ -56,7 +55,7 @@
                 <div class="admin-select" id="sortSelect">
                     <button type="button" class="admin-select-trigger" id="sortTrigger" aria-haspopup="listbox"
                         aria-expanded="false">
-                        <span id="sortTriggerLabel">{{ $sortLabels[$sort] ?? 'Distance' }}</span>
+                        <span id="sortTriggerLabel">{{ __($sortLabels[$sort] ?? 'Distance') }}</span>
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
                             <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                                 stroke-linejoin="round" />
@@ -65,7 +64,7 @@
                     <ul class="admin-select-menu" id="sortMenu" role="listbox">
                         @foreach ($sortLabels as $key => $label)
                             <li role="option" data-value="{{ $key }}"
-                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ $label }}</li>
+                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ __($label) }}</li>
                         @endforeach
                     </ul>
                 </div>
@@ -76,11 +75,11 @@
             <table class="admin-table zone-table">
                 <thead>
                     <tr>
-                        <th>No.</th>
-                        <th class="zone-col-range">Distance Range (KM)</th>
-                        <th>Delivery Fee</th>
-                        <th class="zone-col-status">Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('No.') }}</th>
+                        <th class="zone-col-range">{{ __('Distance Range (KM)') }}</th>
+                        <th>{{ __('Delivery Fee') }}</th>
+                        <th class="zone-col-status">{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -91,13 +90,13 @@
                             <td class="zone-nowrap">{{ $formatRupiah($zone['fee']) }}</td>
                             <td class="zone-col-status">
                                 <span class="zone-status-pill zone-status-{{ $zone['status'] }}">
-                                    {{ $statusLabels[$zone['status']] }}
+                                    {{ __($statusLabels[$zone['status']]) }}
                                 </span>
                             </td>
                             <td>
                                 <div class="admin-table-actions">
                                     <button type="button" class="admin-icon-btn"
-                                        aria-label="Edit zone {{ $zone['label'] }}"
+                                        aria-label="{{ __('Edit zone :p1', ['p1' => $zone['label']]) }}"
                                         onclick="openZoneModal('edit', this)"
                                         data-zone-id="{{ $zone['id'] }}"
                                         data-range="{{ $zone['label'] }}"
@@ -116,7 +115,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="admin-icon-btn admin-icon-btn-danger"
-                                            aria-label="Delete zone {{ $zone['label'] }}"
+                                            aria-label="{{ __('Delete zone :p1', ['p1' => $zone['label']]) }}"
                                             onclick="openDeleteModal(this.closest('form'))">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -133,7 +132,7 @@
                         </tr>
                     @empty
                         <tr class="admin-empty-row">
-                            <td colspan="5">No delivery zones found.</td>
+                            <td colspan="5">{{ __('No delivery zones found.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -142,7 +141,7 @@
 
         <div class="admin-pagination">
             <span class="admin-pagination-info">
-                Showing {{ $zones->count() }} of {{ $zones->total() }} entries
+                {{ __('Showing :count of :total entries', ['count' => $zones->count(), 'total' => $zones->total()]) }}
             </span>
             {{ $zones->onEachSide(1)->links('admin.partials.pagination') }}
         </div>
@@ -152,8 +151,8 @@
     <div class="admin-modal-overlay admin-modal-overlay-center zone-modal-overlay" id="zoneModalOverlay">
         <div class="admin-modal zone-modal" role="dialog" aria-modal="true" aria-labelledby="zoneModalTitle">
             <div class="zone-modal-head">
-                <h2 id="zoneModalTitle">Add Delivery Zone</h2>
-                <button type="button" class="admin-modal-close" onclick="closeZoneModal()" aria-label="Close">
+                <h2 id="zoneModalTitle">{{ __(@json(__('Add Delivery Zone'))) }}</h2>
+                <button type="button" class="admin-modal-close" onclick="closeZoneModal()" aria-label="{{ __('Close') }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.2" stroke-linecap="round">
                         <path d="M18 6 6 18M6 6l12 12"></path>
@@ -170,16 +169,16 @@
 
                 <div class="zone-modal-body">
                     <div class="zone-field">
-                        <label for="distance_range">Distance Range (KM)</label>
+                        <label for="distance_range">{{ __('Distance Range (KM)') }}</label>
                         <div class="zone-input {{ $errors->has('distance_range') ? 'has-error' : '' }}" id="rangeBox">
                             <input type="text" name="distance_range" id="distance_range" maxlength="30"
-                                placeholder="Example: 0 - 2 km" value="{{ old('distance_range') }}" autocomplete="off">
+                                placeholder="{{ __('Example: 0 - 2 km') }}" value="{{ old('distance_range') }}" autocomplete="off">
                         </div>
                         <span class="zone-error" id="rangeError">@error('distance_range'){{ $message }}@enderror</span>
                     </div>
 
                     <div class="zone-field">
-                        <label for="fee">Delivery Fee</label>
+                        <label for="fee">{{ __('Delivery Fee') }}</label>
                         <div class="zone-input {{ $errors->has('fee') ? 'has-error' : '' }}" id="feeBox">
                             <span>Rp</span>
                             <input type="number" name="fee" id="fee" min="0" step="500" placeholder="0"
@@ -192,13 +191,13 @@
                         <button type="button" class="admin-toggle-switch {{ $oldActive ? 'is-on' : '' }}"
                             id="zoneToggle" role="switch" aria-checked="{{ $oldActive ? 'true' : 'false' }}"
                             aria-labelledby="zoneToggleLabel"></button>
-                        <span id="zoneToggleLabel">Active</span>
+                        <span id="zoneToggleLabel">{{ __('Active') }}</span>
                     </div>
                 </div>
 
                 <div class="zone-modal-footer">
-                    <button type="button" class="admin-btn admin-btn-ghost" onclick="closeZoneModal()">Cancel</button>
-                    <button type="submit" class="admin-btn" id="zoneSubmit">Save</button>
+                    <button type="button" class="admin-btn admin-btn-ghost" onclick="closeZoneModal()">{{ __('Cancel') }}</button>
+                    <button type="submit" class="admin-btn" id="zoneSubmit">{{ __('Save') }}</button>
                 </div>
             </form>
         </div>
@@ -209,10 +208,10 @@
         <div class="admin-modal admin-modal-sm">
             <div class="admin-modal-head">
                 <div>
-                    <h2>Delete Zone?</h2>
-                    <p class="admin-modal-subtitle" id="deleteModalText">Are you sure you want to delete this zone?</p>
+                    <h2>{{ __('Delete Zone?') }}</h2>
+                    <p class="admin-modal-subtitle" id="deleteModalText">{{ __('Are you sure you want to delete this zone?') }}</p>
                 </div>
-                <button type="button" class="admin-modal-close" onclick="closeDeleteModal()" aria-label="Close">
+                <button type="button" class="admin-modal-close" onclick="closeDeleteModal()" aria-label="{{ __('Close') }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.2" stroke-linecap="round">
                         <path d="M18 6 6 18M6 6l12 12"></path>
@@ -223,8 +222,8 @@
             <div class="admin-form-actions">
                 <div class="admin-form-actions-right">
                     <button type="button" class="admin-btn admin-btn-outline"
-                        onclick="closeDeleteModal()">Cancel</button>
-                    <button type="button" class="admin-btn admin-btn-danger" id="deleteConfirmBtn">Delete Zone</button>
+                        onclick="closeDeleteModal()">{{ __('Cancel') }}</button>
+                    <button type="button" class="admin-btn admin-btn-danger" id="deleteConfirmBtn">{{ __('Delete Zone') }}</button>
                 </div>
             </div>
         </div>
@@ -326,8 +325,8 @@
                     methodField.value = 'PUT';
                     methodField.disabled = false;
                     idField.value = btn.dataset.zoneId;
-                    title.textContent = 'Edit Delivery Zone';
-                    submitBtn.textContent = 'Update';
+                    title.textContent = @json(__('Edit Delivery Zone'));
+                    submitBtn.textContent = @json(__('Update'));
 
                     if (!keepValues) {
                         rangeInput.value = btn.dataset.range;
@@ -338,8 +337,8 @@
                     form.action = STORE_URL;
                     methodField.disabled = true;
                     idField.value = '';
-                    title.textContent = 'Add Delivery Zone';
-                    submitBtn.textContent = 'Save';
+                    title.textContent = @json(__('Add Delivery Zone'));
+                    submitBtn.textContent = @json(__('Save'));
 
                     if (!keepValues) {
                         rangeInput.value = '';
@@ -388,14 +387,14 @@
 
                 if (!RANGE_PATTERN.test(rangeInput.value)) {
                     rangeError.textContent = rangeInput.value.trim() === ''
-                        ? 'Please enter the distance range.'
-                        : 'Enter the range like "0 - 2 km".';
+                        ? @json(__('Please enter the distance range.'))
+                        : @json(__('Enter the range like "0 - 2 km".'));
                     rangeBox.classList.add('has-error');
                     valid = false;
                 }
 
                 if (feeInput.value === '' || Number(feeInput.value) < 0) {
-                    feeError.textContent = 'Please enter the delivery fee.';
+                    feeError.textContent = @json(__('Please enter the delivery fee.'));
                     feeBox.classList.add('has-error');
                     valid = false;
                 }
@@ -427,7 +426,7 @@
 
             window.openDeleteModal = function (form) {
                 activeForm = form;
-                text.textContent = 'Are you sure you want to delete ' + form.dataset.name + '? This action cannot be undone.';
+                text.textContent = @json(__('Are you sure you want to delete :name? This action cannot be undone.')).replace(':name', form.dataset.name);
                 overlay.classList.add('open');
                 document.body.style.overflow = 'hidden';
             };

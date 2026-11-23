@@ -22,8 +22,8 @@
 
     <div class="admin-page-header">
         <div>
-            <h1>Order Management</h1>
-            <p>Review and manage customer orders in real-time.</p>
+            <h1>{{ __('Order Management') }}</h1>
+            <p>{{ __('Review and manage customer orders in real-time.') }}</p>
         </div>
     </div>
 
@@ -31,15 +31,15 @@
         <div class="admin-toolbar">
             <div class="admin-filter-pills">
                 <a href="{{ route('admin.orders.index', array_filter(['search' => $search, 'sort' => $sort])) }}"
-                    class="admin-filter-pill {{ $status === 'all' ? 'is-active' : '' }}">All</a>
+                    class="admin-filter-pill {{ $status === 'all' ? 'is-active' : '' }}">{{ __('All') }}</a>
                 @foreach ($statusLabels as $key => $label)
                     <a href="{{ route('admin.orders.index', array_filter(['status' => $key, 'search' => $search, 'sort' => $sort])) }}"
-                        class="admin-filter-pill {{ $status === $key ? 'is-active' : '' }}">{{ $label }}</a>
+                        class="admin-filter-pill {{ $status === $key ? 'is-active' : '' }}">{{ __($label) }}</a>
                 @endforeach
             </div>
 
             <form method="GET" class="admin-sort" id="sortForm">
-                <label for="sortTrigger">Sort by:</label>
+                <label for="sortTrigger">{{ __('Sort by:') }}</label>
                 <input type="hidden" name="status" value="{{ $status }}">
                 <input type="hidden" name="search" value="{{ $search }}">
                 <input type="hidden" name="sort" id="sortValue" value="{{ $sort }}">
@@ -47,7 +47,7 @@
                 <div class="admin-select" id="sortSelect">
                     <button type="button" class="admin-select-trigger" id="sortTrigger" aria-haspopup="listbox"
                         aria-expanded="false">
-                        <span id="sortTriggerLabel">{{ $sortLabels[$sort] ?? 'Latest' }}</span>
+                        <span id="sortTriggerLabel">{{ __($sortLabels[$sort] ?? 'Latest') }}</span>
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
                             <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                                 stroke-linejoin="round" />
@@ -56,7 +56,7 @@
                     <ul class="admin-select-menu" id="sortMenu" role="listbox">
                         @foreach ($sortLabels as $key => $label)
                             <li role="option" data-value="{{ $key }}"
-                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ $label }}</li>
+                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ __($label) }}</li>
                         @endforeach
                     </ul>
                 </div>
@@ -67,14 +67,14 @@
             <table class="admin-table order-table">
                 <thead>
                     <tr>
-                        <th>No.</th>
-                        <th class="order-col-id">Order ID</th>
-                        <th>Customer</th>
-                        <th class="order-col-items">Items</th>
-                        <th>Total Price</th>
-                        <th>Type Delivery</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('No.') }}</th>
+                        <th class="order-col-id">{{ __('Order ID') }}</th>
+                        <th>{{ __('Customer') }}</th>
+                        <th class="order-col-items">{{ __('Items') }}</th>
+                        <th>{{ __('Total Price') }}</th>
+                        <th>{{ __('Type Delivery') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,16 +85,16 @@
                             <td>{{ $order['customer'] }}</td>
                             <td class="order-col-items"><span class="order-items">{{ $order['items_label'] }}</span></td>
                             <td class="order-total">{{ $formatRupiah($order['total']) }}</td>
-                            <td class="order-delivery">{{ $order['delivery'] }}</td>
+                            <td class="order-delivery">{{ __($order['delivery']) }}</td>
                             <td>
                                 <span class="order-status-pill order-status-{{ $order['status'] }}">
-                                    {{ $statusLabels[$order['status']] }}
+                                    {{ __($statusLabels[$order['status']]) }}
                                 </span>
                             </td>
                             <td>
                                 <div class="admin-table-actions">
                                     <a href="{{ route('admin.orders.show', $order['id']) }}" class="admin-icon-btn"
-                                        aria-label="View order {{ $order['code'] }}" title="View details">
+                                        aria-label="{{ __('View order :p1', ['p1' => $order['code']]) }}" title="{{ __('View details') }}">
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                             <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path>
@@ -102,12 +102,12 @@
                                         </svg>
                                     </a>
                                     <button type="button" class="admin-icon-btn"
-                                        aria-label="Manage order {{ $order['code'] }}"
+                                        aria-label="{{ __('Manage order :p1', ['p1' => $order['code']]) }}"
                                         @if (in_array($order['status'], ['rejected', 'shipped', 'done'], true))
                                             disabled title="{{ match ($order['status']) {
-                                                'rejected' => 'Rejected orders cannot be changed',
-                                                'shipped' => 'On its way: completed when the customer confirms receipt',
-                                                default => 'Completed by the customer',
+                                                'rejected' => __('Rejected orders cannot be changed'),
+                                                'shipped' => __('On its way: completed when the customer confirms receipt'),
+                                                default => __('Completed by the customer'),
                                             } }}"
                                         @else
                                             onclick="openOrderPopup(this)"
@@ -115,7 +115,7 @@
                                         data-order-id="{{ $order['id'] }}"
                                         data-code="{{ $order['code'] }}"
                                         data-customer="{{ $order['customer'] }}"
-                                        data-delivery="{{ $order['delivery'] }}"
+                                        data-delivery="{{ __($order['delivery']) }}"
                                         data-total="{{ $formatRupiah($order['total']) }}"
                                         data-items="{{ $order['items_popup'] }}"
                                         data-status="{{ $order['status'] }}"
@@ -134,7 +134,7 @@
                         </tr>
                     @empty
                         <tr class="admin-empty-row">
-                            <td colspan="8">No orders found.</td>
+                            <td colspan="8">{{ __('No orders found.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -143,7 +143,7 @@
 
         <div class="admin-pagination">
             <span class="admin-pagination-info">
-                Showing {{ $orders->count() }} of {{ $orders->total() }} entries
+                {{ __('Showing :count of :total entries', ['count' => $orders->count(), 'total' => $orders->total()]) }}
             </span>
             {{ $orders->onEachSide(1)->links('admin.partials.pagination') }}
         </div>
@@ -154,8 +154,8 @@
         <div class="admin-modal order-modal order-modal-confirm" role="dialog" aria-modal="true"
             aria-labelledby="orderConfirmTitle">
             <div class="order-modal-head">
-                <h2 id="orderConfirmTitle">Order Confirmation</h2>
-                <button type="button" class="admin-modal-close" onclick="closeOrderPopups()" aria-label="Close">
+                <h2 id="orderConfirmTitle">{{ __('Order Confirmation') }}</h2>
+                <button type="button" class="admin-modal-close" onclick="closeOrderPopups()" aria-label="{{ __('Close') }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.2" stroke-linecap="round">
                         <path d="M18 6 6 18M6 6l12 12"></path>
@@ -177,35 +177,35 @@
                             <path d="M12 8v4M12 16h.01"></path>
                         </svg>
                         <div>
-                            <strong>Accept this order now?</strong>
-                            <span>The order status will automatically change to <em>"Process"</em></span>
+                            <strong>{{ __('Accept this order now?') }}</strong>
+                            <span>{{ __('The order status will automatically change to') }} <em>{{ __('"Process"') }}</em></span>
                         </div>
                     </div>
 
                     <div class="order-summary">
                         <div class="order-summary-row">
                             <div>
-                                <span class="order-summary-label">Order ID</span>
+                                <span class="order-summary-label">{{ __('Order ID') }}</span>
                                 <div class="order-summary-value is-strong" id="confirmCode"></div>
                             </div>
                             <div>
-                                <span class="order-summary-label">Total Payment</span>
+                                <span class="order-summary-label">{{ __('Total Payment') }}</span>
                                 <div class="order-summary-value is-total" id="confirmTotal"></div>
                             </div>
                         </div>
                         <div class="order-summary-row">
                             <div>
-                                <span class="order-summary-label">Customer</span>
+                                <span class="order-summary-label">{{ __('Customer') }}</span>
                                 <div class="order-summary-value" id="confirmCustomer"></div>
                             </div>
                             <div>
-                                <span class="order-summary-label">Delivery</span>
+                                <span class="order-summary-label">{{ __('Delivery') }}</span>
                                 <div class="order-summary-value" id="confirmDelivery"></div>
                             </div>
                         </div>
                         <div class="order-summary-row">
                             <div>
-                                <span class="order-summary-label">Ordered Items</span>
+                                <span class="order-summary-label">{{ __('Ordered Items') }}</span>
                                 <div class="order-summary-value" id="confirmItems"></div>
                             </div>
                         </div>
@@ -213,23 +213,23 @@
 
                     <div class="admin-form-group full">
                         <label for="rejection_reason">
-                            Rejection reason <small>(only fill in if rejecting the order)</small>
+                            {{ __('Rejection reason') }} <small>{{ __('(only fill in if rejecting the order)') }}</small>
                         </label>
                         <input type="text" name="rejection_reason" id="rejection_reason"
-                            placeholder="Example: Zen Matcha is out of stock..." maxlength="500"
+                            placeholder="{{ __('Example: Zen Matcha is out of stock...') }}" maxlength="500"
                             value="{{ old('rejection_reason') }}">
                         <span class="admin-form-error" id="rejectionReasonError">@error('rejection_reason'){{ $message }}@enderror</span>
                     </div>
                 </div>
 
                 <div class="order-modal-footer">
-                    <button type="submit" name="action" value="reject" class="admin-btn admin-btn-ghost">Reject</button>
+                    <button type="submit" name="action" value="reject" class="admin-btn admin-btn-ghost">{{ __('Reject') }}</button>
                     <button type="submit" name="action" value="accept" class="admin-btn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="M20 6 9 17l-5-5"></path>
                         </svg>
-                        Accept
+                        {{ __('Accept') }}
                     </button>
                 </div>
             </form>
@@ -240,8 +240,8 @@
     <div class="admin-modal-overlay admin-modal-overlay-center order-modal-overlay" id="orderStatusOverlay">
         <div class="admin-modal order-modal" role="dialog" aria-modal="true" aria-labelledby="orderStatusTitle">
             <div class="order-modal-head">
-                <h2 id="orderStatusTitle">Update Order Status</h2>
-                <button type="button" class="admin-modal-close" onclick="closeOrderPopups()" aria-label="Close">
+                <h2 id="orderStatusTitle">{{ __('Update Order Status') }}</h2>
+                <button type="button" class="admin-modal-close" onclick="closeOrderPopups()" aria-label="{{ __('Close') }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.2" stroke-linecap="round">
                         <path d="M18 6 6 18M6 6l12 12"></path>
@@ -260,11 +260,11 @@
                         $statusChoices = ['process' => 'Process', 'shipped' => 'Shipped'];
                     @endphp
                     <div class="admin-form-group">
-                        <label for="orderStatusTrigger">New Status</label>
+                        <label for="orderStatusTrigger">{{ __('New Status') }}</label>
                         <div class="admin-select admin-select-form" id="orderStatusSelect">
                             <button type="button" class="admin-select-trigger" id="orderStatusTrigger"
                                 aria-haspopup="listbox" aria-expanded="false">
-                                <span id="orderStatusTriggerLabel">Process</span>
+                                <span id="orderStatusTriggerLabel">{{ __('Process') }}</span>
                                 <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
                                     <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5"
                                         stroke-linecap="round" stroke-linejoin="round" />
@@ -272,7 +272,7 @@
                             </button>
                             <ul class="admin-select-menu" id="orderStatusMenu" role="listbox">
                                 @foreach ($statusChoices as $key => $label)
-                                    <li role="option" data-value="{{ $key }}" class="admin-select-option">{{ $label }}</li>
+                                    <li role="option" data-value="{{ $key }}" class="admin-select-option">{{ __($label) }}</li>
                                 @endforeach
                             </ul>
                         </div>
@@ -284,8 +284,8 @@
                 </div>
 
                 <div class="order-modal-footer">
-                    <button type="button" class="admin-btn admin-btn-ghost" onclick="closeOrderPopups()">Cancel</button>
-                    <button type="submit" class="admin-btn">Update</button>
+                    <button type="button" class="admin-btn admin-btn-ghost" onclick="closeOrderPopups()">{{ __('Cancel') }}</button>
+                    <button type="submit" class="admin-btn">{{ __('Update') }}</button>
                 </div>
             </form>
         </div>
@@ -436,7 +436,7 @@
                 const isReject = e.submitter && e.submitter.value === 'reject';
                 if (isReject && reasonInput.value.trim() === '') {
                     e.preventDefault();
-                    reasonError.textContent = 'Please enter a reason for rejecting the order.';
+                    reasonError.textContent = @json(__('Please enter a reason for rejecting the order.'));
                     reasonInput.focus();
                 }
             });

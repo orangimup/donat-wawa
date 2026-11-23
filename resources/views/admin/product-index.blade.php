@@ -6,15 +6,15 @@
 
     <div class="admin-page-header">
         <div>
-            <h1>Product Management</h1>
-            <p>Manage your bakery's sweet offerings.</p>
+            <h1>{{ __('Product Management') }}</h1>
+            <p>{{ __('Manage your bakery\'s sweet offerings.') }}</p>
         </div>
         <button type="button" class="admin-btn" onclick="openCreateModal()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                 stroke-linecap="round">
                 <path d="M12 5v14M5 12h14" />
             </svg>
-            New Product
+            {{ __('New Product') }}
         </button>
     </div>
 
@@ -26,12 +26,12 @@
                 @endphp
                 @foreach ($tabs as $key => $label)
                     <a href="{{ route('admin.menu-items.index', array_filter(['category' => $key, 'search' => $search, 'sort' => $sort])) }}"
-                        class="admin-filter-pill {{ $category === $key ? 'is-active' : '' }}">{{ $label }}</a>
+                        class="admin-filter-pill {{ $category === $key ? 'is-active' : '' }}">{{ __($label) }}</a>
                 @endforeach
             </div>
 
             <form method="GET" class="admin-sort" id="sortForm">
-                <label for="sortTrigger">Sort by:</label>
+                <label for="sortTrigger">{{ __('Sort by:') }}</label>
                 <input type="hidden" name="category" value="{{ $category }}">
                 <input type="hidden" name="search" value="{{ $search }}">
                 <input type="hidden" name="sort" id="sortValue" value="{{ $sort }}">
@@ -49,7 +49,7 @@
                 <div class="admin-select" id="sortSelect">
                     <button type="button" class="admin-select-trigger" id="sortTrigger" aria-haspopup="listbox"
                         aria-expanded="false">
-                        <span id="sortTriggerLabel">{{ $sortLabels[$sort] ?? 'Latest' }}</span>
+                        <span id="sortTriggerLabel">{{ __($sortLabels[$sort] ?? 'Latest') }}</span>
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
                             <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
                                 stroke-linejoin="round" />
@@ -58,7 +58,7 @@
                     <ul class="admin-select-menu" id="sortMenu" role="listbox">
                         @foreach ($sortLabels as $key => $label)
                             <li role="option" data-value="{{ $key }}"
-                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ $label }}</li>
+                                class="admin-select-option {{ $sort === $key ? 'is-selected' : '' }}">{{ __($label) }}</li>
                         @endforeach
                     </ul>
                 </div>
@@ -69,16 +69,16 @@
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th>No.</th>
-                        <th>ID Produk</th>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Stock</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('No.') }}</th>
+                        <th>{{ __('ID Produk') }}</th>
+                        <th>{{ __('Image') }}</th>
+                        <th>{{ __('Name') }}</th>
+                        <th>{{ __('Description') }}</th>
+                        <th>{{ __('Category') }}</th>
+                        <th>{{ __('Price') }}</th>
+                        <th>{{ __('Stock') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -93,18 +93,18 @@
                             <td>
                                 <span class="admin-table-desc">{{ $item->description }}</span>
                             </td>
-                            <td>{{ ucfirst($item->category) }}</td>
+                            <td>{{ __(ucfirst($item->category)) }}</td>
                             <td>Rp {{ number_format($item->price, 0, ',', '.') }}</td>
                             <td>{{ $item->stock }}</td>
                             <td>
                                 <span
                                     class="admin-status-pill {{ $item->status === 'active' ? 'admin-status-active' : 'admin-status-inactive' }}">
-                                    {{ ucfirst($item->status) }}
+                                    {{ __(ucfirst($item->status)) }}
                                 </span>
                             </td>
                             <td>
                                 <div class="admin-table-actions">
-                                    <button type="button" class="admin-icon-btn" aria-label="Edit {{ $item->name }}"
+                                    <button type="button" class="admin-icon-btn" aria-label="{{ __('Edit :p1', ['p1' => $item->name]) }}"
                                         onclick="openEditModal(this)" data-id="{{ $item->id }}" data-id-produk="{{ $item->id_produk }}" data-name="{{ $item->name }}"
                                         data-description="{{ $item->description }}" data-category="{{ $item->category }}"
                                         data-price="{{ $item->price }}"
@@ -124,7 +124,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="admin-icon-btn admin-icon-btn-danger"
-                                            aria-label="Delete {{ $item->name }}" onclick="openDeleteModal(this.closest('form'))">
+                                            aria-label="{{ __('Delete :p1', ['p1' => $item->name]) }}" onclick="openDeleteModal(this.closest('form'))">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <path d="M3 6h18"></path>
@@ -138,7 +138,7 @@
                         </tr>
                     @empty
                         <tr class="admin-empty-row">
-                            <td colspan="10">No products yet. Click "New Product" to add one.</td>
+                            <td colspan="10">{{ __('No products yet. Click "New Product" to add one.') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -147,7 +147,7 @@
 
         <div class="admin-pagination">
             <span class="admin-pagination-info">
-                Showing {{ $menuItems->count() }} of {{ $menuItems->total() }} entries
+                {{ __('Showing :count of :total entries', ['count' => $menuItems->count(), 'total' => $menuItems->total()]) }}
             </span>
             {{ $menuItems->onEachSide(1)->links('admin.partials.pagination') }}
         </div>
@@ -157,11 +157,10 @@
         <div class="admin-modal">
             <div class="admin-modal-head">
                 <div>
-                    <h2 id="productModalTitle">Add New Product</h2>
-                    <p class="admin-modal-subtitle" id="productModalSubtitle">Enter the details of a new Donat Wawa
-                        artisan donut variant</p>
+                    <h2 id="productModalTitle">{{ __('Add New Product') }}</h2>
+                    <p class="admin-modal-subtitle" id="productModalSubtitle">{{ __('Enter the details of a new Donat Wawa artisan donut variant') }}</p>
                 </div>
-                <button type="button" class="admin-modal-close" onclick="closeProductModal()" aria-label="Close">
+                <button type="button" class="admin-modal-close" onclick="closeProductModal()" aria-label="{{ __('Close') }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                         stroke-linecap="round">
                         <path d="M18 6 6 18M6 6l12 12"></path>
@@ -180,13 +179,13 @@
                 <div class="admin-form-actions">
                     <div class="admin-form-actions-right">
                         <button type="button" class="admin-btn admin-btn-outline"
-                            onclick="closeProductModal()">Cancel</button>
+                            onclick="closeProductModal()">{{ __('Cancel') }}</button>
                         <button type="submit" class="admin-btn" id="productFormSubmit">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2.6" stroke-linecap="round">
                                 <path d="M12 5v14M5 12h14" />
                             </svg>
-                            <span id="productFormSubmitText">Save Product</span>
+                            <span id="productFormSubmitText">{{ __('Save Product') }}</span>
                         </button>
                     </div>
                 </div>
@@ -198,11 +197,10 @@
         <div class="admin-modal admin-modal-sm">
             <div class="admin-modal-head">
                 <div>
-                    <h2>Delete Product?</h2>
-                    <p class="admin-modal-subtitle" id="deleteModalText">Are you sure you want to delete this
-                        product?</p>
+                    <h2>{{ __('Delete Product?') }}</h2>
+                    <p class="admin-modal-subtitle" id="deleteModalText">{{ __('Are you sure you want to delete this product?') }}</p>
                 </div>
-                <button type="button" class="admin-modal-close" onclick="closeDeleteModal()" aria-label="Close">
+                <button type="button" class="admin-modal-close" onclick="closeDeleteModal()" aria-label="{{ __('Close') }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.2" stroke-linecap="round">
                         <path d="M18 6 6 18M6 6l12 12"></path>
@@ -213,9 +211,8 @@
             <div class="admin-form-actions">
                 <div class="admin-form-actions-right">
                     <button type="button" class="admin-btn admin-btn-outline"
-                        onclick="closeDeleteModal()">Cancel</button>
-                    <button type="button" class="admin-btn admin-btn-danger" id="deleteConfirmBtn">Delete
-                        Product</button>
+                        onclick="closeDeleteModal()">{{ __('Cancel') }}</button>
+                    <button type="button" class="admin-btn admin-btn-danger" id="deleteConfirmBtn">{{ __('Delete Product') }}</button>
                 </div>
             </div>
         </div>
@@ -299,7 +296,7 @@
 
             function showCurrentImage(url, name) {
                 currentImagePreview.src = url;
-                currentImageName.textContent = name || 'Foto produk';
+                currentImageName.textContent = name || @json(__('Foto produk'));
                 dropzone.style.display = 'none';
                 currentImageBlock.style.display = 'flex';
             }
@@ -356,7 +353,7 @@
             const categoryTriggerLabel = document.getElementById('categoryTriggerLabel');
             const categoryMenu = document.getElementById('categoryMenu');
             const categoryField = document.getElementById('category');
-            const categoryLabels = { classics: 'Classics', special: 'Special' };
+            const categoryLabels = { classics: @json(__('Classics')), special: @json(__('Special')) };
 
             function closeCategoryMenu() {
                 categorySelect.classList.remove('is-open');
@@ -365,7 +362,7 @@
 
             function setCategory(value) {
                 categoryField.value = value || '';
-                categoryTriggerLabel.textContent = categoryLabels[value] || 'Select Category...';
+                categoryTriggerLabel.textContent = categoryLabels[value] || @json(__('Select Category...'));
                 categoryTrigger.classList.toggle('is-placeholder', !value);
                 categoryMenu.querySelectorAll('.admin-select-option').forEach(function (o) {
                     o.classList.toggle('is-selected', o.dataset.value === value);
@@ -409,12 +406,12 @@
                 methodField.value = 'POST';
                 editIdField.value = '';
                 removeImageFlag.value = '0';
-                title.textContent = 'Add New Product';
-                subtitle.textContent = 'Enter the details of a new Donat Wawa artisan donut variant';
-                stockLabel.innerHTML = 'STOCK QUANTITY <span class="admin-required">*</span>';
-                statusToggleTitle.textContent = 'Publication Status';
-                statusToggleHint.textContent = 'Show immediately in the customer menu catalog';
-                submitText.textContent = 'Save Product';
+                title.textContent = @json(__('Add New Product'));
+                subtitle.textContent = @json(__('Enter the details of a new Donat Wawa artisan donut variant'));
+                stockLabel.innerHTML = @json(__('STOCK QUANTITY')) + ' <span class="admin-required">*</span>';
+                statusToggleTitle.textContent = @json(__('Publication Status'));
+                statusToggleHint.textContent = @json(__('Show immediately in the customer menu catalog'));
+                submitText.textContent = @json(__('Save Product'));
                 submitIcon.style.display = '';
                 setStatus(true);
                 setCategory('');
@@ -432,12 +429,12 @@
                 methodField.value = 'PUT';
                 editIdField.value = btn.dataset.id;
                 removeImageFlag.value = '0';
-                title.textContent = 'Edit Product Variant';
-                subtitle.textContent = 'Update the price, stock, or recipe details for this donut · ID Produk: ' + (btn.dataset.idProduk || '-');
-                stockLabel.innerHTML = 'AVAILABLE STOCK <span class="admin-required">*</span>';
-                statusToggleTitle.textContent = 'Product Status';
-                statusToggleHint.textContent = 'Availability of this variant on the public menu';
-                submitText.textContent = 'Save Changes';
+                title.textContent = @json(__('Edit Product Variant'));
+                subtitle.textContent = @json(__('Update the price, stock, or recipe details for this donut')) + ' · ID Produk: ' + (btn.dataset.idProduk || '-');
+                stockLabel.innerHTML = @json(__('AVAILABLE STOCK')) + ' <span class="admin-required">*</span>';
+                statusToggleTitle.textContent = @json(__('Product Status'));
+                statusToggleHint.textContent = @json(__('Availability of this variant on the public menu'));
+                submitText.textContent = @json(__('Save Changes'));
                 submitIcon.style.display = 'none';
                 setStatus(btn.dataset.status === 'active');
                 setCategory(btn.dataset.category);
@@ -463,12 +460,12 @@
                 @if ($retryItem)
                     form.action = "{{ route('admin.menu-items.update', $retryItem) }}";
                     methodField.value = 'PUT';
-                    title.textContent = 'Edit Product Variant';
-                    subtitle.textContent = 'Update the price, stock, or recipe details for this donut · ID Produk: {{ $retryItem->id_produk }}';
-                    stockLabel.innerHTML = 'AVAILABLE STOCK <span class="admin-required">*</span>';
-                    statusToggleTitle.textContent = 'Product Status';
-                    statusToggleHint.textContent = 'Availability of this variant on the public menu';
-                    submitText.textContent = 'Save Changes';
+                    title.textContent = @json(__('Edit Product Variant'));
+                    subtitle.textContent = @json(__('Update the price, stock, or recipe details for this donut')) + ' · ID Produk: {{ $retryItem->id_produk }}';
+                    stockLabel.innerHTML = @json(__('AVAILABLE STOCK')) + ' <span class="admin-required">*</span>';
+                    statusToggleTitle.textContent = @json(__('Product Status'));
+                    statusToggleHint.textContent = @json(__('Availability of this variant on the public menu'));
+                    submitText.textContent = @json(__('Save Changes'));
                     submitIcon.style.display = 'none';
                     @if ($retryItem->image)
                         showCurrentImage("{{ $retryItem->image_url }}", "{{ basename($retryItem->image) }}");
@@ -476,8 +473,8 @@
                 @else
                     form.action = "{{ route('admin.menu-items.store') }}";
                     methodField.value = 'POST';
-                    title.textContent = 'Add New Product';
-                    subtitle.textContent = 'Enter the details of a new Donat Wawa artisan donut variant';
+                    title.textContent = @json(__('Add New Product'));
+                    subtitle.textContent = @json(__('Enter the details of a new Donat Wawa artisan donut variant'));
                 @endif
                 setStatus(document.getElementById('status').value === 'active');
                 setCategory(document.getElementById('category').value);
@@ -493,7 +490,7 @@
 
             window.openDeleteModal = function (form) {
                 activeForm = form;
-                text.textContent = 'Are you sure you want to delete "' + form.dataset.name + '"? This action cannot be undone.';
+                text.textContent = @json(__('Are you sure you want to delete ":name"? This action cannot be undone.')).replace(':name', form.dataset.name);
                 overlay.classList.add('open');
                 document.body.style.overflow = 'hidden';
             };

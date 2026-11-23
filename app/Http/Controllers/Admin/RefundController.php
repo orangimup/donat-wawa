@@ -98,7 +98,7 @@ class RefundController extends Controller
         $code = $this->code($current);
 
         if (! $current->isPending()) {
-            return back()->withErrors(['refund' => 'This refund request has already been finalized.']);
+            return back()->withErrors(['refund' => __('This refund request has already been finalized.')]);
         }
 
         $manual = $refunds->isManual($current);
@@ -114,24 +114,24 @@ class RefundController extends Controller
         }
 
         $validated = $request->validate($rules, [
-            'decision.required' => 'Please choose Approve or Reject.',
-            'notes.required_if' => 'Please write a note explaining why the refund is rejected.',
-            'bukti_transfer.required_if' => 'Please upload the proof of the bank transfer.',
+            'decision.required' => __('Please choose Approve or Reject.'),
+            'notes.required_if' => __('Please write a note explaining why the refund is rejected.'),
+            'bukti_transfer.required_if' => __('Please upload the proof of the bank transfer.'),
         ]);
 
         $notes = $validated['notes'] ?? null;
 
         if ($validated['decision'] === 'reject') {
             if (! $refunds->reject($current, $notes)) {
-                return back()->withErrors(['refund' => 'This refund request has already been finalized.']);
+                return back()->withErrors(['refund' => __('This refund request has already been finalized.')]);
             }
 
-            return redirect()->route('admin.refund')->with('status', "Refund {$code} has been rejected.");
+            return redirect()->route('admin.refund')->with('status', __('Refund :code has been rejected.', ['code' => $code]));
         }
 
         if ($manual) {
             if (! $current->hasBankDetails()) {
-                return back()->withErrors(['refund' => 'The customer has not provided bank details yet, so there is nowhere to transfer the refund.']);
+                return back()->withErrors(['refund' => __('The customer has not provided bank details yet, so there is nowhere to transfer the refund.')]);
             }
 
             $proof = $request->file('bukti_transfer')->store('refund-transfer-proof', 'public');
@@ -139,23 +139,23 @@ class RefundController extends Controller
             if (! $refunds->completeManually($current, $proof, $notes)) {
                 Storage::disk('public')->delete($proof);
 
-                return back()->withErrors(['refund' => 'This refund request has already been finalized.']);
+                return back()->withErrors(['refund' => __('This refund request has already been finalized.')]);
             }
 
             return redirect()->route('admin.refund')
-                ->with('status', "Refund {$code} has been marked as refunded (bank transfer).");
+                ->with('status', __('Refund :code has been marked as refunded (bank transfer).', ['code' => $code]));
         }
 
         $result = $refunds->approve($current, $notes);
 
         if ($result->status !== Refund::STATUS_REFUNDED) {
             return back()->withErrors([
-                'refund' => 'Midtrans could not process this refund yet: ' . ($result->pesan_error ?? 'unknown error') . ' You can try again.',
+                'refund' => __('Midtrans could not process this refund yet: :error You can try again.', ['error' => $result->pesan_error ?? __('unknown error')]),
             ]);
         }
 
         return redirect()->route('admin.refund')
-            ->with('status', "Refund {$code} has been sent back to the customer through Midtrans.");
+            ->with('status', __('Refund :code has been sent back to the customer through Midtrans.', ['code' => $code]));
     }
 
     private function waitingBankCount(): int
@@ -218,12 +218,12 @@ class RefundController extends Controller
             ] : null,
             'proof' => $refund->bukti_transfer ? asset('storage/' . $refund->bukti_transfer) : null,
             'timestamp' => $requestedAt?->timestamp ?? 0,
-            'request_label' => $requestedAt ? $requestedAt->format('d M Y, H:i') . ' WIB' : '-',
-            'request_date' => $requestedAt ? $requestedAt->format('d M Y') : '-',
+            'request_label' => $requestedAt ? $requestedAt->translatedFormat('d M Y, H:i') . ' WIB' : '-',
+            'request_date' => $requestedAt ? $requestedAt->translatedFormat('d M Y') : '-',
             'request_time' => $requestedAt ? $requestedAt->format('H:i') . ' WIB' : '',
             'source_key' => $refund->asal_refund,
             'needs_bank' => $manual && $refund->isPending() && ! $refund->hasBankDetails(),
-            'order_label' => $order?->placed_at ? $order->placed_at->format('d F Y, H:i') . ' WIB' : '-',
+            'order_label' => $order?->placed_at ? $order->placed_at->translatedFormat('d F Y, H:i') . ' WIB' : '-',
             'reason' => $reasons[$refund->alasan] ?? $refund->alasan,
             'description' => $refund->detail_alasan,
             'evidence' => $refund->foto_bukti ? [asset('storage/' . $refund->foto_bukti)] : [],

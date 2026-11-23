@@ -19,7 +19,7 @@
 
     <div class="admin-page-header">
         <div>
-            <h1>Detail User</h1>
+            <h1>{{ __('Detail User') }}</h1>
             <p>{{ $user->user_code }}</p>
         </div>
     </div>
@@ -40,15 +40,15 @@
 
             <div class="user-detail-facts">
                 <div class="user-detail-fact-row">
-                    <span>Join Date</span>
-                    <strong>{{ $user->created_at->format('d F Y') }}</strong>
+                    <span>{{ __('Join Date') }}</span>
+                    <strong>{{ $user->created_at->translatedFormat('d F Y') }}</strong>
                 </div>
                 <div class="user-detail-fact-row">
-                    <span>No. telp</span>
+                    <span>{{ __('No. telp') }}</span>
                     <strong>{{ $user->phone ?: '—' }}</strong>
                 </div>
                 <div class="user-detail-fact-row">
-                    <span>Total Orders</span>
+                    <span>{{ __('Total Orders') }}</span>
                     <strong>{{ $recentOrders->count() }}</strong>
                 </div>
             </div>
@@ -56,17 +56,17 @@
 
         <div class="admin-card user-detail-orders-card">
             <div class="user-detail-orders-head">
-                <h2>Recent Orders</h2>
+                <h2>{{ __('Recent Orders') }}</h2>
             </div>
 
             <div class="user-detail-table-wrap">
                 <table class="user-orders-table">
                     <thead>
                         <tr>
-                            <th>Order ID</th>
-                            <th>Date</th>
-                            <th>Amount</th>
-                            <th>Status</th>
+                            <th>{{ __('Order ID') }}</th>
+                            <th>{{ __('Date') }}</th>
+                            <th>{{ __('Amount') }}</th>
+                            <th>{{ __('Status') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -83,7 +83,7 @@
                             </tr>
                         @empty
                             <tr class="admin-empty-row">
-                                <td colspan="4">No orders yet.</td>
+                                <td colspan="4">{{ __('No orders yet.') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

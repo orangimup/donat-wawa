@@ -56,11 +56,11 @@ class DashboardController extends Controller
                 'values' => [3, 6, 9, 10, 7, 4, 3],
             ],
             'weekly' => [
-                'labels' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                'labels' => array_map('__', ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']),
                 'values' => [30, 34, 46, 30, 36, 28, 42],
             ],
             'monthly' => [
-                'labels' => ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                'labels' => array_map('__', ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep']),
                 'values' => [612, 655, 703, 748, 821, 790],
             ],
         ];
