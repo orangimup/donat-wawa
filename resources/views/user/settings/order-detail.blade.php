@@ -294,16 +294,21 @@
         @if ($order['refund'])
             @php
                 $refund = $order['refund'];
+                // "pembeli" = the customer asked for it. Anything else was started by the system
+                // (the order was cancelled), so the customer did not "request" anything.
+                $byCustomer = $refund['source'] === 'pembeli';
                 $refundPill = match (true) {
                     $refund['status'] === 'refunded' => __('Refunded'),
                     $refund['status'] === 'rejected' => __('Refund rejected'),
-                    $refund['source'] === 'pembeli' => __('Awaiting review'),
+                    $byCustomer => __('Awaiting review'),
+                    $order['refund_needs_bank'] => __('Waiting for bank account'),
                     default => __('Refund in progress'),
                 };
                 $refundMessage = match (true) {
                     $refund['status'] === 'refunded' => __('Your payment has been refunded.'),
                     $refund['status'] === 'rejected' => __('Your refund request was rejected.'),
-                    $refund['source'] === 'pembeli' => __('Your refund request is waiting for review.'),
+                    $byCustomer => __('Your refund request is waiting for review.'),
+                    $order['refund_needs_bank'] => __('Your order was cancelled, so your payment will be refunded. Add your bank account so we can send it.'),
                     default => __('Your refund is being processed.'),
                 };
             @endphp
@@ -319,7 +324,7 @@
                 </div>
                 @if ($refund['requested_at'])
                     <div class="od-summary-row">
-                        <span>{{ __('Requested on') }}</span>
+                        <span>{{ $byCustomer ? __('Requested on') : __('Started on') }}</span>
                         <span>{{ $refund['requested_at']->format('d M Y, H:i') }} WIB</span>
                     </div>
                 @endif

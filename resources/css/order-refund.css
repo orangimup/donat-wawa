@@ -456,3 +456,256 @@
     font-weight: 600;
     color: var(--text-dark);
 }
+
+/* ===== Bank-only refund page: one column, top to bottom ===== */
+.rb-page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 28px 20px 72px;
+}
+
+.rb-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+    font-family: var(--font-label);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-body);
+    transition: color 0.15s ease;
+}
+
+.rb-back:hover {
+    color: var(--maroon);
+}
+
+.rb-head {
+    margin-bottom: 26px;
+    text-align: center;
+}
+
+.rb-head-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 14px;
+    border-radius: 50%;
+    background: #f5e3df;
+    color: var(--maroon);
+}
+
+.rb-head h1 {
+    margin: 0 0 8px;
+    font-family: var(--font-label);
+    font-size: 1.7rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #7b2026;
+}
+
+.rb-head p {
+    max-width: 440px;
+    margin: 0 auto;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--text-muted);
+}
+
+/* Summary: amount first, then which order it belongs to */
+.rb-summary {
+    margin-bottom: 18px;
+    padding: 22px 24px;
+    border: 1px solid #f0dcd7;
+    border-radius: 20px;
+    background: #fdf6f3;
+}
+
+.rb-summary-amount {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #f0dcd7;
+}
+
+.rb-summary-amount span {
+    font-family: var(--font-label);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.rb-summary-amount strong {
+    font-family: var(--font-label);
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--maroon);
+}
+
+.rb-summary-order {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-top: 18px;
+}
+
+.rb-summary-img {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    object-fit: cover;
+    background: #fff;
+}
+
+.rb-summary-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.rb-summary-info strong {
+    font-family: var(--font-label);
+    font-size: 14.5px;
+    color: var(--text-dark);
+}
+
+.rb-summary-info strong span {
+    margin-left: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.rb-summary-info > span {
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+}
+
+.rb-summary-status {
+    flex-shrink: 0;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: #dc2626;
+    font-family: var(--font-label);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* Form card */
+.rb-card {
+    padding: 26px 24px 24px;
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    background: #fff;
+}
+
+.rb-card-title {
+    margin: 0 0 20px;
+    font-family: var(--font-label);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.rb-field {
+    display: block;
+    margin-bottom: 18px;
+}
+
+.rb-field .order-refund-input {
+    padding: 13px 16px;
+    border-radius: 14px;
+    font-size: 15px;
+}
+
+.rb-field .order-refund-bank-other {
+    margin-top: 10px;
+}
+
+.rb-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+}
+
+.rb-alert {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #fdecec;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #b3261e;
+}
+
+.rb-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 6px 0 22px;
+    padding: 12px 14px;
+    border: 1px solid #f5dfa0;
+    border-radius: 14px;
+    background: #fff6df;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #7a4a05;
+}
+
+.rb-note svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.rb-submit {
+    display: block;
+    width: 100%;
+    padding: 15px 24px;
+    border: 0;
+    border-radius: 999px;
+    background: #7b2026;
+    box-shadow: 0 8px 18px rgba(123, 36, 48, 0.25);
+    font-family: var(--font-label);
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+}
+
+.rb-submit:hover {
+    filter: brightness(1.08);
+}
+
+.rb-cancel {
+    display: block;
+    margin-top: 14px;
+    text-align: center;
+    font-family: var(--font-label);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.rb-cancel:hover {
+    color: var(--maroon);
+}
+
+/* Bank select: same height as the text inputs below it */
+.rb-field .admin-select-trigger {
+    padding: 13px 16px;
+    border-radius: 14px;
+    font-size: 15px;
+}

@@ -665,5 +665,13 @@
     "Other": "Lainnya",
     "Select a bank...": "Pilih bank...",
     "Type your bank name": "Ketik nama bank",
+    "Back to Order Detail": "Kembali ke Detail Pesanan",
+    "We send your refund by bank transfer. Tell us which account should receive it.": "Refund dikirim lewat transfer bank. Beri tahu kami rekening mana yang akan menerimanya.",
+    "Where should we send it?": "Ke mana dana dikirim?",
+    "Must match the name on your bank book.": "Harus sama dengan nama di buku tabungan.",
+    "Please double-check the details. We send the refund by hand, so a wrong number will delay it.": "Periksa kembali datanya. Refund dikirim secara manual, jadi nomor yang salah akan menunda prosesnya.",
+    "Waiting for bank account": "Menunggu rekening",
+    "Your order was cancelled, so your payment will be refunded. Add your bank account so we can send it.": "Pesananmu dibatalkan, jadi pembayaranmu akan dikembalikan. Isi rekening bankmu agar kami bisa mengirim dananya.",
+    "Started on": "Dimulai pada",
     "Awaiting review": "Menunggu ditinjau"
 }

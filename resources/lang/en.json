@@ -648,5 +648,13 @@
     "Other": "Other",
     "Select a bank...": "Select a bank...",
     "Type your bank name": "Type your bank name",
+    "Back to Order Detail": "Back to Order Detail",
+    "We send your refund by bank transfer. Tell us which account should receive it.": "We send your refund by bank transfer. Tell us which account should receive it.",
+    "Where should we send it?": "Where should we send it?",
+    "Must match the name on your bank book.": "Must match the name on your bank book.",
+    "Please double-check the details. We send the refund by hand, so a wrong number will delay it.": "Please double-check the details. We send the refund by hand, so a wrong number will delay it.",
+    "Waiting for bank account": "Waiting for bank account",
+    "Your order was cancelled, so your payment will be refunded. Add your bank account so we can send it.": "Your order was cancelled, so your payment will be refunded. Add your bank account so we can send it.",
+    "Started on": "Started on",
     "Awaiting review": "Awaiting review"
 }
