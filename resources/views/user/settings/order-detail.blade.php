@@ -12,10 +12,10 @@
 @section('content')
 
     @php
-        $formatRupiah = fn ($amount) => 'Rp ' . number_format($amount, 0, ',', '.');
+        $formatRupiah = fn($amount) => 'Rp ' . number_format($amount, 0, ',', '.');
 
         // Paid -> admin confirms -> being prepared -> on the way -> completed.
-        $fmtTime = fn ($at) => $at ? $at->format('H:i') . ' WIB' : null;
+        $fmtTime = fn($at) => $at ? $at->format('H:i') . ' WIB' : null;
         $steps = [
             ['key' => 'paid', 'label' => __('Order Paid'), 'time' => $fmtTime($order['paid_at'])],
             ['key' => 'confirmed', 'label' => __('Order Confirmed'), 'time' => $fmtTime($order['confirmed_at'])],
@@ -25,7 +25,7 @@
         ];
         // Index of the step the order is at now. "waiting" + paid means the admin has not confirmed yet.
         $currentIndex = match (true) {
-            $order['status'] === 'waiting' && ! $order['paid'] => 0,
+            $order['status'] === 'waiting' && !$order['paid'] => 0,
             $order['status'] === 'waiting' => 1,
             $order['status'] === 'process' => 2,
             $order['status'] === 'shipped' => 3,
@@ -44,7 +44,7 @@
         };
     @endphp
 
-    <div class="container-ww od-page">
+    <div class="container-ww od-page" id="order-live" data-live-version="{{ md5(json_encode($order)) }}">
 
         <div class="od-topbar">
             <a href="{{ route('settings.orders') }}" class="od-back">
@@ -70,8 +70,7 @@
                 @if ($order['can_cancel'])
                     <form method="POST" action="{{ route('settings.orders.cancel', $order['id']) }}"
                         data-confirm="{{ __('Are you sure you want to cancel this order?') }}"
-                        data-confirm-title="{{ __('Cancel this order?') }}"
-                        data-confirm-ok="{{ __('Yes, cancel') }}">
+                        data-confirm-title="{{ __('Cancel this order?') }}" data-confirm-ok="{{ __('Yes, cancel') }}">
                         @csrf
                         <button type="submit" class="od-invoice-btn od-cancel-btn">{{ __('Cancel Order') }}</button>
                     </form>
@@ -89,8 +88,7 @@
                 @if ($order['can_complete'])
                     <form method="POST" action="{{ route('settings.orders.complete', $order['id']) }}"
                         data-confirm="{{ __('Have you received this order?') }}"
-                        data-confirm-title="{{ __('Order received?') }}"
-                        data-confirm-ok="{{ __('Yes, received') }}">
+                        data-confirm-title="{{ __('Order received?') }}" data-confirm-ok="{{ __('Yes, received') }}">
                         @csrf
                         <button type="submit" class="od-invoice-btn od-outline-btn">{{ __('Pesanan Diterima') }}</button>
                     </form>
@@ -123,7 +121,7 @@
             </div>
         @endif
 
-        @if ($order['status'] === 'waiting' && ! $order['paid'])
+        @if ($order['status'] === 'waiting' && !$order['paid'])
             <div class="od-card od-cancelled-notice">
                 <div>
                     <strong>{{ __('Payment not received yet. If you have already paid, the status will update automatically in a moment.') }}</strong>
@@ -143,7 +141,8 @@
                     <strong>{{ __('Refund menunggu rekening bankmu') }}</strong>
                     <span>{{ __('Your payment will be refunded by bank transfer. Please enter your bank account.') }}</span>
                 </div>
-                <a href="{{ route('settings.orders.refund.bank', $order['id']) }}" class="od-bank-btn">{{ __('Isi Rekening') }}</a>
+                <a href="{{ route('settings.orders.refund.bank', $order['id']) }}"
+                    class="od-bank-btn">{{ __('Isi Rekening') }}</a>
             </div>
         @endif
 
@@ -157,33 +156,33 @@
                         <div class="od-step od-step--{{ $state }}" style="--i: {{ $index }}">
                             <span class="od-step-dot">
                                 @if ($state === 'done')
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                                        stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M20 6 9 17l-5-5"></path>
                                     </svg>
                                 @elseif ($step['key'] === 'paid')
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="2" y="5" width="20" height="14" rx="2"></rect>
                                         <line x1="2" y1="10" x2="22" y2="10"></line>
                                     </svg>
                                 @elseif ($step['key'] === 'confirmed')
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="8" y="2" width="8" height="4" rx="1"></rect>
                                         <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
                                         <path d="m9 14 2 2 4-4"></path>
                                     </svg>
                                 @elseif ($step['key'] === 'process')
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
                                         <path
                                             d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z">
                                         </path>
                                     </svg>
                                 @elseif ($step['key'] === 'shipped')
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
                                         <path
                                             d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z">
                                         </path>
@@ -191,8 +190,8 @@
                                         <line x1="12" y1="22.08" x2="12" y2="12"></line>
                                     </svg>
                                 @else
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
                                         <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1Z"></path>
                                         <line x1="4" y1="22" x2="4" y2="15"></line>
                                     </svg>
@@ -207,8 +206,8 @@
                                 @endif
                             </span>
                         </div>
-                        @if (! $loop->last)
-                            <div class="od-step-line {{ $index < $currentIndex || $allDone ? 'is-filled' : '' }} {{ $index === $currentIndex && ! $allDone ? 'is-progress' : '' }}"
+                        @if (!$loop->last)
+                            <div class="od-step-line {{ $index < $currentIndex || $allDone ? 'is-filled' : '' }} {{ $index === $currentIndex && !$allDone ? 'is-progress' : '' }}"
                                 style="--i: {{ $index }}"></div>
                         @endif
                     @endforeach
@@ -219,7 +218,8 @@
         <div class="od-card">
             <h2 class="od-card-title">
                 {{ __('Ordered Items') }}
-                <span class="od-card-title-meta">{{ __(':count item(s), :qty pcs', ['count' => $order['items']->count(), 'qty' => $order['qty_total']]) }}</span>
+                <span
+                    class="od-card-title-meta">{{ __(':count item(s), :qty pcs', ['count' => $order['items']->count(), 'qty' => $order['qty_total']]) }}</span>
             </h2>
             <div class="od-items">
                 @foreach ($order['items'] as $item)
@@ -344,8 +344,8 @@
             <div class="od-card">
                 <div class="od-card-title-row">
                     <h2 class="od-card-title">{{ __('Customer Info') }}</h2>
-                    <svg class="od-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="od-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
@@ -360,8 +360,8 @@
             <div class="od-card">
                 <div class="od-card-title-row">
                     <h2 class="od-card-title">{{ __('Shipping Address') }}</h2>
-                    <svg class="od-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="od-card-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z"></path>
                         <circle cx="12" cy="10" r="3"></circle>
                     </svg>
@@ -374,8 +374,7 @@
             </div>
         </div>
 
-        {{-- Replaces the old "Contact Customer Service" bar. --}}
-        @if (! $order['refund'] && $order['can_refund'])
+        @if (!$order['refund'] && $order['can_refund'])
             <div class="od-card od-refund-notice od-refund-prompt">
                 <div class="od-refund-notice-text">
                     <strong>{{ __('Not happy with this order?') }}</strong>
@@ -387,6 +386,65 @@
 
     </div>
 
-@include('partials.confirm-modal')
+    @include('partials.confirm-modal')
 
 @endsection
+
+@push('scripts')
+    <script>
+        (function () {
+            const selector = '#order-live';
+            const interval = 5000;
+            let timer = null;
+            let busy = false;
+
+            function modalOpen() {
+                const modal = document.getElementById('dw-confirm');
+                return !!modal && !modal.hidden;
+            }
+
+            async function poll() {
+                if (busy) { return; }
+                busy = true;
+
+                try {
+                    const current = document.querySelector(selector);
+                    if (!current) { return; }
+
+                    const res = await fetch(window.location.href, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' },
+                        credentials: 'same-origin',
+                        cache: 'no-store',
+                    });
+                    if (!res.ok) { return; }
+
+                    const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+                    const fresh = doc.querySelector(selector);
+                    if (!fresh || modalOpen()) { return; }
+                    if (fresh.dataset.liveVersion === current.dataset.liveVersion) { return; }
+
+                    current.innerHTML = fresh.innerHTML;
+                    current.dataset.liveVersion = fresh.dataset.liveVersion;
+                    window.dispatchEvent(new CustomEvent('live:updated', { detail: { selector: selector } }));
+                } catch (e) {
+                } finally {
+                    busy = false;
+                }
+            }
+
+            function schedule() {
+                clearTimeout(timer);
+                timer = setTimeout(async function () {
+                    if (!document.hidden) { await poll(); }
+                    schedule();
+                }, interval);
+            }
+
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) { poll(); }
+            });
+
+            schedule();
+        })();
+    </script>
+@endpush
