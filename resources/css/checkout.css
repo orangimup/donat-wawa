@@ -423,3 +423,162 @@ body.page-checkout {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* ===== Address autocomplete (shipping fee by distance) ===== */
+.address-combo {
+    position: relative;
+}
+
+.address-list {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    max-height: 300px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1.5px solid var(--border-soft);
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(78, 52, 46, 0.12);
+}
+
+.address-list[hidden] {
+    display: none;
+}
+
+.address-option {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.address-option strong {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.address-option span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.address-option:hover,
+.address-option.is-active {
+    background: #fdeaea;
+}
+
+.address-empty {
+    padding: 12px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.address-attribution {
+    padding: 6px 12px 2px;
+    font-size: 0.7rem;
+    text-align: right;
+    color: var(--text-muted);
+}
+
+.address-status {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.address-status[data-state="ok"] {
+    color: #2e7d4f;
+    font-weight: 600;
+}
+
+.address-status[data-state="error"] {
+    color: var(--maroon);
+    font-weight: 600;
+}
+
+.address-status[data-state="loading"] {
+    font-style: italic;
+}
+
+.address-combo textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 84px;
+}
+
+/* ===== Map pin for exact delivery location ===== */
+.address-map-wrap {
+    position: relative;
+    margin-top: 10px;
+}
+
+.address-map {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    height: 260px;
+    border: 1.5px solid var(--border-soft);
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.address-locate {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 5;
+    padding: 7px 12px;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--maroon);
+    background: #fff;
+    border: 1.5px solid var(--border-soft);
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(78, 52, 46, 0.15);
+    cursor: pointer;
+}
+
+.address-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.address-option-map strong {
+    color: var(--maroon);
+}
+
+.address-pin {
+    background: none;
+    border: 0;
+    filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.3));
+}
+
+.address-shop span {
+    display: inline-block;
+    transform: translate(-50%, -50%);
+    padding: 3px 8px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    white-space: nowrap;
+    color: #fff;
+    background: var(--maroon);
+    border-radius: 999px;
+}
+
+.checkout-field input[type="text"]#addressDetail {
+    width: 100%;
+    box-sizing: border-box;
+}

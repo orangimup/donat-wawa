@@ -6,6 +6,8 @@ use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Services\PaymentService;
+use App\Services\ShippingException;
+use App\Services\ShippingService;
 use App\Services\RefundService;
 use Carbon\Carbon;
 use App\Services\OrderService;
@@ -21,7 +23,6 @@ class CheckoutController extends Controller
     public function index(): View
     {
         return view('user.checkout', [
-            'shippingFees' => Order::SHIPPING_FEES,
             'deliverySlots' => Order::DELIVERY_SLOTS,
             'earliestPreOrderDate' => Carbon::tomorrow(Order::TIMEZONE)->toDateString(),
         ]);
@@ -45,15 +46,44 @@ class CheckoutController extends Controller
 
         return response()->json(['items' => $items]);
     }
-    public function store(Request $request, OrderService $orders): JsonResponse
+    public function suggestAddress(Request $request, ShippingService $shipping): JsonResponse
+    {
+        $data = $request->validate([
+            'q' => ['required', 'string', 'min:3', 'max:120'],
+        ]);
+
+        try {
+            return response()->json(['suggestions' => $shipping->suggest($data['q'])]);
+        } catch (ShippingException $e) {
+            return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason], $e->status);
+        }
+    }
+    public function shippingQuote(Request $request, ShippingService $shipping): JsonResponse
+    {
+        $data = $request->validate([
+            'lat' => ['required', 'numeric', 'between:-90,90'],
+            'lng' => ['required', 'numeric', 'between:-180,180'],
+        ]);
+
+        try {
+            return response()->json($shipping->quoteByCoordinates((float) $data['lat'], (float) $data['lng']));
+        } catch (ShippingException $e) {
+            return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason], $e->status);
+        }
+    }
+
+    public function store(Request $request, OrderService $orders, ShippingService $shipping): JsonResponse
     {
         $earliest = Carbon::tomorrow(Order::TIMEZONE)->toDateString();
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'phone' => ['required', 'string', 'regex:/^[0-9+\s-]{8,15}$/'],
-            'address' => ['required', 'string', 'max:500'],
-            'delivery_type' => ['required', Rule::in(array_keys(Order::SHIPPING_FEES))],
+            'lat' => ['required', 'numeric', 'between:-90,90'],
+            'lng' => ['required', 'numeric', 'between:-180,180'],
+            'address_area' => ['required', 'string', 'max:255'],
+            'address_detail' => ['required', 'string', 'max:200'],
+            'delivery_type' => ['required', Rule::in(array_keys(Order::DELIVERY_LABELS))],
             'delivery_date' => ['required_if:delivery_type,pre_order', 'nullable', 'date', 'after_or_equal:' . $earliest],
             'delivery_slot' => ['required_if:delivery_type,pre_order', 'nullable', Rule::in(Order::DELIVERY_SLOTS)],
             'items' => ['required', 'array', 'min:1', 'max:50'],
@@ -61,7 +91,17 @@ class CheckoutController extends Controller
             'items.*.qty' => ['required', 'integer', 'min:1', 'max:99'],
         ]);
 
-        $order = $orders->place($request->user(), $data, $data['items']);
+        try {
+            $quote = $shipping->quoteByCoordinates((float) $data['lat'], (float) $data['lng']);
+        } catch (ShippingException $e) {
+            return response()->json(['message' => $e->getMessage(), 'reason' => $e->reason], $e->status);
+        }
+
+        // Alamat lengkap = detail dari pelanggan + area dari peta + link pin untuk kurir.
+        $quote['address'] = trim($data['address_detail']) . ', ' . trim($data['address_area'])
+            . "\nPin: https://www.google.com/maps?q=" . round((float) $data['lat'], 6) . ',' . round((float) $data['lng'], 6);
+
+        $order = $orders->place($request->user(), $data, $data['items'], $quote);
 
         return response()->json([
             'order_code' => $order->id_pesanan,
@@ -86,7 +126,6 @@ class CheckoutController extends Controller
             return response()->json(['message' => __('This order has already been paid.')], 409);
         }
 
-        // Reuse the token while it is still valid so a retry never creates a second payment attempt.
         if ($existing?->isPending()
             && $existing->snap_token
             && $existing->batas_waktu_bayar?->isFuture()) {
@@ -124,7 +163,6 @@ class CheckoutController extends Controller
                 'email' => $order->customer_email,
                 'phone' => $order->customer_phone,
             ],
-            // E-wallets only: GoPay, DANA, OVO, ShopeePay (see config/midtrans.php).
             'enabled_payments' => config('midtrans.enabled_payments'),
             'expiry' => ['unit' => 'minute', 'duration' => $expiryMinutes],
         ];
@@ -137,7 +175,6 @@ class CheckoutController extends Controller
             return response()->json(['message' => __('Something went wrong, please try again.')], 502);
         }
 
-        // Without this row the admin transaction list is empty and the webhook has nothing to update.
         Transaction::updateOrCreate(
             ['id_pesanan' => $order->id_pesanan],
             [
@@ -149,12 +186,6 @@ class CheckoutController extends Controller
 
         return response()->json(['snap_token' => $snapToken]);
     }
-
-    /**
-     * Called by the success page. Asks Midtrans (server to server) for the order's real payment
-     * status and stores it, so it works even where the webhook cannot reach (localhost).
-     * The browser's "success" callback is never trusted: only Midtrans' answer is saved.
-     */
     public function syncPayment(Request $request, PaymentService $payments, RefundService $refunds, string $code): JsonResponse
     {
         $order = Order::with('transaction')
@@ -167,7 +198,6 @@ class CheckoutController extends Controller
         try {
             $status = json_decode(json_encode(\Midtrans\Transaction::status($order->id_pesanan)), true);
         } catch (\Throwable $e) {
-            // Midtrans has no payment for this order yet (customer never picked a method).
             return $this->paymentState($order, $order->transaction?->status ?? Transaction::STATUS_PENDING);
         }
 
@@ -176,11 +206,6 @@ class CheckoutController extends Controller
 
         return $this->paymentState($order, $order->transaction()->value('status'));
     }
-
-    /**
-     * What the success page needs: the real payment status (never the browser's own claim),
-     * whether the order is actually paid, and where this order lives in the customer's history.
-     */
     private function paymentState(Order $order, ?string $status): JsonResponse
     {
         return response()->json([

@@ -19,7 +19,6 @@ class Order extends Model
     public const STATUS_DONE = 'done';
     public const STATUS_REJECTED = 'rejected';
     public const FLOW = [self::STATUS_PROCESS, self::STATUS_SHIPPED, self::STATUS_DONE];
-    /** What an admin can set. "done" is confirmed by the customer only (like Shopee's "Pesanan Selesai"). */
     public const ADMIN_FLOW = [self::STATUS_PROCESS, self::STATUS_SHIPPED];
 
     public const SHIPPING_FEES = [
@@ -46,6 +45,7 @@ class Order extends Model
         'customer_email',
         'customer_phone',
         'address',
+        'distance_km',
         'delivery_type',
         'delivery_date',
         'delivery_slot',
@@ -68,6 +68,7 @@ class Order extends Model
             'completed_at' => 'datetime',
             'subtotal' => 'integer',
             'shipping_fee' => 'integer',
+            'distance_km' => 'float',
             'total' => 'integer',
         ];
     }
@@ -97,7 +98,6 @@ class Order extends Model
         return $this->hasOne(Refund::class, 'id_pesanan', 'id_pesanan');
     }
 
-    /** How long an unpaid order holds its stock (also the Midtrans payment window). */
     public static function reservationMinutes(): int
     {
         return (int) config('midtrans.expiry_minutes', 60);

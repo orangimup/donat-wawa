@@ -65,6 +65,10 @@
                         <span class="order-summary-label">{{ __('Address') }}</span>
                         <div class="order-summary-value">{{ $order['address'] }}</div>
                     </div>
+                    <div class="is-wide">
+                        <span class="order-summary-label">{{ __('Distance') }}</span>
+                        <div class="order-summary-value">{{ $order['distance_km'] !== null ? number_format($order['distance_km'], 1) . ' km' : '-' }}</div>
+                    </div>
                 </div>
             </div>
 
@@ -144,7 +148,6 @@
                 </div>
             </div>
 
-            {{-- Refund (if any) --}}
             @if ($order['refund'])
                 <div class="admin-card order-detail-card">
                     <h2 class="order-detail-title">{{ __('Refund') }}</h2>
@@ -156,7 +159,6 @@
                 </div>
             @endif
 
-            {{-- Accept / reject lives in the order list (Manage button), so this page is view-only. --}}
             @if ($order['status'] === 'rejected' && $order['rejection_reason'])
                 <div class="admin-card order-detail-card">
                     <h2 class="order-detail-title">{{ __('Rejection reason') }}</h2>

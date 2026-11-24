@@ -38,13 +38,7 @@
             );
         },
 
-        /**
-         * @param {{slug:string,name:string,price:number,image:string}} product
-         * @param {number} qty
-         * @returns {boolean} true jika item berhasil ditambahkan (user sudah login)
-         */
         addItem(product, qty) {
-            // Guest hanya boleh melihat-lihat, tidak boleh menambah pesanan.
             if (!window.isAuthenticated) {
                 if (typeof window.openAuthPopup === "function") {
                     window.openAuthPopup("login");
@@ -92,10 +86,6 @@
             writeBasket(readBasket().filter((item) => item.slug !== slug));
         },
 
-        /**
-         * Ganti seluruh isi keranjang sekaligus (dipakai saat sinkron ulang
-         * ke data terbaru database di halaman checkout).
-         */
         replaceAll(items) {
             writeBasket(items);
         },
@@ -108,10 +98,6 @@
     };
 
     window.DonatBasket = Basket;
-
-    // Kalau user sudah logout tapi sessionStorage masih nyimpen keranjang
-    // dari sesi login sebelumnya (tab yang sama), bersihkan supaya guest
-    // tidak bisa lanjut checkout dari sisa data lama.
     if (!window.isAuthenticated && readBasket().length > 0) {
         writeBasket([]);
     }
@@ -139,45 +125,54 @@
                     }
                 });
         }
-        document
-            .querySelectorAll(".basket-qty-widget")
-            .forEach(function (widget) {
-                const product = {
-                    slug: widget.dataset.slug,
-                    name: widget.dataset.name,
-                    price: widget.dataset.price,
-                    image: widget.dataset.image,
-                };
 
-                const addBtn = widget.querySelector(".basket-add-btn");
-                const decBtn = widget.querySelector(".basket-decrement-btn");
+        function bindWidget(widget) {
+            if (widget.dataset.basketBound === "1") return;
+            widget.dataset.basketBound = "1";
 
-                if (addBtn) {
-                    addBtn.addEventListener("click", function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const added = Basket.addItem(product, 1);
-                        if (!added) return;
+            const product = {
+                slug: widget.dataset.slug,
+                name: widget.dataset.name,
+                price: widget.dataset.price,
+                image: widget.dataset.image,
+            };
 
-                        addBtn.classList.add("is-added");
-                        setTimeout(function () {
-                            addBtn.classList.remove("is-added");
-                        }, 350);
-                    });
-                }
+            const addBtn = widget.querySelector(".basket-add-btn");
+            const decBtn = widget.querySelector(".basket-decrement-btn");
 
-                if (decBtn) {
-                    decBtn.addEventListener("click", function (e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const current = Basket.getItems().find(
-                            (item) => item.slug === product.slug,
-                        );
-                        const currentQty = current ? current.qty : 0;
-                        Basket.setQty(product.slug, currentQty - 1);
-                    });
-                }
-            });
+            if (addBtn) {
+                addBtn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const added = Basket.addItem(product, 1);
+                    if (!added) return;
+
+                    addBtn.classList.add("is-added");
+                    setTimeout(function () {
+                        addBtn.classList.remove("is-added");
+                    }, 350);
+                });
+            }
+
+            if (decBtn) {
+                decBtn.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const current = Basket.getItems().find(
+                        (item) => item.slug === product.slug,
+                    );
+                    const currentQty = current ? current.qty : 0;
+                    Basket.setQty(product.slug, currentQty - 1);
+                });
+            }
+        }
+
+        document.querySelectorAll(".basket-qty-widget").forEach(bindWidget);
+
+        window.addEventListener("menu:updated", function () {
+            document.querySelectorAll(".basket-qty-widget").forEach(bindWidget);
+            renderQtyWidgets();
+        });
 
         const footer = document.querySelector(".footer");
         if (footer && "IntersectionObserver" in window) {

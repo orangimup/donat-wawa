@@ -31,6 +31,12 @@ class MenuController extends Controller
             'category' => $item->category,
         ]);
 
+        if ($request->ajax()) {
+            return response(view('user.menu', ['menuItems' => $menuItems])->fragment('menu-results'))
+                ->header('Cache-Control', 'no-store')
+                ->header('Vary', 'X-Requested-With');
+        }
+
         return view('user.menu', ['menuItems' => $menuItems]);
     }
 }

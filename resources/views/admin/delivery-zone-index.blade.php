@@ -151,7 +151,7 @@
     <div class="admin-modal-overlay admin-modal-overlay-center zone-modal-overlay" id="zoneModalOverlay">
         <div class="admin-modal zone-modal" role="dialog" aria-modal="true" aria-labelledby="zoneModalTitle">
             <div class="zone-modal-head">
-                <h2 id="zoneModalTitle">{{ __(@json(__('Add Delivery Zone'))) }}</h2>
+                <h2 id="zoneModalTitle">{{ __('Add Delivery Zone') }}</h2>
                 <button type="button" class="admin-modal-close" onclick="closeZoneModal()" aria-label="{{ __('Close') }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.2" stroke-linecap="round">

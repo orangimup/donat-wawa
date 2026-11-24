@@ -777,5 +777,17 @@
     "waiting for bank details": "waiting for bank details",
     "← Back to orders": "← Back to orders",
     "← Back to refunds": "← Back to refunds",
-    "Shipping fee": "Shipping fee"
+    "Shipping fee": "Shipping fee",
+    "Type your street or area, e.g. Jl. Mawar": "Type your street or area, e.g. Jl. Mawar",
+    "Pick an address from the list to see your shipping fee.": "Pick an address from the list to see your shipping fee.",
+    "Address Details": "Address Details",
+    "House number, landmark, e.g. green gate next to the mosque": "House number, landmark, e.g. green gate next to the mosque",
+    "Calculating shipping fee...": "Calculating shipping fee...",
+    "No address found. Try the street name and area.": "No address found. Try the street name and area.",
+    "Please choose your address from the suggestions.": "Please choose your address from the suggestions.",
+    "km": "km",
+    "Zone": "Zone",
+    "Address search is unavailable right now. Please try again in a moment.": "Address search is unavailable right now. Please try again in a moment.",
+    "Sorry, this address is outside our delivery area (:km km from the shop).": "Sorry, this address is outside our delivery area (:km km from the shop).",
+    "We could not find that address. Please pick one from the suggestions.": "We could not find that address. Please pick one from the suggestions."
 }

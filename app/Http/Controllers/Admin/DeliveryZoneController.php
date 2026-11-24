@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\DeliveryZone;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -12,8 +13,6 @@ use Illuminate\View\View;
 class DeliveryZoneController extends Controller
 {
     private const PER_PAGE = 5;
-
-    private const SESSION_KEY = 'admin_delivery_zones';
 
     public const STATUS_LABELS = [
         'active' => 'Active',
@@ -55,7 +54,6 @@ class DeliveryZoneController extends Controller
         };
         $zones = $zones->values();
 
-        // After deleting the last row of a page, go to the new last page.
         $page = LengthAwarePaginator::resolveCurrentPage();
         $lastPage = max(1, (int) ceil($zones->count() / self::PER_PAGE));
         if ($page > $lastPage) {
@@ -87,45 +85,30 @@ class DeliveryZoneController extends Controller
     {
         $data = $this->validated($request, null);
 
-        $zones = $this->zones();
-        $zone = $this->makeZone(
-            ($zones->max('id') ?? 0) + 1,
-            $data['min_km'],
-            $data['max_km'],
-            $data['fee'],
-            $data['is_active']
-        );
+        $zone = DeliveryZone::create($data);
 
-        $this->save($zones->push($zone));
-
-        return back()->with('status', __('Delivery zone :label has been added.', ['label' => $zone['label']]));
+        return back()->with('status', __('Delivery zone :label has been added.', ['label' => $zone->label]));
     }
 
     public function update(Request $request, int $zone): RedirectResponse
     {
-        $current = $this->findOrFail($zone);
-        $data = $this->validated($request, $zone);
+        $model = DeliveryZone::findOrFail($zone);
+        $label = $model->label;
 
-        $updated = $this->makeZone($zone, $data['min_km'], $data['max_km'], $data['fee'], $data['is_active']);
+        $model->update($this->validated($request, $zone));
 
-        $this->save($this->zones()->map(fn (array $item) => $item['id'] === $zone ? $updated : $item));
-
-        return back()->with('status', __('Delivery zone :label has been updated.', ['label' => $current['label']]));
+        return back()->with('status', __('Delivery zone :label has been updated.', ['label' => $label]));
     }
 
     public function destroy(int $zone): RedirectResponse
     {
-        $current = $this->findOrFail($zone);
+        $model = DeliveryZone::findOrFail($zone);
+        $label = $model->label;
 
-        $this->save($this->zones()->reject(fn (array $item) => $item['id'] === $zone));
+        $model->delete();
 
-        return back()->with('status', __('Delivery zone :label has been deleted.', ['label' => $current['label']]));
+        return back()->with('status', __('Delivery zone :label has been deleted.', ['label' => $label]));
     }
-
-    /**
-     * Validates the popup form. "distance_range" is typed like "0 - 2 km" and is
-     * turned into min/max numbers; ranges may touch but must not overlap.
-     */
     private function validated(Request $request, ?int $ignoreId): array
     {
         $parsed = null;
@@ -180,8 +163,6 @@ class DeliveryZoneController extends Controller
             'is_active' => $request->input('is_active') === '1',
         ];
     }
-
-    /** "0 - 2 km", "2.5-5", "5 – 8 KM" -> [min, max], or null when it does not look like a range. */
     private function parseRange(string $raw): ?array
     {
         $number = '(\d+(?:[.,]\d+)?)';
@@ -192,45 +173,12 @@ class DeliveryZoneController extends Controller
 
         return [(float) str_replace(',', '.', $m[1]), (float) str_replace(',', '.', $m[2])];
     }
-
-    /* ------------------------------------------------------------------
-     | Temporary data layer.
-     | Zones are hardcoded until the delivery_zones table exists. Changes
-     | are kept in the session (the whole list) so add / edit / delete can
-     | be demonstrated. Replace zones(), findOrFail() and save() with
-     | Eloquent queries later.
-     ------------------------------------------------------------------ */
-
     private function zones(): Collection
     {
-        return collect(session(self::SESSION_KEY, $this->seed()->all()));
-    }
-
-    private function findOrFail(int $id): array
-    {
-        $zone = $this->zones()->firstWhere('id', $id);
-
-        abort_if($zone === null, 404);
-
-        return $zone;
-    }
-
-    private function save(Collection $zones): void
-    {
-        session([self::SESSION_KEY => $zones->values()->all()]);
-    }
-
-    private function seed(): Collection
-    {
-        return collect([
-            $this->makeZone(1, 0, 2, 3000, true),
-            $this->makeZone(2, 2, 5, 5000, true),
-            $this->makeZone(3, 5, 8, 8000, true),
-            $this->makeZone(4, 8, 10, 10000, true),
-            $this->makeZone(5, 10, 15, 15000, true),
-            $this->makeZone(6, 15, 20, 20000, false),
-            $this->makeZone(7, 20, 25, 25000, false),
-        ]);
+        return DeliveryZone::query()
+            ->orderBy('min_km')
+            ->get()
+            ->map(fn (DeliveryZone $z) => $this->makeZone($z->id, $z->min_km, $z->max_km, $z->fee, $z->is_active));
     }
 
     private function makeZone(int $id, float $min, float $max, int $fee, bool $active): array

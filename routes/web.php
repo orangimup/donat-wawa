@@ -29,6 +29,8 @@ Route::get('/about', [AboutController::class, 'index'])->name('about');
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::get('/checkout/sync-basket', [CheckoutController::class, 'syncBasket'])->name('checkout.sync-basket');
 Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/checkout/address/suggest', [CheckoutController::class, 'suggestAddress'])->middleware('throttle:40,1')->name('checkout.address-suggest');
+Route::post('/checkout/shipping-quote', [CheckoutController::class, 'shippingQuote'])->middleware('throttle:40,1')->name('checkout.shipping-quote');
 Route::post('/midtrans/notification', MidtransNotificationController::class)->name('midtrans.notification');
 Route::post('/language/{locale}', [LanguageController::class, 'switch'])->name('language.switch');
 

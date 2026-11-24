@@ -8,6 +8,7 @@
 @endsection
 
 @push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
     @vite(['resources/css/product.css', 'resources/css/checkout.css'])
 @endpush
 
@@ -24,7 +25,6 @@
         </div>
 
         <div id="checkoutContent" class="checkout-layout" hidden>
-            {{-- Order Summary --}}
             <div class="checkout-card">
                 <h2>{{ __('Order Summary') }}</h2>
 
@@ -46,7 +46,6 @@
                 </div>
             </div>
 
-            {{-- Customer & Delivery Details --}}
             <div class="checkout-card">
                 <h2>{{ __('Customer & Delivery Details') }}</h2>
 
@@ -71,7 +70,8 @@
                     </label>
 
                     <label class="checkout-field">
-                        <span class="checkout-field-label">{{ __('Phone Number') }}<span class="required-mark">*</span></span>
+                        <span class="checkout-field-label">{{ __('Phone Number') }}<span
+                                class="required-mark">*</span></span>
                         <div class="checkout-field-icon">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -84,10 +84,36 @@
                         </div>
                     </label>
 
+                    <div class="checkout-field">
+                        <label class="checkout-field-label" for="addressSearch">{{ __('Delivery Address') }}<span
+                                class="required-mark">*</span></label>
+
+                        <div class="address-combo" id="addressCombo">
+                            <textarea id="addressSearch" name="address_search" rows="3" autocomplete="new-password"
+                                spellcheck="false" role="combobox" aria-expanded="false" aria-controls="addressList"
+                                aria-autocomplete="list" maxlength="200" placeholder="{{ __('Type your street or area') }}"
+                                required></textarea>
+
+                            <ul class="address-list" id="addressList" role="listbox" hidden></ul>
+                        </div>
+
+                        <input type="hidden" id="addrLat" name="lat">
+                        <input type="hidden" id="addrLng" name="lng">
+                        <input type="hidden" id="addrArea" name="address_area">
+                        <small class="address-status" id="addressStatus" data-state=""></small>
+
+                        <div class="address-map-wrap">
+                            <div class="address-map" id="addressMap"></div>
+                            <button type="button" class="address-locate" id="addressLocate">{{ __('Use my location') }}</button>
+                        </div>
+                        <small class="address-hint">{{ __('Tap the map or drag the pin to your exact house location.') }}</small>
+                    </div>
+
                     <label class="checkout-field">
-                        <span class="checkout-field-label">{{ __('Delivery Address') }}<span class="required-mark">*</span></span>
-                        <textarea name="address" rows="3" placeholder="{{ __('Delivery address details...') }}"
-                            required>{{ auth()->user()->address ?? '' }}</textarea>
+                        <span class="checkout-field-label">{{ __('Address Details') }}<span
+                                class="required-mark">*</span></span>
+                        <input type="text" id="addressDetail" name="address_detail" maxlength="200" required
+                            placeholder="{{ __('House number, landmark, e.g. green gate next to the mosque') }}">
                     </label>
 
                     <div class="checkout-field">
@@ -101,7 +127,6 @@
                                 </svg>
                             </div>
                             <p>{{ __('Estimated arrival in 60-90 minutes') }}</p>
-                            <span class="delivery-option-price">Rp{{ number_format($shippingFees['same_day'], 0, ',', '.') }}</span>
                         </div>
 
                         <div class="delivery-option" id="deliveryPreorder" data-method="preorder">
@@ -114,7 +139,6 @@
                                 </svg>
                             </div>
                             <p>{{ __('Choose your own delivery time') }}</p>
-                            <span class="delivery-option-price">Rp{{ number_format($shippingFees['pre_order'], 0, ',', '.') }}</span>
                         </div>
 
                         <div class="delivery-schedule" id="deliverySchedule" hidden>
@@ -153,12 +177,31 @@
 
 @push('scripts')
     @vite('resources/js/basket.js')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    @php
+        $checkoutText = [
+            'choose' => __('Pick an address from the list or mark it on the map to see your shipping fee.'),
+            'searching' => __('Searching address...'),
+            'markOnMap' => __("My address isn't listed - mark it on the map"),
+            'locating' => __('Getting your location...'),
+            'locationFailed' => __('Could not get your location. Allow location access or mark it on the map.'),
+            'pinned' => __('Pinned location'),
+            'calculating' => __('Calculating shipping fee...'),
+            'noResults' => __('No address found. Try the street name and area.'),
+            'pickAddress' => __('Please choose a suggestion or mark your location on the map.'),
+            'km' => __('km'),
+            'zone' => __('Zone'),
+            'searchError' => __('Address search is unavailable right now. Please try again in a moment.'),
+        ];
+    @endphp
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const SHIPPING_FEE = { today: {{ $shippingFees['same_day'] }}, preorder: {{ $shippingFees['pre_order'] }} };
+            const T = @json($checkoutText);
             const DELIVERY_TYPE = { today: 'same_day', preorder: 'pre_order' };
             let pendingPayment = null;
             let deliveryMethod = 'today';
+            let shippingQuote = null;
 
             function adjustBottomPadding() {
                 const bar = document.getElementById('checkoutPaymentBar');
@@ -191,33 +234,33 @@
                 const list = document.getElementById('checkoutItems');
                 list.innerHTML = items.map(function (item) {
                     return `
-                            <div class="checkout-item" data-slug="${item.slug}">
-                                <img src="${item.image}" alt="${item.name}">
-                                <div class="checkout-item-info">
-                                    <strong>${item.name}</strong>
-                                    <span>${DonatBasket.format(item.price)}</span>
-                                    <div class="qty-stepper">
-                                        <button type="button" class="qty-btn" data-action="dec">−</button>
-                                        <span class="checkout-item-qty">${item.qty}</span>
-                                        <button type="button" class="qty-btn" data-action="inc">+</button>
+                                    <div class="checkout-item" data-slug="${item.slug}">
+                                        <img src="${item.image}" alt="${item.name}">
+                                        <div class="checkout-item-info">
+                                            <strong>${item.name}</strong>
+                                            <span>${DonatBasket.format(item.price)}</span>
+                                            <div class="qty-stepper">
+                                                <button type="button" class="qty-btn" data-action="dec">−</button>
+                                                <span class="checkout-item-qty">${item.qty}</span>
+                                                <button type="button" class="qty-btn" data-action="inc">+</button>
+                                            </div>
+                                        </div>
+                                        <div class="checkout-item-side">
+                                            <button type="button" class="checkout-item-remove" aria-label="${window.I18N.remove}">
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"></path></svg>
+                                            </button>
+                                            <strong class="checkout-item-total">${DonatBasket.format(item.price * item.qty)}</strong>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="checkout-item-side">
-                                    <button type="button" class="checkout-item-remove" aria-label="${window.I18N.remove}">
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"></path></svg>
-                                    </button>
-                                    <strong class="checkout-item-total">${DonatBasket.format(item.price * item.qty)}</strong>
-                                </div>
-                            </div>
-                        `;
+                                `;
                 }).join('');
 
                 const subtotal = DonatBasket.getTotalPrice();
-                const shipping = SHIPPING_FEE[deliveryMethod];
+                const shipping = shippingQuote ? shippingQuote.fee : 0;
                 const total = subtotal + shipping;
 
                 document.getElementById('checkoutSubtotal').textContent = DonatBasket.format(subtotal);
-                document.getElementById('checkoutShippingFee').textContent = DonatBasket.format(shipping);
+                document.getElementById('checkoutShippingFee').textContent = shippingQuote ? DonatBasket.format(shipping) : '-';
                 document.getElementById('checkoutTotal').textContent = DonatBasket.format(total);
                 document.getElementById('checkoutPaymentTotal').textContent = 'IDR ' + total.toLocaleString('id-ID');
 
@@ -260,6 +303,367 @@
                 });
             });
 
+            const addressInput = document.getElementById('addressSearch');
+            const addressList = document.getElementById('addressList');
+            const addressStatus = document.getElementById('addressStatus');
+            const addressDetail = document.getElementById('addressDetail');
+            const latInput = document.getElementById('addrLat');
+            const lngInput = document.getElementById('addrLng');
+            const areaInput = document.getElementById('addrArea');
+
+            const GEO = {
+                base: 'https://api.geoapify.com/v1',
+                key: @json(config('shipping.browser_key')),
+                bounds: @json(config('shipping.search_bounds')),
+                origin: @json(config('shipping.origin')),
+            };
+
+            let suggestions = [];
+            let activeIndex = -1;
+            let debounceTimer = null;
+            let suggestAbort = null;
+            let quoteRun = 0;
+            let reverseRun = 0;
+            let lastHouseNo = '';
+            let pickedArea = '';
+            const suggestCache = new Map();
+
+            function setStatus(text, state) {
+                addressStatus.textContent = text;
+                addressStatus.dataset.state = state || '';
+            }
+
+            function closeList() {
+                addressList.hidden = true;
+                addressList.innerHTML = '';
+                addressInput.setAttribute('aria-expanded', 'false');
+                addressInput.removeAttribute('aria-activedescendant');
+                activeIndex = -1;
+            }
+
+            function escapeHtml(value) {
+                const div = document.createElement('div');
+                div.textContent = value;
+                return div.innerHTML;
+            }
+
+            /* ---------- Peta + pin (Leaflet) ---------- */
+            const map = L.map('addressMap', { scrollWheelZoom: false })
+                .setView([GEO.origin.lat, GEO.origin.lng], 12);
+
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors',
+            }).addTo(map);
+
+            // Peta ada di dalam blok yang awalnya hidden, jadi ukurannya harus dihitung ulang saat tampil.
+            new ResizeObserver(function () { map.invalidateSize(); }).observe(document.getElementById('addressMap'));
+
+            const pinIcon = L.divIcon({
+                className: 'address-pin',
+                html: '<svg width="32" height="40" viewBox="0 0 32 40"><path d="M16 0C7.2 0 0 7.1 0 15.9 0 27.4 16 40 16 40s16-12.6 16-24.1C32 7.1 24.8 0 16 0z" fill="#7a1f2b"/><circle cx="16" cy="15.5" r="6" fill="#fff"/></svg>',
+                iconSize: [32, 40],
+                iconAnchor: [16, 40],
+            });
+
+            L.marker([GEO.origin.lat, GEO.origin.lng], {
+                interactive: false,
+                icon: L.divIcon({ className: 'address-shop', html: '<span>Donat Wawa</span>', iconSize: [0, 0] }),
+            }).addTo(map);
+
+            let pin = null;
+
+            function placePin(lat, lng) {
+                if (!pin) {
+                    pin = L.marker([lat, lng], { draggable: true, icon: pinIcon }).addTo(map);
+                    pin.on('dragend', function () {
+                        const p = pin.getLatLng();
+                        pinMoved(p.lat, p.lng);
+                    });
+                } else {
+                    pin.setLatLng([lat, lng]);
+                }
+            }
+
+            map.on('click', function (e) {
+                closeList();
+                placePin(e.latlng.lat, e.latlng.lng);
+                pinMoved(e.latlng.lat, e.latlng.lng);
+            });
+
+            /* ---------- Autocomplete (langsung ke Geoapify dari browser) ---------- */
+
+            // "Jalan Pahlawan No. 339, Balearjosari" -> cari "Jalan Pahlawan, Balearjosari",
+            // nomor rumahnya (339) dipisah dan dimasukkan ke kolom Detail Alamat.
+            function parseQuery(raw) {
+                let houseNo = '';
+                let text = raw.replace(/\b(?:nomor|nmr|no)\.?\s*([0-9]+[a-z]?(?:\s*[\/-]\s*[0-9a-z]+)?)/i, function (m, n) {
+                    houseNo = n.replace(/\s+/g, '');
+                    return ' ';
+                });
+                text = text.replace(/\brt\.?\s*\d+(\s*\/?\s*rw\.?\s*\d+)?/ig, ' ').replace(/\brw\.?\s*\d+/ig, ' ');
+                text = text.replace(/\s+/g, ' ').replace(/\s*,\s*(,\s*)*/g, ', ').replace(/^[,\s]+|[,\s]+$/g, '');
+                return { text: text, houseNo: houseNo };
+            }
+
+            function showList() {
+                if (addressList.querySelector('.address-attribution') === null) {
+                    addressList.insertAdjacentHTML('beforeend', '<li class="address-attribution" aria-hidden="true">Powered by Geoapify &middot; &copy; OpenStreetMap contributors</li>');
+                }
+                addressList.hidden = false;
+                addressInput.setAttribute('aria-expanded', 'true');
+            }
+
+            function renderLoading() {
+                addressList.innerHTML = '<li class="address-empty">' + escapeHtml(T.searching) + '</li>';
+                showList();
+            }
+
+            function renderSuggestions() {
+                let html = '';
+
+                if (suggestions.length === 0) {
+                    html += '<li class="address-empty">' + escapeHtml(T.noResults) + '</li>';
+                } else {
+                    html += suggestions.map(function (s, i) {
+                        return '<li class="address-option' + (i === activeIndex ? ' is-active' : '') + '" role="option" id="addressOption' + i + '" data-index="' + i + '">'
+                            + '<strong>' + escapeHtml(s.main) + '</strong>'
+                            + (s.secondary ? '<span>' + escapeHtml(s.secondary) + '</span>' : '')
+                            + '</li>';
+                    }).join('');
+                }
+
+                html += '<li class="address-option address-option-map" data-map="1"><strong>' + escapeHtml(T.markOnMap) + '</strong></li>';
+
+                addressList.innerHTML = html;
+                showList();
+            }
+
+            function fetchSuggestions(query) {
+                const cacheKey = query.toLowerCase();
+
+                if (suggestCache.has(cacheKey)) {
+                    suggestions = suggestCache.get(cacheKey);
+                    activeIndex = -1;
+                    renderSuggestions();
+                    return;
+                }
+
+                if (suggestAbort) { suggestAbort.abort(); }
+                const controller = new AbortController();
+                suggestAbort = controller;
+                const timer = setTimeout(function () { controller.abort(); }, 6000);
+
+                const b = GEO.bounds;
+                const params = new URLSearchParams({
+                    text: query,
+                    lang: 'id',
+                    limit: '6',
+                    format: 'json',
+                    filter: 'rect:' + [b.low.lng, b.low.lat, b.high.lng, b.high.lat].join(','),
+                    bias: 'proximity:' + GEO.origin.lng + ',' + GEO.origin.lat,
+                    apiKey: GEO.key,
+                });
+
+                renderLoading();
+
+                fetch(GEO.base + '/geocode/autocomplete?' + params.toString(), { signal: controller.signal })
+                    .then(function (res) {
+                        if (!res.ok) { throw new Error(T.searchError); }
+                        return res.json();
+                    })
+                    .then(function (body) {
+                        const seen = new Set();
+
+                        suggestions = (body.results || []).filter(function (r) {
+                            if (r.lat == null || r.lon == null || seen.has(r.place_id)) { return false; }
+                            seen.add(r.place_id);
+                            return true;
+                        }).map(function (r) {
+                            return {
+                                main: r.address_line1 || r.formatted || '',
+                                secondary: r.address_line2 || '',
+                                area: r.formatted || '',
+                                lat: r.lat,
+                                lng: r.lon,
+                            };
+                        });
+
+                        suggestCache.set(cacheKey, suggestions);
+                        activeIndex = -1;
+                        renderSuggestions();
+                    })
+                    .catch(function () {
+                        if (suggestAbort !== controller) { return; }
+                        closeList();
+                        setStatus(T.searchError, 'error');
+                    })
+                    .finally(function () { clearTimeout(timer); });
+            }
+
+            /* ---------- Ongkir ---------- */
+            function resetQuote() {
+                if (!shippingQuote && !latInput.value) { return; }
+                shippingQuote = null;
+                latInput.value = '';
+                lngInput.value = '';
+                quoteRun++;
+                pendingPayment = null;
+                render();
+            }
+
+            function requestQuote(lat, lng) {
+                latInput.value = lat.toFixed(6);
+                lngInput.value = lng.toFixed(6);
+                addressInput.setCustomValidity('');
+                shippingQuote = null;
+                pendingPayment = null;
+                render();
+                setStatus(T.calculating, 'loading');
+
+                const run = ++quoteRun;
+
+                postJson('{{ route('checkout.shipping-quote') }}', { lat: lat, lng: lng })
+                    .then(function (quote) {
+                        if (run !== quoteRun) { return; }
+                        shippingQuote = quote;
+                        pendingPayment = null;
+                        setStatus(quote.distance_km.toFixed(1) + ' ' + T.km + ' - ' + T.zone + ' ' + quote.zone, 'ok');
+                        render();
+                    })
+                    .catch(function (err) {
+                        if (run !== quoteRun) { return; }
+                        shippingQuote = null;
+                        setStatus(err.message || T.searchError, 'error');
+                        render();
+                    });
+            }
+
+            function setArea(text) {
+                pickedArea = text;
+                areaInput.value = text;
+            }
+
+            // Pin digeser / peta diketuk / "lokasiku": hitung ongkir langsung, lalu cari nama areanya.
+            function pinMoved(lat, lng) {
+                const fallback = T.pinned + ' (' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ')';
+                setArea(fallback);
+                requestQuote(lat, lng);
+
+                const run = ++reverseRun;
+                const params = new URLSearchParams({ lat: lat, lon: lng, lang: 'id', format: 'json', apiKey: GEO.key });
+
+                fetch(GEO.base + '/geocode/reverse?' + params.toString())
+                    .then(function (res) { return res.ok ? res.json() : null; })
+                    .then(function (body) {
+                        if (run !== reverseRun || !body || !body.results || !body.results[0]) { return; }
+                        const r = body.results[0];
+                        const text = r.formatted || [r.address_line1, r.address_line2].filter(Boolean).join(', ');
+                        if (!text) { return; }
+                        setArea(text);
+                        addressInput.value = text;
+                    })
+                    .catch(function () { /* nama area hanya pelengkap, ongkir tetap jalan */ });
+            }
+
+            function chooseSuggestion(index) {
+                const picked = suggestions[index];
+                if (!picked) { return; }
+
+                addressInput.value = picked.main + (picked.secondary ? ', ' + picked.secondary : '');
+                setArea(picked.area || addressInput.value);
+                reverseRun++;
+
+                if (lastHouseNo && !addressDetail.value.trim()) {
+                    addressDetail.value = 'No. ' + lastHouseNo;
+                }
+
+                closeList();
+                placePin(picked.lat, picked.lng);
+                map.setView([picked.lat, picked.lng], 17);
+                requestQuote(picked.lat, picked.lng);
+            }
+
+            function fullAddress() {
+                const detail = addressDetail.value.trim();
+                return detail ? detail + ', ' + pickedArea : pickedArea;
+            }
+
+            document.getElementById('addressLocate').addEventListener('click', function () {
+                if (!navigator.geolocation) { setStatus(T.locationFailed, 'error'); return; }
+                setStatus(T.locating, 'loading');
+
+                navigator.geolocation.getCurrentPosition(function (pos) {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    map.setView([lat, lng], 17);
+                    placePin(lat, lng);
+                    pinMoved(lat, lng);
+                }, function () {
+                    setStatus(T.locationFailed, 'error');
+                }, { enableHighAccuracy: true, timeout: 10000 });
+            });
+
+            addressInput.addEventListener('input', function () {
+                resetQuote();
+                addressInput.setCustomValidity('');
+
+                const parsed = parseQuery(addressInput.value.trim());
+                clearTimeout(debounceTimer);
+
+                if (parsed.text.length < 3) {
+                    if (suggestAbort) { suggestAbort.abort(); suggestAbort = null; }
+                    closeList();
+                    setStatus(T.choose, '');
+                    return;
+                }
+
+                lastHouseNo = parsed.houseNo;
+                setStatus(T.choose, '');
+                debounceTimer = setTimeout(function () { fetchSuggestions(parsed.text); }, 250);
+            });
+
+            addressInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && (addressList.hidden || suggestions.length === 0 || activeIndex < 0)) {
+                    e.preventDefault();
+                    return;
+                }
+
+                if (addressList.hidden || suggestions.length === 0) { return; }
+
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const step = e.key === 'ArrowDown' ? 1 : -1;
+                    activeIndex = (activeIndex + step + suggestions.length) % suggestions.length;
+                    renderSuggestions();
+                    addressInput.setAttribute('aria-activedescendant', 'addressOption' + activeIndex);
+                } else if (e.key === 'Enter' && activeIndex >= 0) {
+                    e.preventDefault();
+                    chooseSuggestion(activeIndex);
+                } else if (e.key === 'Escape') {
+                    closeList();
+                }
+            });
+
+            addressList.addEventListener('mousedown', function (e) {
+                const option = e.target.closest('.address-option');
+                if (!option) { return; }
+                e.preventDefault();
+
+                if (option.dataset.map) {
+                    closeList();
+                    setStatus(T.choose, '');
+                    document.getElementById('addressMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+
+                chooseSuggestion(Number(option.dataset.index));
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('#addressCombo')) { closeList(); }
+            });
+
             function postJson(url, payload) {
                 return fetch(url, {
                     method: 'POST',
@@ -286,7 +690,10 @@
                 const payload = {
                     name: formData.get('name'),
                     phone: formData.get('phone'),
-                    address: formData.get('address'),
+                    lat: formData.get('lat'),
+                    lng: formData.get('lng'),
+                    address_area: formData.get('address_area'),
+                    address_detail: formData.get('address_detail'),
                     delivery_type: DELIVERY_TYPE[deliveryMethod],
                     items: items.map(function (item) { return { slug: item.slug, qty: item.qty }; }),
                 };
@@ -316,6 +723,12 @@
 
                 const dateInput = form.querySelector('[name="delivery_date"]');
                 dateInput.required = (deliveryMethod === 'preorder');
+
+                if (!shippingQuote) {
+                    addressInput.setCustomValidity(T.pickAddress);
+                } else {
+                    addressInput.setCustomValidity('');
+                }
 
                 if (!form.reportValidity()) {
                     return;
@@ -356,7 +769,7 @@
                             name: formData.get('name'),
                             email: formData.get('email'),
                             phone: formData.get('phone'),
-                            address: formData.get('address'),
+                            address: fullAddress(formData),
                             deliveryMethod: deliveryMethod,
                             deliveryDate: formData.get('delivery_date'),
                             deliveryTime: formData.get('delivery_time'),
@@ -366,9 +779,6 @@
                             return new Promise(function (resolve) { setTimeout(resolve, ms); });
                         }
 
-                        /* Ask the server (which asks Midtrans) whether the order is really paid.
-                           The popup's own "success"/"pending" is never trusted. When it says
-                           "success" the settlement can lag a moment, so try a couple more times. */
                         function verifyPaid(claimedSuccess, attempt) {
                             return postJson('{{ url('/checkout/orders') }}/' + encodeURIComponent(orderPayload.code) + '/sync', {})
                                 .then(function (state) {
@@ -381,8 +791,6 @@
                             verifyPaid(status === 'success', 0)
                                 .then(function (state) {
                                     if (!state.paid) {
-                                        /* Not paid: stay here so the customer can try again
-                                           (same order and payment token, no duplicate order). */
                                         alert(window.I18N.paymentNotReceived);
                                         resetButton();
                                         return;

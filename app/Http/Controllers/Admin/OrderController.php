@@ -79,8 +79,6 @@ class OrderController extends Controller
             'retryPopup' => $request->old('_popup'),
         ]);
     }
-
-    /** Everything the admin needs to cross-check an order before accepting or rejecting it. */
     public function show(int $order): View
     {
         $model = Order::with(['items.menuItem', 'transaction', 'refund'])->findOrFail($order);
@@ -108,7 +106,6 @@ class OrderController extends Controller
         ]);
 
         if ($validated['action'] === 'accept') {
-            // Once accepted an order can no longer be rejected, so it must already be paid.
             if (! $current->transaction?->isPaid()) {
                 return back()->withErrors(['order' => __('Payment has not been received for this order yet, so it cannot be accepted.')]);
             }
@@ -132,7 +129,6 @@ class OrderController extends Controller
 
         $message = __('Order :code has been rejected.', ['code' => $current->display_code]);
 
-        // A paid order is refunded automatically; the customer does not have to ask.
         $refund = $refunds->refundRejectedOrder($rejected);
 
         if ($refund !== null) {
@@ -152,7 +148,6 @@ class OrderController extends Controller
     {
         $current = Order::findOrFail($order);
 
-        // The admin only moves an accepted order to "shipped". "Done" is confirmed by the customer.
         if ($current->status !== Order::STATUS_PROCESS) {
             return back()->withErrors(['order' => match ($current->status) {
                 Order::STATUS_SHIPPED => __('This order is on its way. It is completed when the customer confirms they received it.'),
@@ -195,6 +190,7 @@ class OrderController extends Controller
             'email' => $order->customer_email,
             'phone' => $order->customer_phone,
             'address' => $order->address,
+            'distance_km' => $order->distance_km,
             'delivery' => $order->delivery_label,
             'delivery_date' => $order->delivery_date?->translatedFormat('d F Y'),
             'delivery_slot' => $order->delivery_slot,
