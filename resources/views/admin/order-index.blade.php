@@ -63,6 +63,8 @@
             </form>
         </div>
 
+        {{-- Refreshed in place by dwLiveRefresh (layouts/admin) when an order changes --}}
+        <div id="order-live-table" data-live-version="{{ md5(json_encode([$orders->items(), $orders->total()])) }}">
         <div class="admin-table-wrap">
             <table class="admin-table order-table">
                 <thead>
@@ -146,6 +148,7 @@
                 {{ __('Showing :count of :total entries', ['count' => $orders->count(), 'total' => $orders->total()]) }}
             </span>
             {{ $orders->onEachSide(1)->links('admin.partials.pagination') }}
+        </div>
         </div>
     </div>
 
@@ -470,6 +473,25 @@
                     @endif
                 })();
             @endif
+        })();
+    </script>
+    <script>
+        /* Live table: a status change (e.g. the customer confirms receipt) shows up without a refresh. */
+        (function () {
+            var poll = dwLiveRefresh('#order-live-table');
+
+            window.addEventListener('admin:order-completed', function (e) {
+                var ids = (e.detail && e.detail.ids) || [];
+                poll().then(function () {
+                    ids.forEach(function (id) {
+                        var btn = document.querySelector('[data-order-id="' + id + '"]');
+                        var row = btn && btn.closest('tr');
+                        if (!row) { return; }
+                        row.classList.add('is-flash');
+                        setTimeout(function () { row.classList.remove('is-flash'); }, 3200);
+                    });
+                });
+            });
         })();
     </script>
 @endpush

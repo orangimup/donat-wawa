@@ -5,12 +5,15 @@
         </a>
         <nav class="nav-links">
             <a href="{{ url('/') }}" class="nav-link {{ request()->is('/') ? 'active' : '' }}">{{ __('Home') }}</a>
-            <a href="{{ url('/menu') }}" class="nav-link {{ request()->is('menu*') ? 'active' : '' }}">{{ __('Menu') }}</a>
-            <a href="{{ url('/about') }}" class="nav-link {{ request()->is('about*') ? 'active' : '' }}">{{ __('About') }}</a>
+            <a href="{{ url('/menu') }}"
+                class="nav-link {{ request()->is('menu*') ? 'active' : '' }}">{{ __('Menu') }}</a>
+            <a href="{{ url('/about') }}"
+                class="nav-link {{ request()->is('about*') ? 'active' : '' }}">{{ __('About') }}</a>
         </nav>
         <div class="nav-right">
             <div class="lang-menu">
-                <button type="button" class="icon-btn" aria-label="{{ __('Choose language') }}" onclick="toggleLangMenu()">
+                <button type="button" class="icon-btn" aria-label="{{ __('Choose language') }}"
+                    onclick="toggleLangMenu()">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
                         stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="9"></circle>
@@ -20,22 +23,47 @@
                 <div class="lang-dropdown" id="langDropdown">
                     <form method="POST" action="{{ route('language.switch', 'id') }}">
                         @csrf
-                        <button type="submit" class="lang-dropdown-item {{ app()->getLocale() === 'id' ? 'active' : '' }}">Bahasa Indonesia</button>
+                        <button type="submit"
+                            class="lang-dropdown-item {{ app()->getLocale() === 'id' ? 'active' : '' }}">Bahasa
+                            Indonesia</button>
                     </form>
                     <form method="POST" action="{{ route('language.switch', 'en') }}">
                         @csrf
-                        <button type="submit" class="lang-dropdown-item {{ app()->getLocale() === 'en' ? 'active' : '' }}">English (US)</button>
+                        <button type="submit"
+                            class="lang-dropdown-item {{ app()->getLocale() === 'en' ? 'active' : '' }}">English
+                            (US)</button>
                     </form>
                 </div>
             </div>
             @auth
-                <button type="button" class="icon-btn" aria-label="{{ __('Notifications') }}">
-                    <img src="{{ asset('assets/icons/notifications.svg') }}" alt="" class="icon-img">
-                </button>
+                <div class="notif-menu" id="notifMenu">
+                    <button type="button" class="icon-btn notif-btn" id="notifBtn" aria-label="{{ __('Notifications') }}"
+                        aria-haspopup="true" aria-expanded="false">
+                        <img src="{{ asset('assets/icons/notifications.svg') }}" alt="" class="icon-img">
+                        <span class="notif-badge" id="notifBadge" hidden>0</span>
+                    </button>
+                    <div class="notif-panel" id="notifPanel" hidden>
+                        <div class="notif-head">
+                            <strong>{{ __('Notifications') }}</strong>
+                            <div class="notif-tabs" role="tablist">
+                                <button type="button" class="notif-tab is-active" id="notifTabAll" role="tab"
+                                    aria-selected="true">{{ __('All') }}</button>
+                                <button type="button" class="notif-tab" id="notifTabUnread" role="tab"
+                                    aria-selected="false">{{ __('Unread') }}</button>
+                            </div>
+                        </div>
+                        <div class="notif-list" id="notifList"></div>
+                        <div class="notif-foot">
+                            <button type="button" class="notif-readall" id="notifReadAll"
+                                disabled>{{ __('Mark all as read') }}</button>
+                        </div>
+                    </div>
+                </div>
             @endauth
             @auth
                 <div class="user-menu">
-                    <button type="button" class="avatar avatar-btn" aria-label="{{ __('My profile') }}" onclick="toggleUserMenu()">
+                    <button type="button" class="avatar avatar-btn" aria-label="{{ __('My profile') }}"
+                        onclick="toggleUserMenu()">
                         @if (auth()->user()->avatar)
                             <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="{{ __('User profile photo') }}">
                         @else
@@ -77,9 +105,11 @@
                     </div>
                 </div>
             @else
-                <button type="button" class="btn btn-primary btn-sm" onclick="openAuthPopup('login')">{{ __('Login') }}</button>
+                <button type="button" class="btn btn-primary btn-sm"
+                    onclick="openAuthPopup('login')">{{ __('Login') }}</button>
             @endauth
-            <button type="button" class="hamburger-btn" id="hamburgerBtn" aria-label="{{ __('Open menu') }}" aria-expanded="false" aria-controls="mobileNavPanel" onclick="toggleMobileMenu()">
+            <button type="button" class="hamburger-btn" id="hamburgerBtn" aria-label="{{ __('Open menu') }}"
+                aria-expanded="false" aria-controls="mobileNavPanel" onclick="toggleMobileMenu()">
                 <span class="hamburger-line"></span>
                 <span class="hamburger-line"></span>
                 <span class="hamburger-line"></span>
@@ -96,7 +126,9 @@
             </svg>
         </button>
         <a href="{{ url('/') }}" class="mobile-nav-link {{ request()->is('/') ? 'active' : '' }}">{{ __('Home') }}</a>
-        <a href="{{ url('/menu') }}" class="mobile-nav-link {{ request()->is('menu*') ? 'active' : '' }}">{{ __('Menu') }}</a>
-        <a href="{{ url('/about') }}" class="mobile-nav-link {{ request()->is('about*') ? 'active' : '' }}">{{ __('About') }}</a>
+        <a href="{{ url('/menu') }}"
+            class="mobile-nav-link {{ request()->is('menu*') ? 'active' : '' }}">{{ __('Menu') }}</a>
+        <a href="{{ url('/about') }}"
+            class="mobile-nav-link {{ request()->is('about*') ? 'active' : '' }}">{{ __('About') }}</a>
     </nav>
 </header>

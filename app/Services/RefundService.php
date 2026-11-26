@@ -102,7 +102,7 @@ class RefundService
         abort_if($this->orderNeedsBankDetails($order) && $bank === null, 422);
 
         try {
-            return Refund::create([
+            $refund = Refund::create([
                 'id_pesanan' => $order->id_pesanan,
                 'asal_refund' => Refund::SOURCE_CUSTOMER,
                 'alasan' => $reason,
@@ -115,6 +115,10 @@ class RefundService
         } catch (UniqueConstraintViolationException) {
             return null;
         }
+
+        app(NotificationService::class)->refundRequested($refund);
+
+        return $refund;
     }
     public function provideBankDetails(Refund $refund, array $bank, array $extra = []): bool
     {
@@ -159,7 +163,7 @@ class RefundService
     }
     public function reject(Refund $refund, string $notes): bool
     {
-        return Refund::query()
+        $rejected = Refund::query()
             ->whereKey($refund->id)
             ->where('status', Refund::STATUS_PENDING)
             ->where('asal_refund', Refund::SOURCE_CUSTOMER)
@@ -168,6 +172,12 @@ class RefundService
                 'catatan_admin' => $notes,
                 'tgl_diproses' => now(),
             ]) === 1;
+
+        if ($rejected) {
+            app(NotificationService::class)->refundRejected($refund);
+        }
+
+        return $rejected;
     }
     public function completeManually(Refund $refund, string $proofPath, ?string $notes = null): bool
     {
@@ -196,6 +206,8 @@ class RefundService
 
         if ($done) {
             $this->markTransactionRefunded($refund->id_pesanan);
+
+            app(NotificationService::class)->refundRefunded($refund);
         }
 
         return $done;
@@ -226,7 +238,14 @@ class RefundService
                 'tgl_pengajuan' => now(),
             ]);
 
-            return $this->process($refund);
+            $refund = $this->process($refund);
+
+            if ($refund->isPending() && ! $refund->hasBankDetails() && $this->isManual($refund)) {
+                // Paid by bank transfer: only the customer can say where to send the money back.
+                app(NotificationService::class)->refundNeedsBank($refund);
+            }
+
+            return $refund;
         } catch (UniqueConstraintViolationException) {
             return null;
         } catch (Throwable $e) {
@@ -241,7 +260,7 @@ class RefundService
 
         if ($refund === null) {
             try {
-                Refund::create([
+                $created = Refund::create([
                     'id_pesanan' => $order->id_pesanan,
                     'asal_refund' => Refund::SOURCE_MIDTRANS,
                     'alasan' => 'midtrans_direct',
@@ -251,6 +270,8 @@ class RefundService
                     'tgl_pengajuan' => now(),
                     'tgl_diproses' => now(),
                 ]);
+
+                app(NotificationService::class)->refundRefunded($created);
             } catch (UniqueConstraintViolationException) {
             }
 
@@ -265,6 +286,8 @@ class RefundService
                 'pesan_error' => null,
                 'catatan_admin' => $refund->catatan_admin ?? 'Refunded directly via Midtrans.',
             ]);
+
+            app(NotificationService::class)->refundRefunded($refund);
         }
     }
     public function process(Refund $refund): Refund
@@ -320,6 +343,8 @@ class RefundService
         // pages right even where the webhook cannot reach us (localhost).
         $this->markTransactionRefunded($refund->id_pesanan);
 
+        app(NotificationService::class)->refundRefunded($refund);
+
         return $refund;
     }
 
@@ -336,6 +361,8 @@ class RefundService
         Log::error('Midtrans refund failed', ['order_id' => $refund->id_pesanan, 'error' => $message]);
 
         $refund->update(['pesan_error' => Str::limit($message, 1000, '')]);
+
+        app(NotificationService::class)->refundFailed($refund);
 
         return $refund;
     }

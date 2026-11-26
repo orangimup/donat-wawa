@@ -31,6 +31,7 @@ class MenuController extends Controller
             'category' => $item->category,
         ]);
 
+        // Live search: the page asks for just the grid + pagination and swaps it in.
         if ($request->ajax()) {
             return response(view('user.menu', ['menuItems' => $menuItems])->fragment('menu-results'))
                 ->header('Cache-Control', 'no-store')

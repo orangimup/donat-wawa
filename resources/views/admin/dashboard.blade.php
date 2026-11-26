@@ -67,14 +67,32 @@
                     {{ __('Daily order count') }}
                 </h2>
 
-                <div class="dash-range" id="dashRange" role="tablist" aria-label="{{ __('Chart range') }}">
-                    <button type="button" class="dash-range-btn" data-range="today">{{ __('Today') }}</button>
-                    <button type="button" class="dash-range-btn" data-range="monthly">{{ __('Monthly') }}</button>
-                    <button type="button" class="dash-range-btn is-active" data-range="weekly">{{ __('Weekly') }}</button>
+                <div class="dash-chart-controls">
+                    <div class="dash-range" id="dashRange" role="tablist" aria-label="{{ __('Chart range') }}">
+                        <button type="button" class="dash-range-btn is-active" data-range="daily">{{ __('Daily') }}</button>
+                        <button type="button" class="dash-range-btn" data-range="weekly">{{ __('Weekly') }}</button>
+                        <button type="button" class="dash-range-btn" data-range="monthly">{{ __('Monthly') }}</button>
+                    </div>
+
+                    <div class="dash-month-nav" id="dashPeriodNav">
+                        <button type="button" class="dash-month-btn" id="dashPrev" aria-label="{{ __('Previous month') }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="m15 18-6-6 6-6"></path>
+                            </svg>
+                        </button>
+                        <span class="dash-month-label" id="dashPeriod" aria-live="polite"></span>
+                        <button type="button" class="dash-month-btn" id="dashNext" aria-label="{{ __('Next month') }}">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="m9 18 6-6-6-6"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="dash-chart">
+            <div class="dash-chart" id="dashChart">
                 <div class="dash-axis" id="dashAxis" aria-hidden="true"></div>
                 <div class="dash-plot">
                     <div class="dash-bars" id="dashBars"></div>
@@ -95,36 +113,74 @@
                         </svg>
                         {{ __('Revenue Trend') }}
                     </h2>
-                    <span class="dash-trend-badge">{{ $trend['change'] }}</span>
+                    @if ($trend['change'])
+                        <span class="dash-trend-badge" title="{{ __('vs last month') }}">{{ $trend['change'] }}</span>
+                    @endif
                 </div>
-                <div class="dash-trend-chart">
-                    <svg viewBox="0 0 300 100" preserveAspectRatio="none" role="img" aria-label="Revenue trend">
-                        <defs>
-                            <linearGradient id="dashTrendFill" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#7b2026" stop-opacity="0.38"></stop>
-                                <stop offset="100%" stop-color="#7b2026" stop-opacity="0.12"></stop>
-                            </linearGradient>
-                        </defs>
-                        <path d="{{ $trend['area'] }}" fill="url(#dashTrendFill)"></path>
-                        <path d="{{ $trend['line'] }}" class="dash-trend-line"></path>
-                    </svg>
+
+                <div class="dash-trend-amount">
+                    <strong>{{ $trend['total_label'] }}</strong>
+                    <span>{{ __('this month') }}</span>
+                </div>
+
+                <div class="dash-trend-plot">
+                    <div class="dash-trend-chart">
+                        <svg viewBox="0 0 300 100" preserveAspectRatio="none" role="img" aria-label="{{ __('Revenue trend') }}">
+                            <defs>
+                                <linearGradient id="dashTrendFill" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#7b2026" stop-opacity="0.38"></stop>
+                                    <stop offset="100%" stop-color="#7b2026" stop-opacity="0.12"></stop>
+                                </linearGradient>
+                            </defs>
+                            <path d="{{ $trend['area'] }}" fill="url(#dashTrendFill)"></path>
+                            <path d="{{ $trend['line'] }}" class="dash-trend-line"></path>
+                        </svg>
+                    </div>
+
+                    <div class="dash-trend-dots">
+                        @foreach ($trend['points'] as $point)
+                            <button type="button"
+                                class="dash-trend-dot {{ $point['current'] ? 'is-current' : '' }} {{ $loop->first ? 'is-first' : '' }} {{ $loop->last ? 'is-last' : '' }} {{ $point['y'] < 50 ? 'tip-below' : '' }}"
+                                style="left: {{ $point['x'] }}%; top: {{ $point['y'] }}%;"
+                                aria-label="{{ $point['period'] }}: {{ $point['amount_label'] }}">
+                                <span class="dash-trend-tip">
+                                    <small>{{ $point['period'] }}</small>
+                                    {{ $point['amount_label'] }}
+                                </span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="dash-trend-months">
+                    @foreach ($trend['points'] as $point)
+                        <div class="dash-trend-month {{ $point['current'] ? 'is-current' : '' }} {{ $loop->first ? 'is-first' : '' }} {{ $loop->last ? 'is-last' : '' }}"
+                            style="left: {{ $point['x'] }}%;">
+                            <span>{{ $point['month'] }}</span>
+                            <strong>{{ $point['compact'] }}</strong>
+                        </div>
+                    @endforeach
                 </div>
             </div>
 
             {{-- Top product --}}
             <div class="dash-card dash-top-card">
                 <h2 class="dash-side-title">{{ __('Top Product') }}</h2>
-                <a href="{{ $topProduct['url'] }}" class="dash-top-item">
-                    <img src="{{ $topProduct['image'] }}" alt="{{ $topProduct['name'] }}" class="dash-top-thumb">
-                    <div class="dash-top-info">
-                        <strong>{{ $topProduct['name'] }}</strong>
-                        <span>{{ __(':count sold', ['count' => number_format($topProduct['sold'], 0, ',', '.')]) }}</span>
-                    </div>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="m9 18 6-6-6-6"></path>
-                    </svg>
-                </a>
+                @if ($topProduct)
+                    <a href="{{ $topProduct['url'] }}" class="dash-top-item">
+                        <img src="{{ $topProduct['image'] }}" alt="{{ $topProduct['name'] }}" class="dash-top-thumb">
+                        <div class="dash-top-info">
+                            <strong>{{ $topProduct['name'] }}</strong>
+                            <span>{{ __(':count sold', ['count' => number_format($topProduct['sold'], 0, ',', '.')]) }}</span>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m9 18 6-6-6-6"></path>
+                        </svg>
+                    </a>
+                @else
+                    <p class="dash-empty">{{ __('No sales yet.') }}</p>
+                @endif
             </div>
         </div>
     </div>
@@ -178,14 +234,21 @@
 
 @push('scripts')
     <script>
-        /* Daily order count chart: Today / Monthly / Weekly */
+        /* Order chart. The month picker chooses the month, the tabs choose Daily / Weekly / Monthly. */
         (function () {
             const DATA = @json($chart);
+            const ORDERS_TEXT = @json(__(':count orders'));
 
+            const chartEl = document.getElementById('dashChart');
             const axisEl = document.getElementById('dashAxis');
             const barsEl = document.getElementById('dashBars');
             const labelsEl = document.getElementById('dashLabels');
             const rangeEl = document.getElementById('dashRange');
+            const periodEl = document.getElementById('dashPeriod');
+            const prevBtn = document.getElementById('dashPrev');
+            const nextBtn = document.getElementById('dashNext');
+
+            const state = { range: 'daily', month: DATA.months.length - 1 };
 
             /* Axis with 4 steps, rounded up to a "nice" step size */
             function niceAxis(max) {
@@ -195,10 +258,31 @@
                 return { step: step, max: step * 4 };
             }
 
-            function render(range) {
-                const set = DATA[range];
+            /* Returns the data set to draw and which bar to highlight by default */
+            function currentView() {
+                const month = DATA.months[state.month];
+
+                if (state.range === 'monthly') {
+                    return { set: DATA.overview, highlight: DATA.overview.keys.indexOf(month.key) };
+                }
+
+                const set = month[state.range];
+                const maxValue = Math.max.apply(null, set.values);
+                return { set: set, highlight: maxValue > 0 ? set.values.indexOf(maxValue) : -1 };
+            }
+
+            function render() {
+                const view = currentView();
+                const set = view.set;
+                const highlight = view.highlight;
                 const axis = niceAxis(Math.max.apply(null, set.values));
-                const peak = set.values.indexOf(Math.max.apply(null, set.values));
+                const dense = set.values.length > 8;
+
+                chartEl.classList.toggle('is-dense', dense);
+
+                periodEl.textContent = DATA.months[state.month].period;
+                prevBtn.disabled = state.month <= 0;
+                nextBtn.disabled = state.month >= DATA.months.length - 1;
 
                 axisEl.innerHTML = '';
                 for (let i = 0; i <= 4; i++) {
@@ -216,9 +300,9 @@
                     col.className = 'dash-bar-col';
 
                     const bar = document.createElement('div');
-                    bar.className = 'dash-bar' + (index === peak ? ' is-active' : '');
+                    bar.className = 'dash-bar' + (index === highlight ? ' is-active' : '');
                     bar.style.height = '0%';
-                    bar.title = set.labels[index] + ': ' + @json(__(':count orders')).replace(':count', value);
+                    bar.title = set.titles[index] + ': ' + ORDERS_TEXT.replace(':count', value);
 
                     const tip = document.createElement('span');
                     tip.className = 'dash-bar-tip';
@@ -235,6 +319,10 @@
 
                     const label = document.createElement('span');
                     label.textContent = set.labels[index];
+                    /* 28-31 day labels: on phones only show 1, 5, 10, 15 ... */
+                    if (set.values.length > 12 && index !== 0 && (index + 1) % 5 !== 0) {
+                        label.className = 'is-minor';
+                    }
                     labelsEl.appendChild(label);
 
                     /* animate from 0 to the real height */
@@ -245,10 +333,10 @@
                     });
                 });
 
-                /* Keep the peak highlighted when the pointer leaves the chart */
+                /* Keep the highlighted bar when the pointer leaves the chart */
                 barsEl.onmouseleave = function () {
                     barsEl.querySelectorAll('.dash-bar').forEach(function (b, i) {
-                        b.classList.toggle('is-active', i === peak);
+                        b.classList.toggle('is-active', i === highlight);
                     });
                 };
             }
@@ -257,11 +345,26 @@
                 btn.addEventListener('click', function () {
                     rangeEl.querySelectorAll('.dash-range-btn').forEach(function (b) { b.classList.remove('is-active'); });
                     btn.classList.add('is-active');
-                    render(btn.dataset.range);
+                    state.range = btn.dataset.range;
+                    render();
                 });
             });
 
-            render('weekly');
+            prevBtn.addEventListener('click', function () {
+                if (state.month > 0) {
+                    state.month--;
+                    render();
+                }
+            });
+
+            nextBtn.addEventListener('click', function () {
+                if (state.month < DATA.months.length - 1) {
+                    state.month++;
+                    render();
+                }
+            });
+
+            render();
         })();
     </script>
 @endpush

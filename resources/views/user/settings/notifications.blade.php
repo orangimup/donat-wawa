@@ -34,7 +34,6 @@
                             ['name' => 'notif_order_confirmation', 'label' => 'Order Confirmation Updates', 'desc' => 'Get notified when your order is accepted or declined by the store.'],
                             ['name' => 'notif_review_reminder', 'label' => 'Review Reminder', 'desc' => 'Get reminded to leave a review once your order is completed.'],
                             ['name' => 'notif_new_product', 'label' => 'New Product Alerts', 'desc' => 'Be the first to know when we introduce new donuts or flavors.'],
-                            ['name' => 'notif_daily_reminder', 'label' => 'Daily Reminders', 'desc' => 'Friendly reminders to check our daily special menu.'],
                         ];
                     @endphp
 
@@ -47,7 +46,7 @@
                             <label class="settings-switch">
                                 <input type="checkbox" name="{{ $item['name'] }}" value="1"
                                     onchange="this.form.submit()"
-                                    {{ old($item['name'], $preference->{$item['name']}) ? 'checked' : '' }}
+                                    {{ old($item['name'], $preference->{$item['name']}) ? 'checked' : '' }}>
                                 <span class="settings-switch-track"></span>
                             </label>
                         </div>

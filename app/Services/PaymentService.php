@@ -208,8 +208,41 @@ class PaymentService
                 $this->commitStock($order);
             }
 
+            $this->notifyPayment($order, $newStatus);
+
             return 'updated';
         });
+    }
+
+    /**
+     * Tells the customer (and, for a paid order, the admin) about a payment that just changed.
+     * Runs once per change: canMove() lets a transaction enter each status only once.
+     * $order is the row as it was before this notification, except that commitStock() may have rejected it.
+     */
+    private function notifyPayment(Order $order, string $newStatus): void
+    {
+        $notifications = app(NotificationService::class);
+
+        if ($newStatus === Transaction::STATUS_SETTLED) {
+            if ($order->status === Order::STATUS_REJECTED) {
+                // Paid, but the order was already gone or the stock ran out: a refund follows.
+                $notifications->orderRejected($order);
+
+                return;
+            }
+
+            $notifications->paymentSuccess($order);
+
+            return;
+        }
+
+        if (
+            in_array($newStatus, [Transaction::STATUS_EXPIRED, Transaction::STATUS_FAILED, Transaction::STATUS_CANCELLED], true)
+            && $order->status === Order::STATUS_WAITING
+        ) {
+            // Only while the order was still waiting: an order the customer already cancelled needs no second message.
+            $notifications->paymentFailed($order);
+        }
     }
 
     /**

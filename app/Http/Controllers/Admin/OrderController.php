@@ -5,10 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Refund;
+use App\Notifications\AdminNotification;
+use App\Services\NotificationService;
 use App\Services\OrderService;
 use App\Services\RefundService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class OrderController extends Controller
@@ -79,6 +83,67 @@ class OrderController extends Controller
             'retryPopup' => $request->old('_popup'),
         ]);
     }
+    /**
+     * Polled by the admin bell: this admin's stored notifications (paid order, completed, refund, review)
+     * created since `since` (unix seconds). The first call (no `since`) only returns the server clock,
+     * so old notifications never show up as news.
+     */
+    public function notifications(Request $request): JsonResponse
+    {
+        $now = now()->timestamp;
+        $since = $request->integer('since');
+
+        $items = collect();
+
+        if ($since > 0) {
+            $notifications = $request->user()->notifications()
+                ->where('type', AdminNotification::class)
+                // now() is in the app timezone, which is how created_at is stored.
+                ->where('created_at', '>=', now()->setTimestamp($since))
+                ->orderByDesc('created_at')
+                ->limit(20)
+                ->get()
+                ->reverse()
+                ->values();
+
+            $orders = Order::query()
+                ->whereIn('id', $notifications->map(fn ($n) => $n->data['order_id'] ?? null)->filter()->unique())
+                ->with('items.menuItem')
+                ->get()
+                ->keyBy('id');
+
+            $items = $notifications->map(function ($notification) use ($orders) {
+                $row = AdminNotification::present($notification);
+                $order = $orders->get($row['id']);
+
+                if ($order === null) {
+                    return $row;
+                }
+
+                $names = $order->items->take(2)
+                    ->map(fn ($item) => $item->name . ' ×' . $item->quantity)
+                    ->implode(', ');
+                $rest = $order->items->count() - 2;
+                $summary = $rest > 0 ? $names . ' +' . $rest : $names;
+
+                if ($summary !== '' && in_array($row['type'], ['order_paid', 'order_completed', 'refund_requested', 'review_created'], true)) {
+                    $row['text'] = ($row['customer'] !== '' ? $row['customer'] . ' · ' : '') . $summary;
+                }
+
+                $first = $order->items->first();
+
+                return $row + [
+                    'total' => 'Rp' . number_format((float) $order->total, 0, ',', '.'),
+                    'thumb' => $first ? ($first->menuItem?->image_url ?? asset('assets/images/donat.png')) : null,
+                ];
+            });
+        }
+
+        return response()
+            ->json(['now' => $now, 'items' => $items])
+            ->header('Cache-Control', 'no-store');
+    }
+
     public function show(int $order): View
     {
         $model = Order::with(['items.menuItem', 'transaction', 'refund'])->findOrFail($order);
@@ -118,6 +183,8 @@ class OrderController extends Controller
                 return back()->withErrors(['order' => __('This order was already updated. Please refresh the page.')]);
             }
 
+            app(NotificationService::class)->orderProcess($current);
+
             return back()->with('status', __('Order :code accepted and moved to Process.', ['code' => $current->display_code]));
         }
 
@@ -126,6 +193,8 @@ class OrderController extends Controller
         if ($rejected === null) {
             return back()->withErrors(['order' => __('This order was already updated. Please refresh the page.')]);
         }
+
+        app(NotificationService::class)->orderRejected($rejected, $validated['rejection_reason']);
 
         $message = __('Order :code has been rejected.', ['code' => $current->display_code]);
 
@@ -170,6 +239,10 @@ class OrderController extends Controller
             'status' => $validated['status'],
             'shipped_at' => $validated['status'] === Order::STATUS_SHIPPED ? now() : $current->shipped_at,
         ]);
+
+        if ($validated['status'] === Order::STATUS_SHIPPED) {
+            app(NotificationService::class)->orderShipped($current);
+        }
 
         $label = self::STATUS_LABELS[$validated['status']];
 

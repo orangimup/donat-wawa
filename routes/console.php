@@ -23,6 +23,53 @@ Artisan::command('orders:complete-shipped {--days=2 : Days an order may stay "sh
 
 Schedule::command('orders:complete-shipped')->hourly();
 
+Artisan::command('orders:remind-review {--after=24 : Hours after completion before the reminder is sent} {--within=72 : Stop reminding this many hours after completion}', function (\App\Services\ReviewService $reviews, \App\Services\NotificationService $notifications) {
+    $after = max(1, (int) $this->option('after'));
+    $within = max($after + 1, (int) $this->option('within'));
+
+    $sent = 0;
+
+    \App\Models\Order::query()
+        ->with(['items.review'])
+        ->where('status', \App\Models\Order::STATUS_DONE)
+        ->whereNotNull('user_id')
+        ->whereBetween('completed_at', [now()->subHours($within), now()->subHours($after)])
+        ->get()
+        ->each(function (\App\Models\Order $order) use ($reviews, $notifications, &$sent) {
+            if ($reviews->reviewableItems($order)->isEmpty()) {
+                return;
+            }
+
+            // One reminder per order, ever. (If the customer's toggle is off nothing is stored, so it is simply skipped.)
+            $already = \Illuminate\Notifications\DatabaseNotification::query()
+                ->where('notifiable_type', \App\Models\User::class)
+                ->where('notifiable_id', $order->user_id)
+                ->where('type', \App\Notifications\CustomerNotification::class)
+                ->where('data->event', 'review_reminder')
+                ->where('data->order_id', $order->id)
+                ->exists();
+
+            if (! $already) {
+                $notifications->reviewReminder($order);
+                $sent++;
+            }
+        });
+
+    $this->info("{$sent} review reminder(s) processed.");
+})->purpose('Remind customers to review completed orders they have not reviewed yet');
+
+Schedule::command('orders:remind-review')->hourly();
+
+Artisan::command('notifications:prune {--days=60 : Delete notifications older than this many days}', function () {
+    $deleted = \Illuminate\Notifications\DatabaseNotification::query()
+        ->where('created_at', '<', now()->subDays(max(1, (int) $this->option('days'))))
+        ->delete();
+
+    $this->info("{$deleted} old notification(s) deleted.");
+})->purpose('Delete old stored notifications');
+
+Schedule::command('notifications:prune')->daily();
+
 Artisan::command('dummy:clear-orders {--force : Do not ask for confirmation}', function () {
     // Real orders always get a payment row at checkout. Seeded dummy orders never did, so
     // "no transaction" is what marks an order as dummy. Orders you placed yourself are kept.

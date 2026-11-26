@@ -1,9 +1,7 @@
-/* ===== Order table ===== */
 .admin-table.order-table {
     min-width: 1040px;
 }
 
-/* Override the product-table column widths from produk.css (col 2 / col 4) */
 .admin-table.order-table td.order-col-id,
 .admin-table.order-table th.order-col-id {
     width: auto;
@@ -68,6 +66,76 @@
 
 .order-status-rejected {
     background: var(--primary);
+}
+
+.order-refund-pill {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-family: var(--font-label);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.order-refund-refunded {
+    background: #2ea44f;
+    color: #fff;
+}
+
+.order-refund-rejected {
+    background: #e11d1d;
+    color: #fff;
+}
+
+.order-refund-pending {
+    background: #fbbf24;
+    color: #4a3200;
+}
+
+.order-refund-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.order-refund-card-head .order-detail-title {
+    margin: 0;
+}
+
+.order-refund-card-head .order-refund-pill {
+    margin-left: 0;
+}
+
+.order-refund-card-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    padding: 16px 0;
+    margin-bottom: 16px;
+    border-top: 1px solid var(--border, #eadfd6);
+    border-bottom: 1px solid var(--border, #eadfd6);
+}
+
+.order-refund-card-value {
+    margin-top: 4px;
+    font-family: var(--font-label);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.order-refund-card-value.is-amount {
+    color: var(--primary);
+}
+
+.order-refund-card-btn {
+    width: 100%;
+    justify-content: center;
 }
 
 /* ===== Order popups (Confirmation + Update Status) ===== */

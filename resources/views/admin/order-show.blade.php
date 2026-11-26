@@ -21,6 +21,9 @@
         ];
     @endphp
 
+    {{-- Refreshed in place by dwLiveRefresh (layouts/admin) when this order changes --}}
+    <div id="order-live" data-live-version="{{ md5(json_encode($order)) }}">
+
     <div class="admin-page-header">
         <div>
             <h1>{{ __('Order Detail') }}</h1>
@@ -149,13 +152,22 @@
             </div>
 
             @if ($order['refund'])
-                <div class="admin-card order-detail-card">
-                    <h2 class="order-detail-title">{{ __('Refund') }}</h2>
-                    <p class="order-detail-text">
-                        {{ $order['refund']['source'] }} &bull; {{ $formatRupiah($order['refund']['amount']) }}
-                        &bull; <strong>{{ __(ucfirst($order['refund']['status'])) }}</strong>
-                    </p>
-                    <a href="{{ route('admin.refund.show', $order['refund']['id']) }}" class="admin-btn admin-btn-ghost order-detail-link">{{ __('Open refund') }}</a>
+                <div class="admin-card order-detail-card order-refund-card">
+                    <div class="order-refund-card-head">
+                        <h2 class="order-detail-title">{{ __('Refund') }}</h2>
+                        <span class="order-refund-pill order-refund-{{ $order['refund']['status'] }}">{{ match ($order['refund']['status']) { 'refunded' => __('Refunded'), 'rejected' => __('Refund rejected'), default => __('Refund pending') } }}</span>
+                    </div>
+                    <div class="order-refund-card-facts">
+                        <div>
+                            <span class="order-summary-label">{{ __('Source') }}</span>
+                            <div class="order-refund-card-value">{{ $order['refund']['source'] }}</div>
+                        </div>
+                        <div>
+                            <span class="order-summary-label">{{ __('Refund Amount') }}</span>
+                            <div class="order-refund-card-value is-amount">{{ $formatRupiah($order['refund']['amount']) }}</div>
+                        </div>
+                    </div>
+                    <a href="{{ route('admin.refund.show', $order['refund']['id']) }}" class="admin-btn admin-btn-ghost order-detail-link order-refund-card-btn">{{ __('Detail refund') }}</a>
                 </div>
             @endif
 
@@ -170,4 +182,15 @@
 
     <p class="order-detail-back"><a href="{{ route('admin.orders.index') }}">{{ __('← Back to orders') }}</a></p>
 
+    </div>
+
 @endsection
+
+@push('scripts')
+    <script>
+        (function () {
+            var poll = dwLiveRefresh('#order-live');
+            window.addEventListener('admin:order-completed', poll);
+        })();
+    </script>
+@endpush

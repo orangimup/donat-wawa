@@ -13,7 +13,7 @@
 @section('content')
 
     @php
-        $formatRupiah = fn($amount) => 'Rp ' . number_format($amount, 0, ',', '.');
+        $formatRupiah = fn ($amount) => 'Rp ' . number_format($amount, 0, ',', '.');
 
         // Shopee-style tabs: one per stage of an order, plus "needs a review" and "refunds".
         $tabs = [
@@ -76,7 +76,9 @@
                 </a>
             </div>
 
-            <div id="order-history-live" data-live-version="{{ md5(json_encode([$orders->items(), $counts])) }}">
+            {{-- Refreshed in place by the live-refresh script below when an order changes --}}
+            <div id="order-history-live"
+                data-live-version="{{ md5(json_encode([$orders->items(), $counts])) }}">
                 <div class="order-history-tabs-row">
                     <div class="order-history-tabs">
                         <a href="{{ route('settings.orders') }}"
@@ -130,14 +132,12 @@
                                             </div>
                                         </td>
                                         <td data-label="{{ __('Date') }}">
-                                            <span
-                                                class="oh-cell-main">{{ $order['placed_at']->translatedFormat('d M Y') }}</span>
+                                            <span class="oh-cell-main">{{ $order['placed_at']->translatedFormat('d M Y') }}</span>
                                             <span class="oh-cell-sub">{{ $order['placed_at']->format('H:i') }} WIB</span>
                                         </td>
                                         <td data-label="{{ __('Total') }}">
                                             <span class="order-history-amount">{{ $formatRupiah($order['total']) }}</span>
-                                            <span
-                                                class="oh-cell-sub">{{ ($order['paid'] || $order['refund_status'] !== null) && $order['method'] !== '-' ? $order['method'] : __('Unpaid') }}</span>
+                                            <span class="oh-cell-sub">{{ ($order['paid'] || $order['refund_status'] !== null) && $order['method'] !== '-' ? $order['method'] : __('Unpaid') }}</span>
                                         </td>
                                         <td data-label="{{ __('Status') }}">
                                             <span class="oh-badge oh-badge--{{ $badgeKey }}">{{ $badgeLabel }}</span>
@@ -148,29 +148,23 @@
                                         <td class="is-action">
                                             <div class="order-history-actions" onclick="event.stopPropagation()">
                                                 @if ($action === 'complete')
-                                                    <form method="POST"
-                                                        action="{{ route('settings.orders.complete', $order['id']) }}"
+                                                    <form method="POST" action="{{ route('settings.orders.complete', $order['id']) }}"
                                                         class="order-history-inline-form"
                                                         data-confirm="{{ __('Have you received this order?') }}"
                                                         data-confirm-title="{{ __('Order received?') }}"
                                                         data-confirm-ok="{{ __('Yes, received') }}">
                                                         @csrf
-                                                        <button type="submit"
-                                                            class="oh-btn oh-btn--primary">{{ __('Pesanan Diterima') }}</button>
+                                                        <button type="submit" class="oh-btn oh-btn--primary">{{ __('Pesanan Diterima') }}</button>
                                                     </form>
                                                 @elseif ($action === 'review')
-                                                    <a href="{{ route('settings.orders.review', $order['id']) }}"
-                                                        class="oh-btn oh-btn--primary">{{ __('Beri Ulasan') }}</a>
+                                                    <a href="{{ route('settings.orders.review', $order['id']) }}" class="oh-btn oh-btn--primary">{{ __('Beri Ulasan') }}</a>
                                                 @elseif ($action === 'bank')
-                                                    <a href="{{ route('settings.orders.refund.bank', $order['id']) }}"
-                                                        class="oh-btn oh-btn--attention">{{ __('Isi Rekening') }}</a>
+                                                    <a href="{{ route('settings.orders.refund.bank', $order['id']) }}" class="oh-btn oh-btn--attention">{{ __('Isi Rekening') }}</a>
                                                 @elseif ($action === 'refund')
-                                                    <a href="{{ route('settings.orders.refund', $order['id']) }}"
-                                                        class="oh-btn oh-btn--primary">{{ __('Ajukan Refund') }}</a>
+                                                    <a href="{{ route('settings.orders.refund', $order['id']) }}" class="oh-btn oh-btn--primary">{{ __('Ajukan Refund') }}</a>
                                                 @endif
 
-                                                <a href="{{ route('settings.orders.show', $order['id']) }}"
-                                                    class="oh-link">{{ __('See Details') }}</a>
+                                                <a href="{{ route('settings.orders.show', $order['id']) }}" class="oh-link">{{ __('See Details') }}</a>
                                             </div>
                                         </td>
                                     </tr>
@@ -201,12 +195,13 @@
         </div>
     </div>
 
-    @include('partials.confirm-modal')
+@include('partials.confirm-modal')
 
 @endsection
 
 @push('scripts')
     <script>
+        // Delegated, because the rows are replaced when an order changes (live refresh).
         document.addEventListener('click', function (e) {
             const row = e.target.closest('.order-history-row[data-href]');
             if (row) {
@@ -216,58 +211,8 @@
     </script>
     <script>
         (function () {
-            const selector = '#order-history-live';
-            const interval = 5000;
-            let timer = null;
-            let busy = false;
-
-            function modalOpen() {
-                const modal = document.getElementById('dw-confirm');
-                return !!modal && !modal.hidden;
-            }
-
-            async function poll() {
-                if (busy) { return; }
-                busy = true;
-
-                try {
-                    const current = document.querySelector(selector);
-                    if (!current) { return; }
-
-                    const res = await fetch(window.location.href, {
-                        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html' },
-                        credentials: 'same-origin',
-                        cache: 'no-store',
-                    });
-                    if (!res.ok) { return; }
-
-                    const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
-                    const fresh = doc.querySelector(selector);
-                    if (!fresh || modalOpen()) { return; }
-                    if (fresh.dataset.liveVersion === current.dataset.liveVersion) { return; }
-
-                    current.innerHTML = fresh.innerHTML;
-                    current.dataset.liveVersion = fresh.dataset.liveVersion;
-                    window.dispatchEvent(new CustomEvent('live:updated', { detail: { selector: selector } }));
-                } catch (e) {
-                } finally {
-                    busy = false;
-                }
-            }
-
-            function schedule() {
-                clearTimeout(timer);
-                timer = setTimeout(async function () {
-                    if (!document.hidden) { await poll(); }
-                    schedule();
-                }, interval);
-            }
-
-            document.addEventListener('visibilitychange', function () {
-                if (!document.hidden) { poll(); }
-            });
-
-            schedule();
+            var poll = dwLiveRefresh('#order-history-live');
+            window.addEventListener('dw:order-updated', poll);
         })();
     </script>
 @endpush

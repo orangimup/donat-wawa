@@ -38,7 +38,13 @@
             );
         },
 
+        /**
+         * @param {{slug:string,name:string,price:number,image:string}} product
+         * @param {number} qty
+         * @returns {boolean} true jika item berhasil ditambahkan (user sudah login)
+         */
         addItem(product, qty) {
+            // Guest hanya boleh melihat-lihat, tidak boleh menambah pesanan.
             if (!window.isAuthenticated) {
                 if (typeof window.openAuthPopup === "function") {
                     window.openAuthPopup("login");
@@ -86,6 +92,10 @@
             writeBasket(readBasket().filter((item) => item.slug !== slug));
         },
 
+        /**
+         * Ganti seluruh isi keranjang sekaligus (dipakai saat sinkron ulang
+         * ke data terbaru database di halaman checkout).
+         */
         replaceAll(items) {
             writeBasket(items);
         },
@@ -98,6 +108,10 @@
     };
 
     window.DonatBasket = Basket;
+
+    // Kalau user sudah logout tapi sessionStorage masih nyimpen keranjang
+    // dari sesi login sebelumnya (tab yang sama), bersihkan supaya guest
+    // tidak bisa lanjut checkout dari sisa data lama.
     if (!window.isAuthenticated && readBasket().length > 0) {
         writeBasket([]);
     }
@@ -127,6 +141,7 @@
         }
 
         function bindWidget(widget) {
+            // Cards can be swapped in by the live search: never bind a widget twice.
             if (widget.dataset.basketBound === "1") return;
             widget.dataset.basketBound = "1";
 
@@ -169,6 +184,7 @@
 
         document.querySelectorAll(".basket-qty-widget").forEach(bindWidget);
 
+        // Fired by the menu live search after it replaces the grid.
         window.addEventListener("menu:updated", function () {
             document.querySelectorAll(".basket-qty-widget").forEach(bindWidget);
             renderQtyWidgets();

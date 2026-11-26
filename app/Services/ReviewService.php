@@ -71,11 +71,25 @@ class ReviewService
                     $created++;
                 }
 
+                $completedNow = false;
+
                 if ($created > 0 && $locked?->status === Order::STATUS_SHIPPED) {
                     $locked->update([
                         'status' => Order::STATUS_DONE,
                         'completed_at' => now(),
                     ]);
+
+                    $completedNow = true;
+                }
+
+                if ($created > 0) {
+                    $notifications = app(NotificationService::class);
+                    $notifications->reviewCreated($order, $user);
+
+                    if ($completedNow) {
+                        // Reviewing a shipped order also completes it, so the admin hears about that too.
+                        $notifications->orderCompleted($order, byCustomer: true);
+                    }
                 }
 
                 return $created;

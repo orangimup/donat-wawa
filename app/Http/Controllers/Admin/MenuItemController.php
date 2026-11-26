@@ -57,7 +57,10 @@ class MenuItemController extends Controller
             $validated['image'] = $request->file('image')->store('menu-items', 'public');
         }
 
-        MenuItem::create($validated);
+        $menuItem = MenuItem::create($validated);
+
+        // Only customers who switched "New Product Alerts" on are notified.
+        app(\App\Services\NotificationService::class)->newProduct($menuItem);
 
         return redirect()
             ->route('admin.menu-items.index')

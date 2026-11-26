@@ -81,9 +81,10 @@ class OrderService
             return $order->load('items');
         });
     }
+    /** $userId set = the customer confirmed receipt; null = the scheduler completed it automatically. */
     public function markDone(int $orderId, ?int $userId = null): bool
     {
-        return Order::query()
+        $done = Order::query()
             ->whereKey($orderId)
             ->when($userId !== null, fn ($q) => $q->where('user_id', $userId))
             ->where('status', Order::STATUS_SHIPPED)
@@ -92,6 +93,12 @@ class OrderService
                 'completed_at' => now(),
                 'updated_at' => now(),
             ]) === 1;
+
+        if ($done && ($order = Order::find($orderId)) !== null) {
+            app(NotificationService::class)->orderCompleted($order, byCustomer: $userId !== null);
+        }
+
+        return $done;
     }
 
     public function reject(int $orderId, string $reason, array $allowedFrom = [Order::STATUS_WAITING]): ?Order

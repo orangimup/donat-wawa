@@ -291,6 +291,86 @@
     white-space: nowrap;
 }
 
+/* Tabs on the left, month picker in the right corner */
+.dash-chart-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+}
+
+.dash-month-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--primary);
+}
+
+.dash-month-label {
+    min-width: 136px;
+    padding: 0 8px;
+    text-align: center;
+    font-family: var(--font-label);
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.dash-month-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--primary);
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.dash-month-btn:hover:not(:disabled) {
+    transform: scale(1.08);
+}
+
+.dash-month-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Many bars (days of a month, 12 months): slimmer bars */
+.dash-chart.is-dense .dash-bars,
+.dash-chart.is-dense .dash-labels {
+    justify-content: space-between;
+    gap: 4px;
+}
+
+.dash-chart.is-dense .dash-bar-col {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+}
+
+.dash-chart.is-dense .dash-bar {
+    width: 100%;
+    max-width: 16px;
+    min-height: 6px;
+}
+
+.dash-chart.is-dense .dash-labels span {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    font-size: 10px;
+}
+
 /* ===== Revenue trend ===== */
 .dash-trend-card {
     padding: 22px 24px 24px;
@@ -344,6 +424,157 @@
     stroke-width: 3;
     stroke-linecap: round;
     vector-effect: non-scaling-stroke;
+}
+
+.dash-trend-amount {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    margin-bottom: 12px;
+}
+
+.dash-trend-amount strong {
+    font-family: var(--font-headline);
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text-dark);
+}
+
+.dash-trend-amount span {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.dash-trend-plot {
+    position: relative;
+}
+
+/* Dots sit on top of the curve (outside the clipped chart so edge dots are not cut off) */
+.dash-trend-dots {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.dash-trend-dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    padding: 0;
+    transform: translate(-50%, -50%);
+    border: 2px solid var(--primary);
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.dash-trend-dot.is-current {
+    width: 14px;
+    height: 14px;
+    background: var(--primary);
+    box-shadow: 0 0 0 4px rgba(123, 32, 38, 0.18);
+}
+
+.dash-trend-tip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    padding: 6px 12px;
+    border-radius: 10px;
+    background: var(--primary);
+    font-family: var(--font-label);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #fff;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.dash-trend-tip small {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.dash-trend-dot.tip-below .dash-trend-tip {
+    bottom: auto;
+    top: calc(100% + 10px);
+}
+
+.dash-trend-dot.is-first .dash-trend-tip {
+    left: 0;
+    transform: none;
+}
+
+.dash-trend-dot.is-last .dash-trend-tip {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.dash-trend-dot:hover .dash-trend-tip,
+.dash-trend-dot:focus-visible .dash-trend-tip {
+    display: block;
+}
+
+.dash-trend-months {
+    position: relative;
+    height: 38px;
+    margin-top: 10px;
+}
+
+.dash-trend-month {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+    text-align: center;
+    white-space: nowrap;
+}
+
+.dash-trend-month.is-first {
+    transform: none;
+    text-align: left;
+}
+
+.dash-trend-month.is-last {
+    transform: translateX(-100%);
+    text-align: right;
+}
+
+.dash-trend-month span {
+    display: block;
+    font-family: var(--font-label);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.dash-trend-month strong {
+    display: block;
+    margin-top: 1px;
+    font-family: var(--font-label);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--tertiary);
+}
+
+.dash-trend-month.is-current strong {
+    color: var(--primary);
+}
+
+.dash-empty {
+    margin: 0;
+    padding: 12px 4px 4px;
+    font-size: 13px;
+    color: var(--text-muted);
 }
 
 /* ===== Top product ===== */
@@ -522,5 +753,9 @@
     .dash-bar,
     .dash-labels span {
         width: 30px;
+    }
+
+    .dash-labels span.is-minor {
+        visibility: hidden;
     }
 }

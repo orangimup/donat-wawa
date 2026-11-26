@@ -350,3 +350,14 @@
         margin-top: -50px;
     }
 }
+
+
+/* Live search: dim the grid while new results load */
+#menu-results {
+    transition: opacity 0.15s ease;
+}
+
+#menu-results.is-loading {
+    opacity: 0.45;
+    pointer-events: none;
+}
