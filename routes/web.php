@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\DeliveryZoneController;
 use App\Http\Controllers\Admin\RefundController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\ReportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -75,6 +76,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/report', [ReportController::class, 'download'])->name('report.download');
 
     Route::get('/menu-items', [MenuItemController::class, 'index'])->name('menu-items.index');
     Route::post('/menu-items', [MenuItemController::class, 'store'])->name('menu-items.store');

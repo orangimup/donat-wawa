@@ -759,3 +759,24 @@
         visibility: hidden;
     }
 }
+
+.admin-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.admin-btn.admin-btn-light {
+    background: #fff;
+    color: var(--primary);
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(78, 52, 46, 0.14);
+}
+
+.admin-btn.admin-btn-light:hover {
+    background: #fff;
+    color: var(--primary);
+    filter: none;
+    box-shadow: 0 6px 18px rgba(78, 52, 46, 0.2);
+}

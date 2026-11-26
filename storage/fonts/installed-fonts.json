@@ -1,0 +1,10 @@
+{
+    "jakarta": {
+        "normal": "D:\\laragon\\www\\donat-wawa\\storage\\fonts\/jakarta_normal_4feb9fd540827246b9285b506f65bfb5",
+        "bold": "jakarta_bold_9249666e489600e4f5465f82ec7b9df1"
+    },
+    "bricolage": {
+        "normal": "D:\\laragon\\www\\donat-wawa\\storage\\fonts\/bricolage_normal_93e2467bfd0bdcfcb89e65bf76fd9ab3",
+        "bold": "bricolage_bold_93e2467bfd0bdcfcb89e65bf76fd9ab3"
+    }
+}

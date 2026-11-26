@@ -9,7 +9,7 @@
 @section('content')
 
     @php
-        $formatRupiah = fn ($amount) => 'Rp ' . number_format($amount, 2, ',', '.');
+        $formatRupiah = fn($amount) => 'Rp ' . number_format($amount, 2, ',', '.');
     @endphp
 
     <div class="admin-page-header">
@@ -17,13 +17,30 @@
             <h1>{{ __('Dashboard') }}</h1>
             <p>{{ __('Overview of your bakery\'s performance today.') }}</p>
         </div>
-        <button type="button" class="admin-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
-                stroke-linecap="round" aria-hidden="true">
-                <path d="M12 5v14M5 12h14"></path>
-            </svg>
-            {{ __('New Order') }}
-        </button>
+        <div class="admin-header-actions">
+            <iframe name="report-dl" style="display:none"></iframe>
+            <form method="POST" action="{{ route('admin.report.download') }}" target="_blank" style="display:inline"
+                onsubmit="var f=document.createElement('form');f.method='POST';f.action=this.action;f.target='report-dl';f.innerHTML='<input type=hidden name=_token value={{ csrf_token() }}><input type=hidden name=unduh value=1>';document.body.appendChild(f);f.submit();f.remove();">
+                @csrf
+                <button type="submit" class="admin-btn admin-btn-light">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 3v12"></path>
+                        <path d="m7 11 5 5 5-5"></path>
+                        <path d="M5 21h14"></path>
+                    </svg>
+                    {{ __('Download Report') }}
+                </button>
+            </form>
+
+            <button type="button" class="admin-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                    stroke-linecap="round" aria-hidden="true">
+                    <path d="M12 5v14M5 12h14"></path>
+                </svg>
+                {{ __('New Order') }}
+            </button>
+        </div>
     </div>
 
     <div class="dash-stats">
@@ -32,8 +49,8 @@
                 <div class="dash-stat-head">
                     <h2 class="dash-stat-title">{{ __($stat['title']) }}</h2>
                     <span class="dash-stat-icon" aria-hidden="true">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                            stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="8" cy="21" r="1"></circle>
                             <circle cx="19" cy="21" r="1"></circle>
                             <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
@@ -57,11 +74,12 @@
             <div class="dash-chart-head">
                 <h2 class="dash-chart-title">
                     <span class="dash-chart-title-icon" aria-hidden="true">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                            stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="8" cy="21" r="1"></circle>
                             <circle cx="19" cy="21" r="1"></circle>
-                            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+                            <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12">
+                            </path>
                         </svg>
                     </span>
                     {{ __('Daily order count') }}
@@ -106,8 +124,8 @@
             <div class="dash-card dash-trend-card">
                 <div class="dash-side-head">
                     <h2 class="dash-side-title">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
                             <polyline points="16 7 22 7 22 13"></polyline>
                         </svg>
@@ -125,7 +143,8 @@
 
                 <div class="dash-trend-plot">
                     <div class="dash-trend-chart">
-                        <svg viewBox="0 0 300 100" preserveAspectRatio="none" role="img" aria-label="{{ __('Revenue trend') }}">
+                        <svg viewBox="0 0 300 100" preserveAspectRatio="none" role="img"
+                            aria-label="{{ __('Revenue trend') }}">
                             <defs>
                                 <linearGradient id="dashTrendFill" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="0%" stop-color="#7b2026" stop-opacity="0.38"></stop>
@@ -173,8 +192,8 @@
                             <strong>{{ $topProduct['name'] }}</strong>
                             <span>{{ __(':count sold', ['count' => number_format($topProduct['sold'], 0, ',', '.')]) }}</span>
                         </div>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <path d="m9 18 6-6-6-6"></path>
                         </svg>
                     </a>

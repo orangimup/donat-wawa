@@ -821,5 +821,26 @@
     "The refund for :code could not be completed. Open Refunds to retry it.": "The refund for :code could not be completed. Open Refunds to retry it.",
     "New review": "New review",
     ":customer reviewed :code.": ":customer reviewed :code.",
-    "Unread": "Unread"
+    "Unread": "Unread",
+    "Download Report": "Download Report",
+    "Sales Report": "Sales Report",
+    "Period": "Period",
+    "Printed on": "Printed on",
+    "Completed Orders": "Completed Orders",
+    "Rejected Orders": "Rejected Orders",
+    "Items Sold": "Items Sold",
+    "Revenue": "Revenue",
+    "Code": "Code",
+    "Best Selling Products": "Best Selling Products",
+    "Qty Sold": "Qty Sold",
+    "Sales": "Sales",
+    "No orders in this period.": "No orders in this period.",
+    "No sales in this period.": "No sales in this period.",
+    "Page": "Page",
+    "Running Orders": "Running Orders",
+    "Up :percent% from :month": "Up :percent% from :month",
+    "Down :percent% from :month": "Down :percent% from :month",
+    "Same as :month": "Same as :month",
+    "No data for :month": "No data for :month"
+
 }
