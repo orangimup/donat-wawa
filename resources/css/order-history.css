@@ -1095,6 +1095,94 @@
     background: #fdf6f3;
 }
 
+.od-refund-status--approved .od-refund-status-pill {
+    background: #2f6fed;
+}
+
+.od-refund-status--picked_up .od-refund-status-pill {
+    background: #7c3aed;
+}
+
+.od-refund-banner {
+    --rb-bg: #fff7ea;
+    --rb-border: #f6d9a6;
+    --rb-accent: #d97706;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0 0 20px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: var(--rb-bg);
+    border: 1px solid var(--rb-border);
+    border-left: 4px solid var(--rb-accent);
+}
+
+.od-refund-banner--approved {
+    --rb-bg: #eef4ff;
+    --rb-border: #c9daff;
+    --rb-accent: #2f6fed;
+}
+
+.od-refund-banner--picked_up {
+    --rb-bg: #f4efff;
+    --rb-border: #dccdfb;
+    --rb-accent: #7c3aed;
+}
+
+.od-refund-banner--refunded {
+    --rb-bg: #eaf7f4;
+    --rb-border: #bfe6dd;
+    --rb-accent: #0f766e;
+}
+
+.od-refund-banner--rejected {
+    --rb-bg: #fdf0f0;
+    --rb-border: #f3c4c4;
+    --rb-accent: #b42318;
+}
+
+.od-refund-banner-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #fff;
+    color: var(--rb-accent);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.od-refund-banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.od-refund-banner-text strong {
+    font-size: 15px;
+    color: var(--rb-accent);
+}
+
+.od-refund-banner-text span {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+.od-refund-stepper {
+    margin: 4px 0 16px;
+}
+
+.od-step-num {
+    font-family: var(--font-label);
+    font-size: 15px;
+    font-weight: 700;
+}
+
 /* ===== Confirm modal (plain, same look as the admin popups) ===== */
 .dw-modal[hidden] {
     display: none;

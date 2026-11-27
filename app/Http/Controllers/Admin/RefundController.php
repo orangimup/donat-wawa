@@ -19,6 +19,8 @@ class RefundController extends Controller
 
     public const STATUS_LABELS = [
         'pending' => 'Pending',
+        'approved' => 'Approved',
+        'picked_up' => 'Picked up',
         'refunded' => 'Refunded',
         'rejected' => 'Rejected',
     ];
@@ -69,8 +71,8 @@ class RefundController extends Controller
 
         return view('admin.refund-index', [
             'refunds' => $query->paginate(self::PER_PAGE)->withQueryString()
-                ->through(fn (Refund $refund) => $this->present($refund)),
-            'pendingCount' => Refund::where('status', Refund::STATUS_PENDING)->count(),
+                ->through(fn(Refund $refund) => $this->present($refund)),
+            'pendingCount' => Refund::whereIn('status', [Refund::STATUS_PENDING, Refund::STATUS_APPROVED, Refund::STATUS_PICKED_UP])->count(),
             'waitingBankCount' => $this->waitingBankCount(),
             'totalRefunded' => (int) Refund::where('status', Refund::STATUS_REFUNDED)->sum('jumlah_refund'),
             'status' => $status,
@@ -86,7 +88,8 @@ class RefundController extends Controller
 
         return view('admin.refund-show', [
             'refund' => $this->present($model),
-            'isFinal' => ! $model->isPending(),
+            'isFinal' => $model->stage() === 'final',
+            'stage' => $model->stage(),
             'isCustomerRequest' => $model->asal_refund === Refund::SOURCE_CUSTOMER,
             'statusLabels' => self::STATUS_LABELS,
         ]);
@@ -96,25 +99,32 @@ class RefundController extends Controller
     {
         $current = Refund::with('order.transaction')->findOrFail($refund);
         $code = $this->code($current);
+        $stage = $current->stage();
 
-        if (! $current->isPending()) {
+        if ($stage === 'final') {
             return back()->withErrors(['refund' => __('This refund request has already been finalized.')]);
         }
 
         $manual = $refunds->isManual($current);
-        $allowed = $current->asal_refund === Refund::SOURCE_CUSTOMER ? ['approve', 'reject'] : ['approve'];
+        $customer = $current->asal_refund === Refund::SOURCE_CUSTOMER;
+
+        $allowed = match (true) {
+            $stage === 'pickup' => ['pickup'],
+            $customer && $stage === 'review' => ['approve', 'reject'],
+            default => ['approve'],
+        };
 
         $rules = [
             'decision' => ['required', Rule::in($allowed)],
             'notes' => ['nullable', 'string', 'max:1000', 'required_if:decision,reject'],
         ];
 
-        if ($manual) {
+        if ($manual && $stage === 'payout') {
             $rules['bukti_transfer'] = ['required_if:decision,approve', 'nullable', 'image', 'max:5120'];
         }
 
         $validated = $request->validate($rules, [
-            'decision.required' => __('Please choose Approve or Reject.'),
+            'decision.required' => __('Please choose an action.'),
             'notes.required_if' => __('Please write a note explaining why the refund is rejected.'),
             'bukti_transfer.required_if' => __('Please upload the proof of the bank transfer.'),
         ]);
@@ -122,21 +132,41 @@ class RefundController extends Controller
         $notes = $validated['notes'] ?? null;
 
         if ($validated['decision'] === 'reject') {
-            if (! $refunds->reject($current, $notes)) {
+            if (!$refunds->reject($current, $notes)) {
                 return back()->withErrors(['refund' => __('This refund request has already been finalized.')]);
             }
 
             return redirect()->route('admin.refund')->with('status', __('Refund :code has been rejected.', ['code' => $code]));
         }
 
+        if ($validated['decision'] === 'pickup') {
+            if (!$refunds->markPickedUp($current, $notes)) {
+                return back()->withErrors(['refund' => __('This refund request has already been finalized.')]);
+            }
+
+            return redirect()->route('admin.refund.show', $current->id)
+                ->with('status', __('Refund :code: the item has been marked as picked up. You can now process the refund.', ['code' => $code]));
+        }
+
+        if ($stage === 'review') {
+            $result = $refunds->approve($current, $notes);
+
+            if ($result->status !== Refund::STATUS_APPROVED) {
+                return back()->withErrors(['refund' => __('This refund request has already been finalized.')]);
+            }
+
+            return redirect()->route('admin.refund.show', $current->id)
+                ->with('status', __('Refund :code has been approved. Arrange for the courier to pick up the item.', ['code' => $code]));
+        }
+
         if ($manual) {
-            if (! $current->hasBankDetails()) {
+            if (!$current->hasBankDetails()) {
                 return back()->withErrors(['refund' => __('The customer has not provided bank details yet, so there is nowhere to transfer the refund.')]);
             }
 
             $proof = $request->file('bukti_transfer')->store('refund-transfer-proof', 'public');
 
-            if (! $refunds->completeManually($current, $proof, $notes)) {
+            if (!$refunds->completeManually($current, $proof, $notes)) {
                 Storage::disk('public')->delete($proof);
 
                 return back()->withErrors(['refund' => __('This refund request has already been finalized.')]);
@@ -165,7 +195,7 @@ class RefundController extends Controller
         return Refund::with('order.transaction')
             ->where('status', Refund::STATUS_PENDING)
             ->get()
-            ->filter(fn (Refund $refund) => $refunds->isManual($refund) && ! $refund->hasBankDetails())
+            ->filter(fn(Refund $refund) => $refunds->isManual($refund) && !$refund->hasBankDetails())
             ->count();
     }
 
@@ -222,11 +252,14 @@ class RefundController extends Controller
             'request_date' => $requestedAt ? $requestedAt->translatedFormat('d M Y') : '-',
             'request_time' => $requestedAt ? $requestedAt->format('H:i') . ' WIB' : '',
             'source_key' => $refund->asal_refund,
-            'needs_bank' => $manual && $refund->isPending() && ! $refund->hasBankDetails(),
+            'needs_bank' => $manual && $refund->isOpen() && !$refund->hasBankDetails(),
+            'stage' => $refund->stage(),
+            'approved_label' => $refund->tgl_disetujui ? $refund->tgl_disetujui->copy()->timezone(Order::TIMEZONE)->translatedFormat('d M Y, H:i') . ' WIB' : null,
+            'picked_up_label' => $refund->tgl_diambil ? $refund->tgl_diambil->copy()->timezone(Order::TIMEZONE)->translatedFormat('d M Y, H:i') . ' WIB' : null,
             'order_label' => $order?->placed_at ? $order->placed_at->translatedFormat('d F Y, H:i') . ' WIB' : '-',
             'reason' => $reasons[$refund->alasan] ?? $refund->alasan,
             'description' => $refund->detail_alasan,
-            'evidence' => $refund->foto_bukti ? [asset('storage/' . $refund->foto_bukti)] : [],
+            'evidence' => collect($refund->evidencePaths())->map(fn($path) => asset('storage/' . $path))->all(),
             'payment_method' => $transaction?->metode_pembayaran ?? '-',
             'payment_logo' => $this->paymentLogo($transaction?->metode_pembayaran),
             'midtrans_order_id' => $refund->id_pesanan,

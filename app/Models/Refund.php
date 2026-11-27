@@ -10,14 +10,13 @@ class Refund extends Model
     public $timestamps = false;
 
     public const STATUS_PENDING = 'pending';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_PICKED_UP = 'picked_up';
     public const STATUS_REFUNDED = 'refunded';
     public const STATUS_REJECTED = 'rejected';
 
-    /** Requested by the buyer through the refund form; an admin approves or rejects it. */
     public const SOURCE_CUSTOMER = 'pembeli';
-    /** Created automatically because a paid order was rejected/cancelled. No request needed. */
     public const SOURCE_SYSTEM = 'sistem';
-    /** Refunded directly in Midtrans (dashboard, chargeback); we only record it. */
     public const SOURCE_MIDTRANS = 'midtrans';
 
     public const SOURCE_LABELS = [
@@ -26,7 +25,6 @@ class Refund extends Model
         self::SOURCE_MIDTRANS => 'Processed in Midtrans',
     ];
 
-    /** Reason codes that are not in the customer's refund form. */
     public const SYSTEM_REASONS = [
         'order_rejected' => 'Order rejected',
         'midtrans_direct' => 'Refunded directly via Midtrans',
@@ -49,6 +47,8 @@ class Refund extends Model
         'jumlah_percobaan',
         'status',
         'tgl_pengajuan',
+        'tgl_disetujui',
+        'tgl_diambil',
         'tgl_diproses',
     ];
 
@@ -57,9 +57,10 @@ class Refund extends Model
         return [
             'jumlah_refund' => 'integer',
             'jumlah_percobaan' => 'integer',
-            // The account number is never stored in plain text.
             'nomor_rekening' => 'encrypted',
             'tgl_pengajuan' => 'datetime',
+            'tgl_disetujui' => 'datetime',
+            'tgl_diambil' => 'datetime',
             'tgl_diproses' => 'datetime',
         ];
     }
@@ -72,6 +73,36 @@ class Refund extends Model
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
+    }
+
+    public function isOpen(): bool
+    {
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_APPROVED, self::STATUS_PICKED_UP], true);
+    }
+
+    public function evidencePaths(): array
+    {
+        $raw = $this->foto_bukti;
+
+        if (blank($raw)) {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+
+        return is_array($decoded) ? array_values(array_filter($decoded)) : [$raw];
+    }
+
+    public function stage(): string
+    {
+        $customer = $this->asal_refund === self::SOURCE_CUSTOMER;
+
+        return match (true) {
+            !$this->isOpen() => 'final',
+            $customer && $this->status === self::STATUS_PENDING => 'review',
+            $customer && $this->status === self::STATUS_APPROVED => 'pickup',
+            default => 'payout',
+        };
     }
 
     public function hasBankDetails(): bool

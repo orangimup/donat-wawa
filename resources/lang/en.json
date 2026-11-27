@@ -841,6 +841,14 @@
     "Up :percent% from :month": "Up :percent% from :month",
     "Down :percent% from :month": "Down :percent% from :month",
     "Same as :month": "Same as :month",
-    "No data for :month": "No data for :month"
-
+    "No data for :month": "No data for :month",
+    "Your review is too long.": "Your review is too long.",
+    "Products you are reviewing": "Products you are reviewing",
+    "PNG, JPG or JPEG (max. 5MB each, up to 3 photos)": "PNG, JPG, or JPEG (max. 5MB each, up to 3 photos)",
+    "You can upload up to 3 photos.": "You can upload up to 3 photos.",
+    "Each photo must be 5MB or smaller.": "Each photo must be 5MB or smaller.",
+    "Only PNG, JPG or JPEG photos are allowed.": "Only PNG, JPG or JPEG photos are allowed.",
+    "Evidence must be an image.": "Evidence must be an image.",
+    "Remove photo": "Remove photo",
+    ":count of 3 photos": ":count of 3 photos"
 }

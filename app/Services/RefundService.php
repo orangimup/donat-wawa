@@ -96,10 +96,12 @@ class RefundService
             default => __('Refunds can only be requested for completed orders.'),
         };
     }
-    public function request(Order $order, string $reason, string $details, ?string $evidencePath, ?array $bank = null): ?Refund
+    public function request(Order $order, string $reason, string $details, array|string|null $evidence, ?array $bank = null): ?Refund
     {
         abort_unless($this->customerBlockReason($order) === null, 403);
         abort_if($this->orderNeedsBankDetails($order) && $bank === null, 422);
+
+        $paths = array_values(array_filter((array) $evidence));
 
         try {
             $refund = Refund::create([
@@ -107,7 +109,7 @@ class RefundService
                 'asal_refund' => Refund::SOURCE_CUSTOMER,
                 'alasan' => $reason,
                 'detail_alasan' => $details,
-                'foto_bukti' => $evidencePath,
+                'foto_bukti' => $paths === [] ? null : json_encode($paths, JSON_UNESCAPED_SLASHES),
                 'jumlah_refund' => $this->refundAmount($order),
                 'status' => Refund::STATUS_PENDING,
                 'tgl_pengajuan' => now(),
@@ -122,7 +124,7 @@ class RefundService
     }
     public function provideBankDetails(Refund $refund, array $bank, array $extra = []): bool
     {
-        if (!$refund->isPending() || $refund->asal_refund === Refund::SOURCE_MIDTRANS || !$this->isManual($refund)) {
+        if (!$refund->isOpen() || $refund->asal_refund === Refund::SOURCE_MIDTRANS || !$this->isManual($refund)) {
             return false;
         }
 
@@ -151,7 +153,17 @@ class RefundService
     {
         $refund = $refund->fresh();
 
-        if (!$refund->isPending()) {
+        if ($refund === null) {
+            return $refund;
+        }
+
+        $stage = $refund->stage();
+
+        if ($stage === 'review') {
+            return $this->acceptRequest($refund, $notes);
+        }
+
+        if ($stage !== 'payout') {
             return $refund;
         }
 
@@ -161,6 +173,51 @@ class RefundService
 
         return $this->process($refund);
     }
+
+    private function acceptRequest(Refund $refund, ?string $notes): Refund
+    {
+        $changes = ['status' => Refund::STATUS_APPROVED, 'tgl_disetujui' => now()];
+
+        if (filled($notes)) {
+            $changes['catatan_admin'] = $notes;
+        }
+
+        $accepted = Refund::query()
+            ->whereKey($refund->id)
+            ->where('status', Refund::STATUS_PENDING)
+            ->where('asal_refund', Refund::SOURCE_CUSTOMER)
+            ->update($changes) === 1;
+
+        $refund = $refund->fresh();
+
+        if ($accepted) {
+            app(NotificationService::class)->refundApproved($refund);
+        }
+
+        return $refund;
+    }
+
+    public function markPickedUp(Refund $refund, ?string $notes = null): bool
+    {
+        $changes = ['status' => Refund::STATUS_PICKED_UP, 'tgl_diambil' => now()];
+
+        if (filled($notes)) {
+            $changes['catatan_admin'] = $notes;
+        }
+
+        $done = Refund::query()
+            ->whereKey($refund->id)
+            ->where('status', Refund::STATUS_APPROVED)
+            ->where('asal_refund', Refund::SOURCE_CUSTOMER)
+            ->update($changes) === 1;
+
+        if ($done) {
+            app(NotificationService::class)->refundPickedUp($refund->fresh());
+        }
+
+        return $done;
+    }
+
     public function reject(Refund $refund, string $notes): bool
     {
         $rejected = Refund::query()
@@ -181,7 +238,9 @@ class RefundService
     }
     public function completeManually(Refund $refund, string $proofPath, ?string $notes = null): bool
     {
-        if (!$this->isManual($refund)) {
+        $refund = $refund->fresh();
+
+        if ($refund === null || $refund->stage() !== 'payout' || !$this->isManual($refund)) {
             return false;
         }
 
@@ -198,7 +257,7 @@ class RefundService
 
         $done = Refund::query()
             ->whereKey($refund->id)
-            ->where('status', Refund::STATUS_PENDING)
+            ->where('status', $refund->status)
             ->whereNotNull('nomor_rekening')
             ->whereNotNull('nama_bank')
             ->whereNotNull('nama_pemilik_rekening')
@@ -240,8 +299,7 @@ class RefundService
 
             $refund = $this->process($refund);
 
-            if ($refund->isPending() && ! $refund->hasBankDetails() && $this->isManual($refund)) {
-                // Paid by bank transfer: only the customer can say where to send the money back.
+            if ($refund->isPending() && !$refund->hasBankDetails() && $this->isManual($refund)) {
                 app(NotificationService::class)->refundNeedsBank($refund);
             }
 
@@ -278,8 +336,7 @@ class RefundService
             return;
         }
 
-        // A request was still open but the money was already returned from the Midtrans side.
-        if ($refund->isPending()) {
+        if ($refund->isOpen()) {
             $refund->update([
                 'status' => Refund::STATUS_REFUNDED,
                 'tgl_diproses' => now(),
@@ -292,7 +349,7 @@ class RefundService
     }
     public function process(Refund $refund): Refund
     {
-        if (!$refund->isPending() || $refund->order === null || $this->isManual($refund)) {
+        if ($refund->stage() !== 'payout' || $refund->order === null || $this->isManual($refund)) {
             return $refund;
         }
 
@@ -339,8 +396,6 @@ class RefundService
             'id_refund_midtrans' => filled($midtransRefundId) ? $midtransRefundId : $refund->id_refund_midtrans,
         ]);
 
-        // The webhook will say the same thing a moment later; doing it now keeps the admin
-        // pages right even where the webhook cannot reach us (localhost).
         $this->markTransactionRefunded($refund->id_pesanan);
 
         app(NotificationService::class)->refundRefunded($refund);

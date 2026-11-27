@@ -55,7 +55,6 @@
     padding: 18px 20px 20px 24px;
 }
 
-/* Flat accent bar on the left: dark (#7b2026) on step 1, fading lighter with every step */
 .order-refund-card::before {
     content: "";
     position: absolute;
@@ -86,7 +85,6 @@
     flex-shrink: 0;
 }
 
-/* Step 1: ordered items */
 .order-refund-items {
     list-style: none;
     margin: 0;
@@ -202,7 +200,6 @@
     color: #1e7a3e;
 }
 
-/* Dropdown (Step 2): same look as the admin "Sort by" / form dropdown (.admin-select) */
 .admin-select {
     position: relative;
 }
@@ -306,7 +303,6 @@
     font-weight: 600;
 }
 
-/* Select / textarea / input */
 .order-refund-textarea,
 .order-refund-input {
     width: 100%;
@@ -336,7 +332,6 @@
     gap: 12px;
 }
 
-/* Step 4: dropzone */
 .order-refund-dropzone {
     display: flex;
     flex-direction: column;
@@ -380,7 +375,6 @@
     color: var(--text-muted);
 }
 
-/* Footer actions */
 .order-refund-actions {
     grid-column: 1 / -1;
     display: flex;
@@ -457,7 +451,6 @@
     color: var(--text-dark);
 }
 
-/* ===== Bank-only refund page: one column, top to bottom ===== */
 .rb-page {
     max-width: 600px;
     margin: 0 auto;
@@ -514,7 +507,6 @@
     color: var(--text-muted);
 }
 
-/* Summary: amount first, then which order it belongs to */
 .rb-summary {
     margin-bottom: 18px;
     padding: 22px 24px;
@@ -602,7 +594,6 @@
     color: #fff;
 }
 
-/* Form card */
 .rb-card {
     padding: 26px 24px 24px;
     border: 1px solid var(--border-soft);
@@ -703,9 +694,81 @@
     color: var(--maroon);
 }
 
-/* Bank select: same height as the text inputs below it */
 .rb-field .admin-select-trigger {
     padding: 13px 16px;
     border-radius: 14px;
     font-size: 15px;
+}
+
+.order-refund-previews {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.order-refund-previews:empty {
+    display: none;
+    margin: 0;
+}
+
+.order-refund-preview {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+    background: #fff;
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+}
+
+.order-refund-preview img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.order-refund-preview span {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.order-refund-preview-remove {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.order-refund-preview-remove:hover {
+    background: var(--maroon);
+}
+
+.order-refund-evidence-error {
+    margin: 10px 0 0;
+    color: var(--maroon);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.order-refund-dropzone.is-full {
+    opacity: 0.6;
+    cursor: not-allowed;
 }

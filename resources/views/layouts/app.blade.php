@@ -549,7 +549,7 @@
                 var EVENTS = {
                     order_process: ['chef', 'warning'], order_rejected: ['x', 'error'], order_shipped: ['truck', 'info'],
                     order_done: ['check', 'success'], payment_success: ['receipt', 'success'], payment_failed: ['x', 'error'],
-                    refund_refunded: ['refund', 'success'], refund_rejected: ['x', 'error'], refund_needs_bank: ['refund', 'warning'],
+                    refund_refunded: ['refund', 'success'], refund_rejected: ['x', 'error'], refund_needs_bank: ['refund', 'warning'], refund_approved: ['refund', 'success'], refund_picked_up: ['refund', 'success'],
                     review_reminder: ['star', 'warning'], new_product: ['spark', 'info']
                 };
                 function pick(event) { return EVENTS[event] || ['bell', 'info']; }

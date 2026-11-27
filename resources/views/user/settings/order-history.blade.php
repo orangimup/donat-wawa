@@ -31,8 +31,13 @@
                 return ['refunded', __('Refunded')];
             }
 
-            if ($order['refund_status'] === 'pending') {
-                return ['refund-pending', ($order['refund']['source'] ?? null) === 'pembeli' ? __('Awaiting review') : __('Refund in progress')];
+            if (in_array($order['refund_status'], ['pending', 'approved', 'picked_up'], true)) {
+                return ['refund-pending', match (true) {
+                    $order['refund_status'] === 'approved' => __('Refund disetujui'),
+                    $order['refund_status'] === 'picked_up' => __('Barang diambil'),
+                    ($order['refund']['source'] ?? null) === 'pembeli' => __('Awaiting review'),
+                    default => __('Refund in progress'),
+                }];
             }
 
             return match ($order['status']) {

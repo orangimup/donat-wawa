@@ -59,9 +59,9 @@ class OrderHistoryController extends Controller
         $group = $request->get('status', 'all');
         $all = $this->orders($request->user()->id);
 
-        $inGroup = fn (string $key) => match ($key) {
-            'review' => $all->filter(fn (array $order) => $order['can_review']),
-            'refund' => $all->filter(fn (array $order) => $order['refund_status'] !== null),
+        $inGroup = fn(string $key) => match ($key) {
+            'review' => $all->filter(fn(array $order) => $order['can_review']),
+            'refund' => $all->filter(fn(array $order) => $order['refund_status'] !== null),
             default => $all->whereIn('status', self::STATUS_GROUPS[$key]),
         };
 
@@ -73,7 +73,7 @@ class OrderHistoryController extends Controller
 
         $orders = $group !== 'all' && isset($counts[$group]) ? $inGroup($group) : $all;
 
-        $orders = $orders->sortByDesc(fn (array $order) => $order['placed_at'])->values();
+        $orders = $orders->sortByDesc(fn(array $order) => $order['placed_at'])->values();
 
         $page = LengthAwarePaginator::resolveCurrentPage();
         $paginator = new LengthAwarePaginator(
@@ -84,7 +84,7 @@ class OrderHistoryController extends Controller
             ['path' => $request->url(), 'query' => $request->query()]
         );
 
-        $latest = $all->sortByDesc(fn (array $order) => $order['placed_at'])->first();
+        $latest = $all->sortByDesc(fn(array $order) => $order['placed_at'])->first();
         $lastUpdated = $latest
             ? ($latest['placed_at']->isToday()
                 ? __('Today') . ' ' . $latest['placed_at']->format('H:i')
@@ -129,9 +129,10 @@ class OrderHistoryController extends Controller
 
         return view('user.settings.order-review', [
             'order' => $this->present($model),
-            'reviewItems' => $reviewItems->map(fn (OrderItem $line) => [
+            'reviewItems' => $reviewItems->map(fn(OrderItem $line) => [
                 'id' => $line->id,
                 'name' => $line->name,
+                'qty' => $line->quantity,
                 'image' => $line->menuItem?->image_url ?? asset('assets/images/donat.png'),
             ]),
             'reviewLabels' => self::REVIEW_LABELS,
@@ -146,23 +147,36 @@ class OrderHistoryController extends Controller
         abort_unless($reviews->canReview($model), 403);
 
         $validated = $request->validate([
-            'reviews' => ['required', 'array'],
-            'reviews.*.rating' => ['nullable', 'integer', 'between:' . Review::MIN_RATING . ',' . Review::MAX_RATING],
-            'reviews.*.comment' => ['nullable', 'string', 'max:' . Review::COMMENT_MAX_LENGTH],
+            'rating' => ['required', 'integer', 'between:' . Review::MIN_RATING . ',' . Review::MAX_RATING],
+            'comment' => ['nullable', 'string', 'max:' . Review::COMMENT_MAX_LENGTH],
+        ], [
+            'rating.required' => __('Pilih rating untuk pesanan ini.'),
+            'rating.integer' => __('Pilih rating untuk pesanan ini.'),
+            'rating.between' => __('Pilih rating untuk pesanan ini.'),
+            'comment.max' => __('Ulasan terlalu panjang.'),
         ]);
 
-        if ($reviews->reviewableItems($model)->isEmpty()) {
+        $items = $reviews->reviewableItems($model);
+
+        if ($items->isEmpty()) {
             return redirect()
                 ->route('settings.orders.show', $order)
                 ->withErrors(['order' => __('Semua produk di pesanan ini sudah kamu ulas.')]);
         }
 
-        $created = $reviews->submit($request->user(), $model, $validated['reviews']);
+        $entries = $items->mapWithKeys(fn(OrderItem $line) => [
+            $line->id => [
+                'rating' => $validated['rating'],
+                'comment' => $validated['comment'] ?? null,
+            ],
+        ])->all();
+
+        $created = $reviews->submit($request->user(), $model, $entries);
 
         if ($created === 0) {
             return back()
                 ->withInput()
-                ->withErrors(['reviews' => __('Pilih rating untuk minimal satu produk.')]);
+                ->withErrors(['rating' => __('Pilih rating untuk pesanan ini.')]);
         }
 
         return redirect()
@@ -175,7 +189,7 @@ class OrderHistoryController extends Controller
 
         abort_if($found === null, 404);
 
-        if (! $orders->markDone($order, $request->user()->id)) {
+        if (!$orders->markDone($order, $request->user()->id)) {
             return redirect()
                 ->route('settings.orders.show', $order)
                 ->withErrors(['order' => __('Only an order that is on its way can be marked as received.')]);
@@ -271,10 +285,18 @@ class OrderHistoryController extends Controller
         $validated = $request->validate([
             'reason' => ['required', Rule::in(array_keys(self::REFUND_REASONS))],
             'details' => ['required', 'string', 'max:1000'],
-            'evidence' => ['nullable', 'image', 'max:5120'],
-        ] + ($needsBank ? RefundService::bankRules() : []));
+            'evidence' => ['nullable', 'array', 'max:3'],
+            'evidence.*' => ['image', 'max:5120'],
+        ] + ($needsBank ? RefundService::bankRules() : []), [
+            'evidence.max' => __('You can upload up to 3 photos.'),
+            'evidence.*.image' => __('Evidence must be an image.'),
+            'evidence.*.max' => __('Each photo must be 5MB or smaller.'),
+        ]);
 
-        $evidence = $request->file('evidence')?->store('refund-evidence', 'public');
+        $evidence = collect($request->file('evidence', []))
+            ->map(fn($file) => $file->store('refund-evidence', 'public'))
+            ->values()
+            ->all();
 
         $refund = $refunds->request(
             $model,
@@ -285,7 +307,7 @@ class OrderHistoryController extends Controller
         );
 
         if ($refund === null) {
-            if ($evidence !== null) {
+            if ($evidence !== []) {
                 Storage::disk('public')->delete($evidence);
             }
 
@@ -306,7 +328,7 @@ class OrderHistoryController extends Controller
 
         abort_if($model === null, 404);
 
-        if (! $this->canEditBank($refunds, $model)) {
+        if (!$this->canEditBank($refunds, $model)) {
             return redirect()
                 ->route('settings.orders.show', $order)
                 ->withErrors(['order' => __('There is no refund waiting for bank details on this order.')]);
@@ -326,7 +348,7 @@ class OrderHistoryController extends Controller
 
         abort_if($model === null, 404);
 
-        if (! $this->canEditBank($refunds, $model)) {
+        if (!$this->canEditBank($refunds, $model)) {
             return redirect()
                 ->route('settings.orders.show', $order)
                 ->withErrors(['order' => __('There is no refund waiting for bank details on this order.')]);
@@ -334,7 +356,7 @@ class OrderHistoryController extends Controller
 
         $validated = $request->validate(RefundService::bankRules());
 
-        if (! $refunds->provideBankDetails($model->refund, $validated)) {
+        if (!$refunds->provideBankDetails($model->refund, $validated)) {
             return redirect()
                 ->route('settings.orders.show', $order)
                 ->withErrors(['order' => __('There is no refund waiting for bank details on this order.')]);
@@ -357,7 +379,7 @@ class OrderHistoryController extends Controller
             ->where('user_id', $userId)
             ->latest('id')
             ->get()
-            ->map(fn (Order $order) => $this->present($order));
+            ->map(fn(Order $order) => $this->present($order));
     }
 
     private function canEditBank(RefundService $refunds, Order $order): bool
@@ -410,7 +432,7 @@ class OrderHistoryController extends Controller
         $refundService = app(RefundService::class);
         $canRefund = $refundService->customerBlockReason($order) === null;
 
-        $items = $order->items->map(fn (OrderItem $line) => [
+        $items = $order->items->map(fn(OrderItem $line) => [
             'name' => $line->name,
             'image' => $line->menuItem?->image_url ?? asset('assets/images/donat.png'),
             'price' => $line->price,
@@ -427,7 +449,7 @@ class OrderHistoryController extends Controller
             'method_logo' => $this->paymentLogo($order->transaction?->metode_pembayaran),
             'txn' => $order->transaction?->id_transaksi_midtrans,
             'items' => $items,
-            'items_label' => $items->map(fn (array $i) => $i['name'] . ' (' . $i['qty'] . ')')->implode(', '),
+            'items_label' => $items->map(fn(array $i) => $i['name'] . ' (' . $i['qty'] . ')')->implode(', '),
             'qty_total' => $items->sum('qty'),
             'subtotal' => $order->subtotal,
             'shipping_fee' => $order->shipping_fee,
@@ -457,12 +479,14 @@ class OrderHistoryController extends Controller
                 'amount' => $order->refund->jumlah_refund,
                 'notes' => $order->refund->catatan_admin,
                 'requested_at' => $order->refund->tgl_pengajuan?->copy()->timezone(Order::TIMEZONE),
+                'approved_at' => $order->refund->tgl_disetujui?->copy()->timezone(Order::TIMEZONE),
+                'picked_up_at' => $order->refund->tgl_diambil?->copy()->timezone(Order::TIMEZONE),
                 'processed_at' => $order->refund->tgl_diproses?->copy()->timezone(Order::TIMEZONE),
             ] : null,
             'refund_needs_bank' => $order->refund !== null
                 && $order->refund->isPending()
                 && $order->refund->asal_refund !== Refund::SOURCE_MIDTRANS
-                && ! $order->refund->hasBankDetails()
+                && !$order->refund->hasBankDetails()
                 && $refundService->isManual($order->refund),
         ];
     }

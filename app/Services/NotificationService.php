@@ -11,15 +11,9 @@ use App\Notifications\CustomerNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Throwable;
-
-/**
- * One place that knows who gets told about what. Call sites stay one line, and a notification
- * problem (e.g. the table is missing) is logged but never breaks an order, payment or refund.
- */
+ 
 class NotificationService
-{
-    /* ---------- customer: orders ---------- */
-
+{ 
     public function orderProcess(Order $order): void
     {
         $this->toCustomer($order, 'order_process');
@@ -34,8 +28,6 @@ class NotificationService
     {
         $this->toCustomer($order, 'order_shipped');
     }
-
-    /** $byCustomer: the customer pressed "received" (or reviewed), so only the admin needs to hear about it. */
     public function orderCompleted(Order $order, bool $byCustomer): void
     {
         if (! $byCustomer) {
@@ -55,9 +47,7 @@ class NotificationService
     {
         $this->toCustomer($order, 'payment_failed');
     }
-
-    /* ---------- refunds ---------- */
-
+ 
     public function refundRequested(Refund $refund): void
     {
         $this->safely(function () use ($refund) {
@@ -104,15 +94,23 @@ class NotificationService
         $this->toCustomerFromRefund($refund, 'refund_rejected');
     }
 
+    public function refundApproved(Refund $refund): void
+    {
+        $this->toCustomerFromRefund($refund, 'refund_approved');
+    }
+
+    public function refundPickedUp(Refund $refund): void
+    {
+        $this->toCustomerFromRefund($refund, 'refund_picked_up');
+    }
+
     public function refundNeedsBank(Refund $refund): void
     {
         $this->toCustomerFromRefund($refund, 'refund_needs_bank', function (Order $order) {
             return route('settings.orders.refund.bank', $order->id, false);
         });
     }
-
-    /* ---------- reviews & products ---------- */
-
+ 
     public function reviewCreated(Order $order, User $reviewer): void
     {
         $this->safely(function () use ($order, $reviewer) {
@@ -155,9 +153,7 @@ class NotificationService
                 });
         });
     }
-
-    /* ---------- plumbing ---------- */
-
+ 
     private function orderPayload(Order $order, bool $forAdmin = false): array
     {
         return [

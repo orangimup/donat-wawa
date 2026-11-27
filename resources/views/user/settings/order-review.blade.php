@@ -27,43 +27,46 @@
                         <p class="order-review-error" role="alert">{{ $errors->first() }}</p>
                     @endif
 
-                    @foreach ($reviewItems as $item)
-                        <div class="order-review-item" data-review-item>
+                    <div class="order-review-products">
+                        <p class="order-review-products-title">{{ __('Products you are reviewing') }}</p>
+
+                        @foreach ($reviewItems as $item)
                             <div class="order-review-product">
                                 <img src="{{ $item['image'] }}" alt="" width="56" height="56">
                                 <strong>{{ $item['name'] }}</strong>
+                                <span class="order-review-product-qty">{{ __('Quantity') }}: {{ $item['qty'] }}</span>
                             </div>
+                        @endforeach
+                    </div>
 
-                            <div class="order-review-section">
-                                <p>{{ __("How was your experience with Donat Wawa's warm artisanal donuts this time?") }}</p>
+                    <div class="order-review-group" data-review-item>
+                        <div class="order-review-section">
+                            <p>{{ __("How was your experience with Donat Wawa's warm artisanal donuts this time?") }}</p>
 
-                                <div class="order-review-rating-box">
-                                    <div class="order-review-stars" data-stars>
-                                        @for ($i = 1; $i <= 5; $i++)
-                                            <button type="button" class="order-review-star" data-value="{{ $i }}"
-                                                aria-label="{{ $i }} star">
-                                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                                    <path
-                                                        d="M12 2.5l2.98 6.04 6.67.97-4.83 4.7 1.14 6.65L12 17.9l-5.96 3.13 1.14-6.65-4.83-4.7 6.67-.97L12 2.5z" />
-                                                </svg>
-                                            </button>
-                                        @endfor
-                                    </div>
-                                    <p class="order-review-rating-label" data-label></p>
-                                    {{-- Empty = this product is skipped. --}}
-                                    <input type="hidden" name="reviews[{{ $item['id'] }}][rating]" data-rating-input
-                                        value="{{ old('reviews.' . $item['id'] . '.rating') }}">
+                            <div class="order-review-rating-box">
+                                <div class="order-review-stars" data-stars>
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        <button type="button" class="order-review-star" data-value="{{ $i }}"
+                                            aria-label="{{ $i }} star">
+                                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                                <path
+                                                    d="M12 2.5l2.98 6.04 6.67.97-4.83 4.7 1.14 6.65L12 17.9l-5.96 3.13 1.14-6.65-4.83-4.7 6.67-.97L12 2.5z" />
+                                            </svg>
+                                        </button>
+                                    @endfor
                                 </div>
-                            </div>
-
-                            <div class="order-review-section">
-                                <div class="order-review-comment-box">
-                                    <textarea name="reviews[{{ $item['id'] }}][comment]" rows="3" maxlength="1000"
-                                        placeholder="{{ __('Write your review here...') }}">{{ old('reviews.' . $item['id'] . '.comment') }}</textarea>
-                                </div>
+                                <p class="order-review-rating-label" data-label></p>
+                                <input type="hidden" name="rating" data-rating-input value="{{ old('rating') }}">
                             </div>
                         </div>
-                    @endforeach
+
+                        <div class="order-review-section">
+                            <div class="order-review-comment-box">
+                                <textarea name="comment" rows="3" maxlength="1000"
+                                    placeholder="{{ __('Write your review here...') }}">{{ old('comment') }}</textarea>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="order-review-actions">
                         <a href="{{ route('settings.orders.show', $order['id']) }}"

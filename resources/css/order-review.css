@@ -226,3 +226,29 @@ body {
     color: var(--maroon);
     font-weight: 600;
 }
+
+.order-review-products {
+    padding-bottom: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border-soft);
+}
+
+.order-review-products-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 1rem;
+    font-family: var(--font-label);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.order-review-product-qty {
+    margin-left: auto;
+    font-family: var(--font-label);
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}

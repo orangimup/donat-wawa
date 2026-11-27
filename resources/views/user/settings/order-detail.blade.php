@@ -14,7 +14,6 @@
     @php
         $formatRupiah = fn ($amount) => 'Rp ' . number_format($amount, 0, ',', '.');
 
-        // Paid -> admin confirms -> being prepared -> on the way -> completed.
         $fmtTime = fn ($at) => $at ? $at->format('H:i') . ' WIB' : null;
         $steps = [
             ['key' => 'paid', 'label' => __('Order Paid'), 'time' => $fmtTime($order['paid_at'])],
@@ -23,7 +22,6 @@
             ['key' => 'shipped', 'label' => __('On the Way'), 'time' => $fmtTime($order['shipped_at'])],
             ['key' => 'completed', 'label' => __('Order Completed'), 'time' => $fmtTime($order['completed_at'])],
         ];
-        // Index of the step the order is at now. "waiting" + paid means the admin has not confirmed yet.
         $currentIndex = match (true) {
             $order['status'] === 'waiting' && ! $order['paid'] => 0,
             $order['status'] === 'waiting' => 1,
@@ -148,7 +146,159 @@
             </div>
         @endif
 
-        @unless ($isCancelled)
+        @if ($order['refund'])
+            @php
+                $refund = $order['refund'];
+                $byCustomer = $refund['source'] === 'pembeli';
+                $refundSteps = [
+                    ['label' => __('Diajukan'), 'at' => $refund['requested_at']],
+                    ['label' => __('Disetujui'), 'at' => $refund['approved_at']],
+                    ['label' => __('Barang Diambil'), 'at' => $refund['picked_up_at']],
+                    ['label' => __('Selesai'), 'at' => $refund['processed_at']],
+                ];
+                $refundIndex = match ($refund['status']) {
+                    'approved' => 1,
+                    'picked_up' => 2,
+                    'refunded' => 3,
+                    default => 0,
+                };
+                $refundDone = $refund['status'] === 'refunded';
+                $showRefundSteps = $byCustomer && $refund['status'] !== 'rejected';
+                $refundPill = match (true) {
+                    $refund['status'] === 'refunded' => __('Refunded'),
+                    $refund['status'] === 'rejected' => __('Refund rejected'),
+                    $refund['status'] === 'approved' => __('Disetujui'),
+                    $refund['status'] === 'picked_up' => __('Barang diambil'),
+                    $byCustomer => __('Ditinjau'),
+                    $order['refund_needs_bank'] => __('Waiting for bank account'),
+                    default => __('Refund in progress'),
+                };
+                $refundTitle = match (true) {
+                    $refund['status'] === 'refunded' => __('Refund selesai'),
+                    $refund['status'] === 'rejected' => __('Pengajuan refund ditolak'),
+                    $refund['status'] === 'approved' => __('Pengajuan disetujui'),
+                    $refund['status'] === 'picked_up' => __('Barang sudah diambil'),
+                    $byCustomer => __('Pengajuan sedang ditinjau'),
+                    default => __('Refund diproses'),
+                };
+                $refundMessage = match (true) {
+                    $refund['status'] === 'refunded' => __('Dana sudah dikembalikan ke kamu.'),
+                    $refund['status'] === 'rejected' => __('Pengajuan refund kamu tidak dapat disetujui.'),
+                    $refund['status'] === 'approved' => __('Kurir toko akan mengambil pesananmu. Mohon siapkan barangnya dan pastikan kamu bisa dihubungi.'),
+                    $refund['status'] === 'picked_up' => __('Barang sudah kami terima dan sedang diperiksa. Dana akan segera dikembalikan.'),
+                    $byCustomer => __('Admin Donat Wawa sedang memeriksa bukti yang kamu kirim.'),
+                    $order['refund_needs_bank'] => __('Your order was cancelled, so your payment will be refunded. Add your bank account so we can send it.'),
+                    default => __('Your refund is being processed.'),
+                };
+            @endphp
+            <div class="od-card od-refund-status od-refund-status--{{ $refund['status'] }}">
+                <div class="od-refund-status-head">
+                    <h2 class="od-card-title">{{ __('Refund') }}</h2>
+                    <span class="od-refund-status-pill">{{ $refundPill }}</span>
+                </div>
+                <div class="od-refund-banner od-refund-banner--{{ $refund['status'] }}">
+                    <span class="od-refund-banner-icon" aria-hidden="true">
+                        @switch($refund['status'])
+                            @case('approved')
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"></path>
+                                    <path d="M15 18H9"></path>
+                                    <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"></path>
+                                    <circle cx="17" cy="18" r="2"></circle>
+                                    <circle cx="7" cy="18" r="2"></circle>
+                                </svg>
+                                @break
+                            @case('picked_up')
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                                    <path d="m3.27 6.96 8.73 5.05 8.73-5.05"></path>
+                                    <path d="M12 22.08V12"></path>
+                                </svg>
+                                @break
+                            @case('refunded')
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 6 9 17l-5-5"></path>
+                                </svg>
+                                @break
+                            @case('rejected')
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 6 6 18M6 6l12 12"></path>
+                                </svg>
+                                @break
+                            @default
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 6v6l4 2"></path>
+                                </svg>
+                        @endswitch
+                    </span>
+                    <div class="od-refund-banner-text">
+                        <strong>{{ $refundTitle }}</strong>
+                        <span>{{ $refundMessage }}</span>
+                    </div>
+                </div>
+
+                @if ($showRefundSteps)
+                    <div class="od-stepper od-refund-stepper {{ $refundDone ? 'od-stepper--done' : '' }}">
+                        @foreach ($refundSteps as $index => $step)
+                            @php
+                                $state = ($index < $refundIndex || $refundDone) ? 'done' : ($index === $refundIndex ? 'current' : 'upcoming');
+                            @endphp
+                            <div class="od-step od-step--{{ $state }}" style="--i: {{ $index }}">
+                                <span class="od-step-dot">
+                                    @if ($state === 'done')
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M20 6 9 17l-5-5"></path>
+                                        </svg>
+                                    @else
+                                        <span class="od-step-num">{{ $index + 1 }}</span>
+                                    @endif
+                                </span>
+                                <span class="od-step-label">{{ $step['label'] }}</span>
+                                <span class="od-step-time">
+                                    @if ($state !== 'upcoming' && $step['at'])
+                                        {{ $step['at']->format('d M, H:i') }}
+                                    @else
+                                        &mdash;
+                                    @endif
+                                </span>
+                            </div>
+                            @if (! $loop->last)
+                                <div class="od-step-line {{ $index < $refundIndex || $refundDone ? 'is-filled' : '' }} {{ $index === $refundIndex && ! $refundDone ? 'is-progress' : '' }}"
+                                    style="--i: {{ $index }}"></div>
+                            @endif
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="od-summary-row">
+                    <span>{{ __('Refund Amount') }}</span>
+                    <strong>{{ $formatRupiah($refund['amount']) }}</strong>
+                </div>
+                <div class="od-summary-row">
+                    <span>{{ __('Penyelesaian') }}</span>
+                    <span>{{ __('Pengembalian dana') }}</span>
+                </div>
+                @if ($refund['requested_at'])
+                    <div class="od-summary-row">
+                        <span>{{ $byCustomer ? __('Requested on') : __('Started on') }}</span>
+                        <span>{{ $refund['requested_at']->format('d M Y, H:i') }} WIB</span>
+                    </div>
+                @endif
+                @if ($refund['processed_at'])
+                    <div class="od-summary-row">
+                        <span>{{ __('Processed on') }}</span>
+                        <span>{{ $refund['processed_at']->format('d M Y, H:i') }} WIB</span>
+                    </div>
+                @endif
+                @if ($refund['notes'] && in_array($refund['status'], ['rejected', 'approved', 'picked_up', 'refunded'], true))
+                    <p class="od-refund-status-note">{{ __('Note') }}: {{ $refund['notes'] }}</p>
+                @endif
+            </div>
+        @endif
+
+        @if (! $isCancelled && (! $order['refund'] || $order['refund']['status'] === 'rejected'))
             <div class="od-card od-stepper-card">
                 <div class="od-stepper {{ $allDone ? 'od-stepper--done' : '' }}">
                     @foreach ($steps as $index => $step)
@@ -215,7 +365,7 @@
                     @endforeach
                 </div>
             </div>
-        @endunless
+        @endif
 
         <div class="od-card">
             <h2 class="od-card-title">
@@ -270,7 +420,6 @@
                             <img src="{{ $order['method_logo'] }}" alt="{{ $order['method'] }}">
                         </span>
                     @else
-                        {{-- No logo for this method (e.g. credit card, unpaid): fall back to the name --}}
                         <strong class="od-method-name">{{ $order['method'] !== '-' ? $order['method'] : __('Unpaid') }}</strong>
                     @endif
                 </div>
@@ -291,55 +440,6 @@
                 @endif
             </div>
         </div>
-
-        @if ($order['refund'])
-            @php
-                $refund = $order['refund'];
-                // "pembeli" = the customer asked for it. Anything else was started by the system
-                // (the order was cancelled), so the customer did not "request" anything.
-                $byCustomer = $refund['source'] === 'pembeli';
-                $refundPill = match (true) {
-                    $refund['status'] === 'refunded' => __('Refunded'),
-                    $refund['status'] === 'rejected' => __('Refund rejected'),
-                    $byCustomer => __('Awaiting review'),
-                    $order['refund_needs_bank'] => __('Waiting for bank account'),
-                    default => __('Refund in progress'),
-                };
-                $refundMessage = match (true) {
-                    $refund['status'] === 'refunded' => __('Your payment has been refunded.'),
-                    $refund['status'] === 'rejected' => __('Your refund request was rejected.'),
-                    $byCustomer => __('Your refund request is waiting for review.'),
-                    $order['refund_needs_bank'] => __('Your order was cancelled, so your payment will be refunded. Add your bank account so we can send it.'),
-                    default => __('Your refund is being processed.'),
-                };
-            @endphp
-            <div class="od-card od-refund-status od-refund-status--{{ $refund['status'] }}">
-                <div class="od-refund-status-head">
-                    <h2 class="od-card-title">{{ __('Refund') }}</h2>
-                    <span class="od-refund-status-pill">{{ $refundPill }}</span>
-                </div>
-                <p>{{ $refundMessage }}</p>
-                <div class="od-summary-row">
-                    <span>{{ __('Refund Amount') }}</span>
-                    <strong>{{ $formatRupiah($refund['amount']) }}</strong>
-                </div>
-                @if ($refund['requested_at'])
-                    <div class="od-summary-row">
-                        <span>{{ $byCustomer ? __('Requested on') : __('Started on') }}</span>
-                        <span>{{ $refund['requested_at']->format('d M Y, H:i') }} WIB</span>
-                    </div>
-                @endif
-                @if ($refund['processed_at'])
-                    <div class="od-summary-row">
-                        <span>{{ __('Processed on') }}</span>
-                        <span>{{ $refund['processed_at']->format('d M Y, H:i') }} WIB</span>
-                    </div>
-                @endif
-                @if ($refund['notes'] && $refund['status'] === 'rejected')
-                    <p class="od-refund-status-note">{{ __('Note') }}: {{ $refund['notes'] }}</p>
-                @endif
-            </div>
-        @endif
 
         <div class="od-grid-2">
             <div class="od-card">
@@ -375,7 +475,6 @@
             </div>
         </div>
 
-        {{-- Replaces the old "Contact Customer Service" bar. --}}
         @if (! $order['refund'] && $order['can_refund'])
             <div class="od-card od-refund-notice od-refund-prompt">
                 <div class="od-refund-notice-text">

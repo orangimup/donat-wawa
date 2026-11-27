@@ -5,18 +5,8 @@ namespace App\Notifications;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\Notification;
 
-/**
- * Everything a customer can be notified about.
- *
- * The Settings > Notifications toggles are enforced HERE, in via(): when the matching toggle is off,
- * via() returns [] and Laravel stores nothing, so nothing ever reaches the snackbar or the bell.
- */
 class CustomerNotification extends Notification
 {
-    /**
-     * event => [preference column, icon].
-     * A null column means "always send" (the customer has to act on it, e.g. enter a bank account).
-     */
     public const EVENTS = [
         'order_process' => ['notif_order_confirmation', 'process'],
         'order_rejected' => ['notif_order_confirmation', 'rejected'],
@@ -26,6 +16,8 @@ class CustomerNotification extends Notification
         'payment_failed' => ['notif_order_status', 'payment'],
         'refund_refunded' => ['notif_order_status', 'refund'],
         'refund_rejected' => ['notif_order_status', 'refund'],
+        'refund_approved' => ['notif_order_status', 'refund'],
+        'refund_picked_up' => ['notif_order_status', 'refund'],
         'refund_needs_bank' => [null, 'refund'],
         'review_reminder' => ['notif_review_reminder', 'review'],
         'new_product' => ['notif_new_product', 'product'],
@@ -72,6 +64,8 @@ class CustomerNotification extends Notification
             'payment_failed' => [__('Payment was not completed'), $code],
             'refund_refunded' => [__('Your refund has been sent'), $code],
             'refund_rejected' => [__('Your refund request was declined'), $code],
+            'refund_approved' => [__('Your refund request was approved'), __('Our courier will pick up the item. :code', ['code' => $code])],
+            'refund_picked_up' => [__('Your item has been picked up'), __('We are checking it and will send your refund soon. :code', ['code' => $code])],
             'refund_needs_bank' => [__('Add your bank account to get your refund'), $code],
             'review_reminder' => [__('How was your order?'), __('Leave a quick review for :code', ['code' => $code])],
             'new_product' => [__('New on the menu'), (string) ($data['name'] ?? '')],

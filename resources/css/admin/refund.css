@@ -291,7 +291,12 @@
 }
 
 .refund-status-approved {
-    background: #2ea44f;
+    background: #2f6fed;
+    color: #fff;
+}
+
+.refund-status-picked_up {
+    background: #7c3aed;
     color: #fff;
 }
 
@@ -767,6 +772,32 @@
 }
 
 /* Bank transfer box: everything the admin needs to copy, in one place */
+.refund-action-proof {
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.refund-action-proof .refund-fact-label {
+    margin-bottom: 8px;
+}
+
+.refund-action-proof .refund-evidence-list {
+    display: block;
+}
+
+.refund-action-proof .refund-evidence-item {
+    width: 100%;
+    height: auto;
+    background: #fff;
+}
+
+.refund-action-proof .refund-evidence-item img {
+    width: 100%;
+    height: auto;
+    max-height: 480px;
+    object-fit: contain;
+}
+
 .refund-transfer {
     margin-top: 16px;
     padding: 6px 20px;

@@ -154,14 +154,14 @@
                                 <span class="refund-status-pill refund-status-{{ $refund['status'] }}">
                                     {{ __($statusLabels[$refund['status']]) }}
                                 </span>
-                                @if ($refund['status'] === 'pending' && $refund['needs_bank'])
+                                @if ($refund['stage'] === 'payout' && $refund['needs_bank'])
                                     <span class="refund-cell-hint is-warn">{{ __('Waiting for bank details') }}</span>
-                                @elseif ($refund['status'] === 'pending' && $refund['error'])
+                                @elseif ($refund['stage'] === 'payout' && $refund['error'])
                                     <span class="refund-cell-hint is-danger">{{ __('Midtrans failed · retry') }}</span>
                                 @endif
                             </td>
                             <td class="is-action">
-                                @if ($refund['status'] === 'pending')
+                                @if ($refund['stage'] !== 'final')
                                     <a href="{{ route('admin.refund.show', $refund['id']) }}" class="refund-icon-btn"
                                         title="{{ __('Process refund') }}" aria-label="{{ __('Process refund :p1', ['p1' => $refund['code']]) }}">
                                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"

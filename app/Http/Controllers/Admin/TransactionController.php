@@ -108,20 +108,12 @@ class TransactionController extends Controller
 
         $paidSince = fn($from, $to = null) => Transaction::query()
             ->join('orders', 'orders.id_pesanan', '=', 'transactions.id_pesanan')
-            ->whereIn('transactions.status', [Transaction::STATUS_SETTLED, Transaction::STATUS_REFUNDED])
+            ->where('transactions.status', Transaction::STATUS_SETTLED)
             ->where('transactions.waktu_bayar', '>=', $from)
             ->when($to, fn($q) => $q->where('transactions.waktu_bayar', '<', $to));
 
         $revenue = (int) $paidSince($monthStart)->sum('orders.total');
         $lastRevenue = (int) $paidSince($lastMonthStart, $monthStart)->sum('orders.total');
-
-        // Money handed back is not revenue.
-        $refunded = (int) Transaction::query()
-            ->join('orders', 'orders.id_pesanan', '=', 'transactions.id_pesanan')
-            ->where('transactions.status', Transaction::STATUS_REFUNDED)
-            ->where('transactions.waktu_bayar', '>=', $monthStart)
-            ->sum('orders.total');
-        $revenue -= $refunded;
 
         $badge = $lastRevenue > 0
             ? sprintf('%+d%%', round((($revenue - $lastRevenue) / $lastRevenue) * 100))

@@ -11,7 +11,18 @@
     @php
         $formatRupiah = fn ($amount) => 'Rp ' . number_format($amount, 0, ',', '.');
 
-        $decision = old('decision', 'approve');
+        $decision = old('decision', $stage === 'pickup' ? 'pickup' : 'approve');
+        $approveValue = $stage === 'pickup' ? 'pickup' : 'approve';
+        $approveLabel = match ($stage) {
+            'review' => __('Approve'),
+            'pickup' => __('Item picked up'),
+            default => __('Process refund'),
+        };
+            $submitLabel = match ($stage) {
+            'review' => __('Approve Request'),
+            'pickup' => __('Mark as Picked Up'),
+            default => __('Process Refund'),
+        };
     @endphp
 
     <div class="admin-page-header">
@@ -121,14 +132,6 @@
                         <p class="refund-hint">{{ __('The customer has not entered a bank account yet. The transfer can be made once they do (they see a button on their order page).') }}</p>
                     @endif
 
-                    @if ($refund['proof'])
-                        <span class="refund-fact-label">{{ __('Transfer proof') }}</span>
-                        <div class="refund-evidence-list">
-                            <a href="{{ $refund['proof'] }}" target="_blank" rel="noopener" class="refund-evidence-item">
-                                <img src="{{ $refund['proof'] }}" alt="{{ __('Transfer proof') }}">
-                            </a>
-                        </div>
-                    @endif
                 @endif
             </div>
         </div>
@@ -136,24 +139,38 @@
         <div class="refund-card refund-action-card">
             <h2 class="refund-card-title"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.2 8 8 9 4.8-1 8-4.5 8-9V6l-8-3Z"></path><path d="m9 12 2.2 2.2L15.5 10"></path></svg> {{ __('Processing Action') }}</h2>
 
+            @if ($refund['approved_label'])
+                <p class="refund-hint">{{ __('Approved on') }}: {{ $refund['approved_label'] }}</p>
+            @endif
+            @if ($refund['picked_up_label'])
+                <p class="refund-hint">{{ __('Item picked up on') }}: {{ $refund['picked_up_label'] }}</p>
+            @endif
+
             @if ($isFinal)
                 @php $isRefunded = $refund['status'] === 'refunded'; @endphp
 
-                <div class="refund-result {{ $isRefunded ? 'is-success' : 'is-danger' }}">
-                    <span class="refund-result-icon" aria-hidden="true">
-                        @if ($isRefunded)
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
-                        @else
+                @if (! $isRefunded)
+                    <div class="refund-result is-danger">
+                        <span class="refund-result-icon" aria-hidden="true">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
-                        @endif
-                    </span>
-                    <div>
-                        <strong>
-                            {{ $isRefunded ? ($refund['is_manual'] ? __('Refund transferred to the customer') : __('Refund sent to the customer')) : __('Refund request rejected') }}
-                        </strong>
-                        {{ __('This request has been finalized and can no longer be changed.') }}
+                        </span>
+                        <div>
+                            <strong>{{ __('Refund request rejected') }}</strong>
+                            {{ __('This request has been finalized and can no longer be changed.') }}
+                        </div>
                     </div>
-                </div>
+                @endif
+
+                @if ($refund['is_manual'] && $refund['proof'])
+                    <div class="refund-action-proof">
+                        <span class="refund-fact-label">{{ __('Transfer proof') }}</span>
+                        <div class="refund-evidence-list">
+                            <a href="{{ $refund['proof'] }}" target="_blank" rel="noopener" class="refund-evidence-item">
+                                <img src="{{ $refund['proof'] }}" alt="{{ __('Transfer proof') }}">
+                            </a>
+                        </div>
+                    </div>
+                @endif
 
                 @if ($refund['notes'])
                     <div class="refund-result is-note">
@@ -164,14 +181,14 @@
                     </div>
                 @endif
             @else
-                @if ($refund['is_manual'] && ! $refund['bank'])
+                @if ($stage === 'payout' && $refund['is_manual'] && ! $refund['bank'])
                     <div class="refund-notice">
                         <strong>{{ __('Waiting for the customer\'s bank account') }}</strong>
                         {{ __('This order was paid by bank VA, so the money is transferred by hand. The button below unlocks once the customer fills in their bank account (My Orders → Isi Rekening).') }}
                     </div>
                 @endif
 
-                @if ($refund['error'])
+                @if ($stage === 'payout' && $refund['error'])
                     <div class="refund-result">
                         <div>
                             <strong>{{ __('The last attempt with Midtrans failed') }}</strong>
@@ -180,7 +197,11 @@
                     </div>
                 @endif
 
-                @if ($refund['is_manual'])
+                @if ($stage === 'review')
+                    <p class="refund-hint">{{ __('Approving does not send any money yet. Our courier picks up the item first, and the refund is processed after it arrives.') }}</p>
+                @elseif ($stage === 'pickup')
+                    <p class="refund-hint">{{ __('Send the courier to pick up the item from the customer. Once it is in your hands, mark it as picked up so the refund can be processed.') }}</p>
+                @elseif ($refund['is_manual'])
                     <p class="refund-hint">{{ __('Transfer the money to the account shown, then upload the proof and confirm.') }} {{ $isCustomerRequest ? __('You can also reject the request.') : '' }}</p>
                 @elseif ($isCustomerRequest)
                     <p class="refund-hint">{{ __('Approving sends the refund to the customer through Midtrans straight away.') }}</p>
@@ -191,25 +212,29 @@
                 <form id="refundForm" method="POST" action="{{ route('admin.refund.finalize', $refund['id']) }}" enctype="multipart/form-data" novalidate>
                     @csrf
 
-                    @if ($isCustomerRequest)
-                        <div class="refund-field">
-                            <span class="refund-field-label">{{ __('Determination Status') }}</span>
-                            <div class="refund-segmented" role="radiogroup" aria-label="{{ __('Determination status') }}">
-                                <label>
-                                    <input type="radio" name="decision" value="approve"
-                                        {{ $decision === 'approve' ? 'checked' : '' }}>
-                                    <span>{{ __('Approve') }}</span>
-                                </label>
-                                <label>
-                                    <input type="radio" name="decision" value="reject"
-                                        {{ $decision === 'reject' ? 'checked' : '' }}>
-                                    <span>{{ __('Reject') }}</span>
-                                </label>
+                                        @if ($isCustomerRequest)
+                        @if ($stage === 'review')
+                            <div class="refund-field">
+                                <span class="refund-field-label">{{ __('Determination Status') }}</span>
+                                <div class="refund-segmented" role="radiogroup" aria-label="{{ __('Determination status') }}">
+                                    <label>
+                                        <input type="radio" name="decision" value="approve"
+                                            {{ $decision === 'approve' ? 'checked' : '' }}>
+                                        <span>{{ __('Approve') }}</span>
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="decision" value="reject"
+                                            {{ $decision === 'reject' ? 'checked' : '' }}>
+                                        <span>{{ __('Reject') }}</span>
+                                    </label>
+                                </div>
+                                @error('decision')
+                                    <span class="admin-form-error">{{ $message }}</span>
+                                @enderror
                             </div>
-                            @error('decision')
-                                <span class="admin-form-error">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        @else
+                            <input type="hidden" name="decision" value="{{ $approveValue }}">
+                        @endif
 
                         <div class="refund-field">
                             <label class="refund-field-label" for="notes">
@@ -221,11 +246,11 @@
                             <span class="admin-form-error" id="notesError">@error('notes'){{ $message }}@enderror</span>
                         </div>
 
-                        @if ($refund['is_manual'])
+                        @if ($stage === 'payout' && $refund['is_manual'])
                             @include('admin.partials.refund-proof-field')
                         @endif
 
-                        <button type="submit" class="refund-submit">{{ __('Finalize Refund') }}</button>
+                        <button type="submit" class="refund-submit" @disabled($stage === 'payout' && $refund['is_manual'] && ! $refund['bank'])>{{ $submitLabel }}</button>
                     @else
                         <input type="hidden" name="decision" value="approve">
 

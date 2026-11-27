@@ -868,5 +868,14 @@
     "Up :percent% from :month": "Naik :percent% dari :month",
     "Down :percent% from :month": "Turun :percent% dari :month",
     "Same as :month": "Sama seperti :month",
-    "No data for :month": "Belum ada data :month"
+    "No data for :month": "Belum ada data :month",
+    "Your review is too long.": "Ulasanmu terlalu panjang.",
+    "Products you are reviewing": "Produk yang sedang Anda ulas",
+    "PNG, JPG or JPEG (max. 5MB each, up to 3 photos)": "PNG, JPG, atau JPEG (maks. 5MB per foto, sampai 3 foto)",
+    "You can upload up to 3 photos.": "Kamu bisa mengunggah maksimal 3 foto.",
+    "Each photo must be 5MB or smaller.": "Setiap foto maksimal 5MB.",
+    "Only PNG, JPG or JPEG photos are allowed.": "Hanya foto PNG, JPG, atau JPEG yang diperbolehkan.",
+    "Evidence must be an image.": "Bukti harus berupa gambar.",
+    "Remove photo": "Hapus foto",
+    ":count of 3 photos": ":count dari 3 foto"
 }
